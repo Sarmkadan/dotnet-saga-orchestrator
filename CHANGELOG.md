@@ -14,6 +14,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message queue integration (RabbitMQ, Kafka)
 - Web dashboard for saga monitoring
 
+## [2.0.0] - 2026-03-01
+
+### Changed
+- Default container port changed from 80 to 8080 (non-root best practice)
+- Docker runtime base image switched from `dotnet/runtime` to `dotnet/aspnet` for health check middleware and future REST API support
+- Multi-stage Dockerfile rewritten with layer-cached restore for faster rebuilds
+- Docker Compose file updated to Compose Specification (removed deprecated `version` key)
+- HEALTHCHECK start period increased to 10s for cold-start reliability
+- Container user hardened with restricted shell (`/sbin/nologin`)
+
+### Added
+- `docs/MIGRATION_v2.md` - migration guide covering all breaking changes from v1.x to v2.0
+
+### Breaking
+- Port 80 is no longer used; update all port mappings and health check URLs to 8080
+- `ASPNETCORE_URLS` now defaults to `http://+:8080`
+
 ## [1.0.0] - 2025-09-22
 
 ### Added
@@ -168,6 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | 0.8.0   | 2025-08-04 | CLI interface, output formatting             |
 | 0.9.0   | 2025-08-25 | Test suite, visualization service            |
 | 1.0.0   | 2025-09-22 | Stable release, docs, examples, packaging    |
+| 2.0.0   | 2026-03-01 | Docker v2, port 8080, migration guide         |
 
 ---
 
