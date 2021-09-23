@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -139,6 +140,6 @@ public static class StringExtensions
         return value?.Split(separators)
             .Select(s => s.Trim())
             .Where(s => !string.IsNullOrEmpty(s))
-            .ToArray() ?? Array.Empty<string>();
+            .ToArray() ?? [];
     }
 }
