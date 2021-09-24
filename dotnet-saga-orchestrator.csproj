@@ -12,7 +12,8 @@
     <Authors>Vladyslav Zaiets</Authors>
     <Description>Distributed saga orchestrator for .NET microservices with compensating transactions, timeout handling, and persistence</Description>
     <PackageProjectUrl>https://sarmkadan.com</PackageProjectUrl>
-    <PackageLicense>MIT</PackageLicense>
+    <RepositoryUrl>https://github.com/sarmkadan/dotnet-saga-orchestrator</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
