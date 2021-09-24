@@ -1,3 +1,7 @@
+[![Build](https://github.com/sarmkadan/dotnet-saga-orchestrator/actions/workflows/build.yml/badge.svg)](https://github.com/sarmkadan/dotnet-saga-orchestrator/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
+
 # Distributed Saga Orchestrator for .NET Microservices
 
 A production-ready distributed saga orchestrator for .NET microservices implementing the Saga pattern with compensating transactions, automatic retry logic, timeout handling, and comprehensive persistence. Built with .NET 10 and designed for enterprise-scale distributed systems.
