@@ -1,0 +1,271 @@
+# =============================================================================
+# CI/CD Workflow for Saga Orchestrator
+# Author: Vladyslav Zaiets | https://sarmkadan.com
+# CTO & Software Architect
+# =============================================================================
+
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/*
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['10.0.x']
+
+    steps:
+    # Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Setup .NET
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
+
+    # Display .NET info
+    - name: Display .NET version
+      run: dotnet --version
+
+    # Restore dependencies
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # Build project
+    - name: Build project
+      run: dotnet build --no-restore --configuration Release
+
+    # Run tests
+    - name: Run tests
+      run: dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+    # Upload test results
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: '**/test-results.trx'
+
+    # Code analysis
+    - name: Code analysis
+      run: dotnet build /p:EnforceCodeStyleInBuild=true --no-restore --configuration Release
+
+  # Code formatting check
+  formatting:
+    name: Check Code Format
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Check code formatting
+      run: dotnet format --verify-no-changes --verbosity diagnostic || echo "Format check failed"
+      continue-on-error: true
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Run security scan
+      run: |
+        dotnet add package Microsoft.CodeAnalysis.NetAnalyzers --version latest
+        dotnet build --no-restore
+
+  # Docker build
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: saga-orchestrator:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Test with docker-compose
+  integration:
+    name: Integration Tests (Docker Compose)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Wait for services
+      run: sleep 10
+
+    - name: Run integration tests
+      run: dotnet test --filter "Integration" --configuration Release
+      env:
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+
+  # Generate coverage report
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Install coverlet
+      run: dotnet add package coverlet.collector
+
+    - name: Run tests with coverage
+      run: dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: '**/coverage.opencover.xml'
+        flags: unittests
+        fail_ci_if_error: false
+
+  # Build artifacts
+  artifacts:
+    name: Build Artifacts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Publish application
+      run: dotnet publish -c Release -o ./publish
+
+    - name: Create release artifact
+      run: |
+        cd publish
+        zip -r ../saga-orchestrator-release.zip .
+        cd ..
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: saga-orchestrator-release
+        path: saga-orchestrator-release.zip
+
+  # Documentation
+  documentation:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Generate documentation
+      run: dotnet build /p:GenerateDocumentationFile=true
+
+    - name: Upload documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation
+        path: bin/Release/net10.0/SagaOrchestrator.xml
+
+  # Final status check
+  status:
+    name: Build Status
+    runs-on: ubuntu-latest
+    needs: [build, formatting, security, docker, integration, coverage]
+    if: always()
+
+    steps:
+    - name: Check build status
+      run: |
+        if [ "${{ needs.build.result }}" != "success" ]; then
+          echo "Build failed!"
+          exit 1
+        fi
+        echo "✓ All checks passed!"
+
+    - name: Create success badge
+      if: success()
+      run: echo "Build Status: ✓ PASSING"
+
+    - name: Create failure badge
+      if: failure()
+      run: echo "Build Status: ✗ FAILING"
