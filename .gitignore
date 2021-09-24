@@ -56,3 +56,4 @@ Thumbs.db
 # Rider
 .idea/
 *.sln.iml
+*.DotSettings.user
