@@ -8,13 +8,23 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    
+    <PackageId>Zaiets.dotnet.saga.orchestrator</PackageId>
     <Version>1.0.0</Version>
     <Authors>Vladyslav Zaiets</Authors>
-    <Description>Distributed saga orchestrator for .NET microservices with compensating transactions, timeout handling, and persistence</Description>
-    <PackageProjectUrl>https://sarmkadan.com</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/sarmkadan/dotnet-saga-orchestrator</RepositoryUrl>
+    <Description>Distributed saga orchestrator for .NET microservices - compensating transactions, timeout handling, persistence</Description>
+    <PackageTags>saga orchestrator dotnet microservices compensation distributed</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/sarmkadan/dotnet-saga-orchestrator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sarmkadan/dotnet-saga-orchestrator</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="10.0.0" />
