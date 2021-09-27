@@ -5,203 +5,177 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2026-05-04
-
-### Added
-- Comprehensive documentation and API reference
-- Five complete example projects (OrderProcessing, MoneyTransfer, TravelBooking, etc.)
-- Metrics and health monitoring example
-- Advanced retry policies documentation
-- Compensation strategies comprehensive guide
-- Docker support with docker-compose.yml
-- GitHub Actions CI/CD workflow
-- .editorconfig for code consistency
-- Makefile for build automation
-- FAQ section with 50+ questions and answers
-- Deployment guides (local, Docker, Kubernetes, AWS, Azure, Google Cloud)
-- Configuration reference documentation
-
-### Changed
-- Expanded README with 10+ usage examples
-- Improved error messages for better debugging
-- Enhanced logging with more contextual information
-- Better timeout handling with detailed status tracking
-
-### Fixed
-- Improved compensation transaction tracking
-- Fixed concurrent access issues in cache service
-- Enhanced retry policy validation
-- Better handling of timeout edge cases
-
-## [1.1.0] - 2026-04-15
-
-### Added
-- Full infrastructure layer (Phase 2 implementation)
-- HTTP client factory with resilience patterns
-- In-memory event bus with pub/sub support
-- Caching service with TTL
-- Webhook integration framework
-- Circuit breaker pattern implementation
-- Rate limiting with token bucket algorithm
-- Background workers for timeouts, compensation, and events
-- Metrics service with performance tracking
-- Health check service
-- Request context tracking with correlation IDs
-- 130+ extension methods for common operations
-- Fluent builder APIs for saga configuration
-- Exception mapper for HTTP error codes
-- Output formatting (JSON, CSV, Table)
-- Service registry for external service tracking
-- Comprehensive validation framework
-
-### Changed
-- Refactored dependency injection configuration
-- Improved service interfaces with cleaner contracts
-- Enhanced logging throughout infrastructure
-- Better separation of concerns
-
-### Fixed
-- Thread safety in background workers
-- Memory management in cache service
-- Proper async/await patterns throughout
-- Event bus subscriber cleanup
-
-## [1.0.0] - 2026-03-01
-
-### Added
-- Initial release (Phase 1 - Core Architecture)
-- Complete saga orchestration engine
-- Compensating transaction support
-- Automatic retry logic with exponential backoff
-- Timeout handling and detection
-- Compensation strategy patterns:
-  - Reverse order (LIFO)
-  - Forward order (FIFO)
-  - From failure point
-  - Parallel
-  - Manual
-- In-memory repository implementations
-- Saga state management
-- Step execution tracking
-- Exception hierarchy and custom exceptions
-- Domain model layer with validation
-- Service layer with core business logic
-- CLI interface for saga management
-- Dependency injection configuration
-- Console logging
-- Basic health checks
-- Saga persistence in memory
-- Correlation ID support
-- Comprehensive test coverage ready architecture
-
-### Features
-- Saga pattern implementation
-- Compensating transactions
-- Retry policies per step
-- Timeout detection and handling
-- Event-driven architecture ready
-- Extensible design for future layers
-- 25+ domain classes
-- 8+ service classes
-- 5+ enums with full statuses
-- Exception hierarchy with mappings
-
 ## [Unreleased]
 
-### Planned for v2.0.0
-- Database persistence (SQL Server, PostgreSQL)
-- Entity Framework Core integration
+### Planned
+- Database persistence (SQL Server, PostgreSQL) via Entity Framework Core
 - REST API endpoints (ASP.NET Core)
-- gRPC service definitions
 - Distributed tracing (OpenTelemetry)
 - Message queue integration (RabbitMQ, Kafka)
 - Web dashboard for saga monitoring
-- Advanced diagnostics and profiling
-- Performance optimization for large-scale deployments
 
-### Planned for v2.1.0
-- Saga migration and versioning
-- Batch operation support
-- Saga grouping and hierarchies
-- Custom compensation callbacks
-- Saga replay capability
-- Dead letter queues
-- Retry scheduling improvements
+## [1.0.0] - 2025-09-22
 
-### Planned for v3.0.0
-- Multi-cloud support
-- Kubernetes operators
-- Service mesh integration (Istio)
-- Policy as code
-- Cost analysis tools
-- Advanced analytics
-- Machine learning-based failure prediction
-- GraphQL API support
+### Added
+- Five complete example projects: OrderProcessing, MoneyTransfer, TravelBooking, AdvancedRetries, CompensationStrategies, MetricsMonitoring
+- Comprehensive documentation: getting-started guide, API reference, architecture overview, deployment guide, FAQ
+- Docker support with Dockerfile and docker-compose.yml
+- GitHub Actions CI/CD workflow with build, test, and NuGet publish pipelines
+- CodeQL security scanning workflow
+- Dependabot configuration for automated dependency updates
+- Makefile for build automation
+- NuGet packaging metadata with README embed
+- `.editorconfig` for consistent code style
 
-## Version History Summary
+### Changed
+- Expanded README with 10+ usage examples covering all major features
+- Improved error messages throughout for better developer experience
+- Enhanced XML documentation on all public APIs
 
-| Version | Date | Focus |
-|---------|------|-------|
-| 0.1.0 | Jan 2026 | Project initialization |
-| 1.0.0 | Mar 2026 | Core architecture (Phase 1) |
-| 1.1.0 | Apr 2026 | Infrastructure layer (Phase 2) |
-| 1.2.0 | May 2026 | Documentation & Examples (Phase 3) |
-| 2.0.0 | TBD | Database & API (Phase 4) |
+### Fixed
+- Concurrent access race condition in `CacheService` under high parallelism
+- Edge case in `SagaTimeoutWorker` where a saga completing at the exact timeout boundary could be incorrectly marked as timed out
+- `RetryPolicy` validation now rejects zero-delay configurations that could cause tight busy-loops
 
-## Contributors
+## [0.9.0] - 2025-08-25
 
-- **Vladyslav Zaiets** - Initial architecture and implementation
-- Community contributions welcome!
+### Added
+- Full xUnit test suite: `SagaLifecycleTests`, `RetryPolicyTests`, `InfrastructureAndExtensionsTests`
+- `FluentAssertions` and `Moq` dependencies in test project
+- Test project wired into solution with correct `ProjectReference`
+- `SagaVisualizationService` for ASCII state-machine rendering
+- `VisualizationServiceExtensions` for DI registration
 
-## License
+### Fixed
+- `CompensationWorker` could skip a compensation record when the repository enumeration was modified concurrently
+- `EventProcessingWorker` subscriber leak on repeated subscribe/unsubscribe cycles
 
-Copyright (c) 2026 Vladyslav Zaiets
+## [0.8.0] - 2025-08-04
 
-Licensed under the MIT License - see LICENSE file for details.
+### Added
+- CLI interface (`CliHandler`, `SagaCliCommand`) with commands: `create`, `execute`, `status`, `list`, `compensate`, `help`
+- `OutputFormatter` supporting JSON, CSV, and table output modes
+- `SagaMessageTemplates` for consistent human-readable status messages
+- `RequestContext` for per-request correlation ID propagation
+
+### Changed
+- `SagaOrchestrationService` now surfaces structured `SagaCommandResult` on every mutation, simplifying CLI and caller code
+
+## [0.7.0] - 2025-07-14
+
+### Added
+- `MetricsService` with real-time counters: total sagas, success rate, P50/P95/P99 duration percentiles, compensation rate
+- `HealthCheckService` reporting active saga count, worker liveness, and memory pressure
+- `SagaDefinitionValidator` with fluent validation rules (duplicate step names, missing URLs, timeout sanity checks)
+- `ValidationExtensions` helpers used throughout the application layer
+
+### Fixed
+- `SagaIdGenerator` now uses `Guid.NewGuid()` rather than a monotonic counter, preventing ID collisions across restarts
+
+## [0.6.0] - 2025-06-23
+
+### Added
+- `SagaTimeoutWorker` background service that polls for and expires overdue sagas
+- `CompensationWorker` background service for automatic compensation retry on transient failures
+- `EventProcessingWorker` background service for async event fan-out
+- `ServiceConfiguration` and `InfrastructureConfiguration` DI extension methods
+- `SagaOptions` strongly-typed configuration class bound to `appsettings` / environment variables
+
+### Changed
+- Background workers run on dedicated `IHostedService` threads; they no longer contend with the main orchestration hot path
+
+## [0.5.0] - 2025-06-02
+
+### Added
+- `CircuitBreaker` with configurable failure threshold and half-open recovery window
+- `RateLimiter` using token-bucket algorithm; per-service limits configurable at runtime
+- `CacheService` with TTL-based expiry and `CacheKeyBuilder` helpers
+- `SagaJsonSerializer` wrapping `System.Text.Json` with saga-specific converters
+- `ExceptionMapper` translating domain exceptions to HTTP status codes
+
+### Fixed
+- `HttpClientFactory` retry handler was not propagating `CancellationToken` to inner handlers
+
+## [0.4.0] - 2025-05-12
+
+### Added
+- HTTP client factory (`HttpClientFactory`) with built-in retry and timeout resilience
+- In-process event bus (`EventBus`, `EventObserver`) with typed pub/sub and wildcard subscriptions
+- `WebhookHandler` for outbound webhook delivery with configurable retry
+- `ServiceRegistry` for tracking external service endpoints and metadata
+- `LoggingMiddleware` for structured per-request logging with correlation IDs
+- `SagaEventPublisher` integrating the domain event model with the event bus
+
+### Changed
+- `SagaOrchestrationService` now publishes `SagaStarted`, `SagaCompleted`, `SagaFailed`, `SagaCompensated` events automatically
+
+## [0.3.0] - 2025-04-21
+
+### Added
+- Five compensation strategies: `ReverseOrder` (LIFO), `ForwardOrder` (FIFO), `FromFailurePoint`, `Parallel`, `Manual`
+- `CompensationService` orchestrating compensation execution per strategy
+- `CompensationTransaction` domain model tracking per-step rollback status
+- `InMemoryCompensationTransactionRepository` with full CRUD
+- `CompensationStatus` and `CompensationStrategy` enums
+- `SagaStepBuilder` fluent builder for step definition construction
+
+### Fixed
+- Parallel compensation strategy was awaiting tasks sequentially due to a missing `Task.WhenAll`
+
+## [0.2.0] - 2025-04-01
+
+### Added
+- `RetryPolicy` with exponential backoff, configurable multiplier, jitter, and per-step max delay
+- `TimeoutPolicy` for saga-level and step-level deadline enforcement
+- `DateTimeExtensions` and `StringExtensions` utility methods
+- `CollectionExtensions` with batch and safe-enumeration helpers
+- `EnumExtensions` for display-name resolution
+- `SagaConstants` centralising all default values (timeouts, retries, rate limits)
+
+### Changed
+- `SagaStep` now stores `AttemptCount` and `LastAttemptAt` for accurate retry accounting
+- `SagaOrchestrationService.ExecuteNextStepAsync` honours the step-level retry policy before marking a step as failed
+
+## [0.1.0] - 2025-03-10
+
+### Added
+- Initial release — core saga orchestration engine
+- `Saga`, `SagaDefinition`, `SagaStep`, `SagaStepDefinition` domain models
+- `SagaOrchestrationService` with create, start, execute-step, abort, and compensate operations
+- `SagaDefinitionService` for definition CRUD and step management
+- `SagaStatus` and `SagaStepStatus` enums covering the full state machine
+- In-memory repository implementations: `InMemorySagaRepository`, `InMemorySagaStepRepository`, `InMemorySagaDefinitionRepository`
+- `SagaIdGenerator` for unique saga and step IDs
+- Exception hierarchy: `SagaException`, `SagaNotFoundException`, `SagaStepExecutionException`, `SagaTimeoutException`, `InvalidSagaDefinitionException`
+- `SagaEvent` model for lifecycle event capture
+- Basic DI registration via `ServiceConfiguration`
+- Console logging with correlation ID support
+- `SagaResponseMapper` and response DTOs (`SagaResponse`, `SagaCommandResult`, `CreateSagaRequest`)
 
 ---
 
-## Breaking Changes
+## Version History
 
-### 1.0.0 → 1.1.0
-- No breaking changes (additive release)
-
-### 1.1.0 → 1.2.0
-- No breaking changes (documentation and examples only)
-
----
-
-## Upgrade Guide
-
-### Upgrading to 1.1.0 from 1.0.0
-
-No code changes required. New features are:
-- Update package reference
-- New services available in DI container
-- New extension methods accessible
-
-```csharp
-// Before
-services.AddSagaOrchestrator();
-
-// After - still works, new features optional
-services.AddSagaOrchestrator()
-    .WithCachingEnabled(true)
-    .WithWebhooksEnabled(true);
-```
-
-### Upgrading to 1.2.0 from 1.1.0
-
-No code changes required. Documentation and examples added.
+| Version | Date       | Highlights                                   |
+|---------|------------|----------------------------------------------|
+| 0.1.0   | 2025-03-10 | Core orchestration engine                    |
+| 0.2.0   | 2025-04-01 | Retry & timeout policies                     |
+| 0.3.0   | 2025-04-21 | Compensation strategies                      |
+| 0.4.0   | 2025-05-12 | HTTP client, event bus, webhooks             |
+| 0.5.0   | 2025-06-02 | Circuit breaker, rate limiter, caching       |
+| 0.6.0   | 2025-06-23 | Background workers, configuration            |
+| 0.7.0   | 2025-07-14 | Metrics, health checks, validation           |
+| 0.8.0   | 2025-08-04 | CLI interface, output formatting             |
+| 0.9.0   | 2025-08-25 | Test suite, visualization service            |
+| 1.0.0   | 2025-09-22 | Stable release, docs, examples, packaging    |
 
 ---
 
 ## Support
 
 - **Issues**: https://github.com/Sarmkadan/dotnet-saga-orchestrator/issues
-- **Email**: rutova2@gmail.com
 - **Website**: https://sarmkadan.com
 
 ---
 
-**Built with ❤️ by [Vladyslav Zaiets](https://sarmkadan.com)**
+**Built by [Vladyslav Zaiets](https://sarmkadan.com)**

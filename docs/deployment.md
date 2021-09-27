@@ -81,7 +81,7 @@ See `docker-compose.yml` for full configuration.
 ### Prerequisites
 
 - .NET 10 runtime
-- Production database (Phase 4)
+- Persistent database (optional; see repository interfaces for extension points)
 - Load balancer (optional)
 - Monitoring system (Prometheus, Grafana)
 
@@ -140,7 +140,7 @@ export SAGA_ENABLE_TIMEOUT_WORKER=true
 # Logging
 export SAGA_LOG_LEVEL=Information
 
-# Database (Phase 4)
+# Database (optional)
 export DB_PROVIDER=SqlServer
 export DB_CONNECTION_STRING="Server=prod-db;Database=SagaOrchestrator;..."
 ```

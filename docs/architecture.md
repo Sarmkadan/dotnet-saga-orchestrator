@@ -181,8 +181,8 @@ The Saga Orchestrator is built using a layered architecture with clear separatio
 - `ISagaDefinitionRepository` - Definition storage
 
 **Implementations**:
-- `InMemorySagaRepository` - RAM storage (Phase 1)
-- Database repositories (Phase 4: EF Core)
+- `InMemorySagaRepository` - RAM storage (default)
+- Database repositories - implement `ISagaRepository` with EF Core or Dapper
 
 **Key Classes**:
 - `Data/Repositories/I*.cs` (interfaces)
@@ -570,19 +570,19 @@ The system includes 130+ extension methods organized by concern:
 
 ## Future Architectural Changes
 
-### Phase 4: Database Persistence
+### Database Persistence
 - Entity Framework Core integration
 - SQL Server/PostgreSQL support
 - Query optimization
 - Transaction management
 
-### Phase 5: Distributed Events
+### Distributed Events
 - RabbitMQ/Kafka integration
 - Event store for all state changes
 - Event replay capability
 - Dead letter queues
 
-### Phase 6: Distributed Tracing
+### Distributed Tracing
 - OpenTelemetry instrumentation
 - Jaeger exporter
 - Custom span attributes

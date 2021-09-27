@@ -18,14 +18,14 @@ Use the Saga Orchestrator when:
 
 ### Is this production-ready?
 
-Yes. Phase 1 and Phase 2 are complete with:
+Yes. The v1.0.0 release includes:
 - Full domain model and services
 - Comprehensive infrastructure
 - Exception handling and logging
 - Metrics and monitoring
 - 8,000+ lines of tested code
 
-Phase 4 (database persistence) will add enterprise-scale reliability.
+Database persistence support is on the roadmap and will add enterprise-scale reliability.
 
 ### What's the difference between Saga and traditional transactions?
 
@@ -54,8 +54,8 @@ Not directly. However, the code is compatible and could be adapted. We recommend
 git clone https://github.com/Sarmkadan/dotnet-saga-orchestrator.git
 dotnet add reference ../dotnet-saga-orchestrator/dotnet-saga-orchestrator.csproj
 
-// Method 2: NuGet (coming in Phase 4)
-dotnet package add SagaOrchestrator
+// Method 2: NuGet
+dotnet add package Zaiets.dotnet.saga.orchestrator
 ```
 
 ### What are the system requirements?
@@ -69,7 +69,7 @@ dotnet package add SagaOrchestrator
 
 ### How many steps can a saga have?
 
-No hard limit. In-memory implementation supports thousands. Database implementation (Phase 4) will support millions.
+No hard limit. In-memory implementation supports thousands. A database-backed repository implementation will support millions.
 
 ### What's the maximum timeout?
 
@@ -80,7 +80,7 @@ No technical limit. Set based on your requirements:
 
 ### Can steps run in parallel?
 
-The current implementation executes steps sequentially. Parallel execution with dependency resolution is planned for Phase 5.
+The current implementation executes steps sequentially. Parallel execution with dependency resolution is on the roadmap.
 
 ### How do I pass data between steps?
 
@@ -208,7 +208,7 @@ Depends on:
 - Step execution time (network latency)
 - Retry policies
 - System resources
-- Database performance (Phase 4)
+- Database performance (if using a persistent repository)
 
 Typical: 100-1000 sagas/minute on t3.medium instance.
 
@@ -236,11 +236,11 @@ Tune cache settings if memory is limited.
 Single instance (t3.medium):
 - 50-100 concurrent sagas
 - 1000+ sagas total
-- With database (Phase 4): 10,000+ sagas
+- With database-backed repository: 10,000+ sagas
 
 ### How do I scale horizontally?
 
-1. Use database instead of in-memory (Phase 4)
+1. Use a database-backed repository instead of in-memory
 2. Use distributed cache (Redis)
 3. Set up load balancer
 4. Deploy multiple instances
@@ -253,14 +253,14 @@ In-memory implementation:
 - All sagas are lost
 - Not suitable for production
 
-Phase 4 (database):
-- Sagas persist
+With database-backed repository:
+- Sagas persist across restarts
 - Can resume from last known state
 - Automatic recovery
 
 ### How do I ensure saga execution isn't lost?
 
-Use database persistence (Phase 4):
+Use a persistent database repository:
 
 ```csharp
 services.AddSagaOrchestrator()
@@ -278,7 +278,7 @@ The system:
 ### Can I run multiple instances?
 
 Yes, with proper setup:
-- Shared database (Phase 4)
+- Shared persistent database
 - Distributed cache (Redis)
 - Stateless services
 - Load balancer coordination
@@ -335,7 +335,7 @@ curl http://localhost:5000/health
 
 ### Can I export metrics?
 
-Yes, in Phase 4:
+Yes:
 
 ```csharp
 var metrics = metricsService.GetMetrics();
@@ -482,7 +482,7 @@ httpClient.DefaultRequestHeaders.Authorization =
 
 ### Can I use message queues instead of HTTP?
 
-Not in Phase 1-2. Phase 5 will include RabbitMQ/Kafka support.
+Not in the current release. RabbitMQ/Kafka integration is on the roadmap.
 
 ## Contributing Questions
 
