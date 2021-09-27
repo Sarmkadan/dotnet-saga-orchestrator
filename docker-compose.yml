@@ -37,7 +37,7 @@ services:
     depends_on:
       - redis
 
-  # Redis cache for distributed scenarios (Phase 4)
+  # Redis cache for distributed scenarios
   redis:
     image: redis:7-alpine
     container_name: saga-redis

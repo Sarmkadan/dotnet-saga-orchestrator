@@ -23,7 +23,7 @@ public static class ServiceConfiguration
         if (services == null)
             throw new ArgumentNullException(nameof(services));
 
-        // Register repositories (in-memory for Phase 1)
+        // Register repositories (in-memory; swap for database-backed implementations as needed)
         services.AddSingleton<ISagaRepository, InMemorySagaRepository>();
         services.AddSingleton<ISagaStepRepository, InMemorySagaStepRepository>();
         services.AddSingleton<ICompensationTransactionRepository, InMemoryCompensationTransactionRepository>();

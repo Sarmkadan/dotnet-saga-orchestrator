@@ -19,7 +19,7 @@ using SagaOrchestrator.Presentation.Cli;
 namespace SagaOrchestrator.Configuration;
 
 /// <summary>
-/// Dependency injection configuration for Phase 2 infrastructure components.
+/// Dependency injection configuration for infrastructure components.
 /// Registers caching, HTTP clients, event bus, formatters, and background workers.
 /// </summary>
 public static class InfrastructureConfiguration

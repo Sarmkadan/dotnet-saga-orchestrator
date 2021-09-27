@@ -32,7 +32,7 @@ A production-ready distributed saga orchestrator for .NET microservices implemen
 - **Compensating Transactions**: Automatic rollback with five configurable compensation strategies for different failure scenarios
 - **Retry Logic**: Exponential backoff with configurable retry policies per step
 - **Timeout Handling**: Automatic detection and handling of step and saga-level timeouts
-- **Persistence**: In-memory and file-based persistence options (database support planned for Phase 4)
+- **Persistence**: In-memory and file-based persistence options with extensible repository pattern for database backends
 - **Correlation IDs**: Distributed tracing through correlation IDs for request tracking across services
 - **Event System**: Publisher-subscriber pattern for saga lifecycle events and webhooks
 - **Rate Limiting**: Token bucket algorithm for protecting downstream services
@@ -115,10 +115,10 @@ cd dotnet-saga-orchestrator
 dotnet build
 ```
 
-#### Method 2: Use as NuGet Package (Coming in Phase 4)
+#### Method 2: Add NuGet Package
 
 ```bash
-dotnet package add SagaOrchestrator
+dotnet add package Zaiets.dotnet.saga.orchestrator
 ```
 
 #### Method 3: Docker
@@ -818,7 +818,7 @@ Benchmarked on a single core (AMD EPYC 7763, .NET 10, in-memory repositories):
 ### Scaling Notes
 
 - Background workers (`SagaTimeoutWorker`, `CompensationWorker`) run on dedicated threads and do not contend with the execution hot path.
-- Switching from in-memory to a persistent repository (Phase 4) will reduce write throughput by roughly 5–10× depending on the database; the orchestration logic overhead remains the same.
+- Switching from in-memory to a persistent repository will reduce write throughput by roughly 5–10× depending on the database; the orchestration logic overhead remains the same.
 - Rate limiting and circuit breaker checks add ~0.05 ms per step; they can be disabled per-step if not needed.
 
 ## Related Projects
