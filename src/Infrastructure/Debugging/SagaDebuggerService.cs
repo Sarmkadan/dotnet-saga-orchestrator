@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -117,7 +118,7 @@ public sealed class SagaDebuggerService : ISagaDebugger
         lock (_lock)
         {
             if (!_snapshots.TryGetValue(sagaId, out var list))
-                return Task.FromResult<IReadOnlyList<SagaDebugSnapshot>>(Array.Empty<SagaDebugSnapshot>());
+                return Task.FromResult<IReadOnlyList<SagaDebugSnapshot>>([]);
 
             IReadOnlyList<SagaDebugSnapshot> result = list
                 .OrderBy(s => s.SequenceNumber)
@@ -232,11 +233,11 @@ public sealed class SagaDebuggerService : ISagaDebugger
         {
             snapshots   = _snapshots.TryGetValue(sagaId, out var sl)
                 ? sl.OrderBy(s => s.SequenceNumber).ToList().AsReadOnly()
-                : Array.Empty<SagaDebugSnapshot>();
+                : [];
 
             breakpoints = _breakpoints.TryGetValue(sagaId, out var bl)
                 ? bl.ToList().AsReadOnly()
-                : Array.Empty<SagaDebugBreakpoint>();
+                : [];
         }
 
         var sagaEvents = _eventPublisher.GetSagaEvents(sagaId);
@@ -319,7 +320,7 @@ public sealed class SagaDebuggerService : ISagaDebugger
         {
             IReadOnlyList<SagaDebugBreakpoint> result = _breakpoints.TryGetValue(sagaId, out var list)
                 ? list.ToList().AsReadOnly()
-                : Array.Empty<SagaDebugBreakpoint>();
+                : [];
 
             return Task.FromResult(result);
         }
