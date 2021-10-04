@@ -188,10 +188,10 @@ public sealed class SagaDebuggerService : ISagaDebugger
         saga.FailureReason = target.FailureReason;
         saga.RetryCount    = target.RetryCount;
 
-        await _sagaRepository.UpdateAsync(saga);
+        await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
 
         // Restore step-level mutable state from the snapshot
-        var existingSteps = await _sagaStepRepository.GetBySagaIdAsync(sagaId);
+        var existingSteps = await _sagaStepRepository.GetBySagaIdAsync(sagaId).ConfigureAwait(false);
         var stepById      = existingSteps.ToDictionary(s => s.Id);
 
         foreach (var stepState in target.Steps)
@@ -207,11 +207,11 @@ public sealed class SagaDebuggerService : ISagaDebugger
             step.ErrorMessage  = stepState.ErrorMessage;
             step.Response      = stepState.OutputData.ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            await _sagaStepRepository.UpdateAsync(step);
+            await _sagaStepRepository.UpdateAsync(step).ConfigureAwait(false);
         }
 
         var restorationLabel = $"Restored from snapshot #{target.SequenceNumber} captured {target.CapturedAt:u}";
-        return await CaptureSnapshotAsync(sagaId, SnapshotTrigger.Manual, restorationLabel, cancellationToken);
+        return await CaptureSnapshotAsync(sagaId, SnapshotTrigger.Manual, restorationLabel, cancellationToken).ConfigureAwait(false);
     }
 
     // -------------------------------------------------------------------------

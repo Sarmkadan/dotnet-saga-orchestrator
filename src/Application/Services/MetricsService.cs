@@ -40,7 +40,7 @@ public class MetricsService : IMetricsService
     {
         try
         {
-            var allSagas = await _sagaRepository.GetAllAsync();
+            var allSagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
             var completed = allSagas.Count(s => s.Status.ToString() == "Completed");
             var failed = allSagas.Count(s => s.Status.ToString() == "Failed");
             var running = allSagas.Count(s => s.Status.ToString() == "Running");
@@ -75,7 +75,7 @@ public class MetricsService : IMetricsService
     {
         try
         {
-            var allSagas = await _sagaRepository.GetAllAsync();
+            var allSagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
             var allSteps = allSagas.SelectMany(s => s.Steps).Where(s => s.Name == stepName).ToList();
 
             var completed = allSteps.Count(s => s.Status.ToString() == "Completed");
@@ -107,8 +107,8 @@ public class MetricsService : IMetricsService
     {
         try
         {
-            var metrics = await GetMetricsAsync();
-            var allSagas = await _sagaRepository.GetAllAsync();
+            var metrics = await GetMetricsAsync().ConfigureAwait(false);
+            var allSagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
 
             var completedSagas = allSagas.Where(s => s.Status.ToString() == "Completed").ToList();
             var minDuration = completedSagas.Any()

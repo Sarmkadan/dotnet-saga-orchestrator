@@ -38,7 +38,7 @@ public class OrderProcessingExample
                 "Order Processing",
                 "Complete order processing across inventory, payment, and shipping");
 
-            logger.LogInformation($"✓ Created definition: {definition.Name}\n");
+            logger.LogInformation("✓ Created definition: {Name}\n", definition.Name);
 
             // Add step 1: Reserve inventory
             var reserveStep = new SagaStepDefinition(
@@ -48,7 +48,7 @@ public class OrderProcessingExample
                 "http://localhost:5001/api/inventory/release");
             reserveStep.SetTimeout(30);
             reserveStep.SetRetryPolicy(3, 1000);
-            await definitionService.AddStepAsync(definition.Id, reserveStep);
+            await definitionService.AddStepAsync(definition.Id, reserveStep).ConfigureAwait(false);
             logger.LogInformation("✓ Added step: Reserve Inventory");
 
             // Add step 2: Process payment
@@ -59,7 +59,7 @@ public class OrderProcessingExample
                 "http://localhost:5002/api/payments/refund");
             paymentStep.SetTimeout(30);
             paymentStep.SetRetryPolicy(2, 2000);
-            await definitionService.AddStepAsync(definition.Id, paymentStep);
+            await definitionService.AddStepAsync(definition.Id, paymentStep).ConfigureAwait(false);
             logger.LogInformation("✓ Added step: Process Payment");
 
             // Add step 3: Create shipment
@@ -70,7 +70,7 @@ public class OrderProcessingExample
                 "http://localhost:5003/api/shipments/cancel");
             shipmentStep.SetTimeout(60);
             shipmentStep.SetRetryPolicy(3, 1000);
-            await definitionService.AddStepAsync(definition.Id, shipmentStep);
+            await definitionService.AddStepAsync(definition.Id, shipmentStep).ConfigureAwait(false);
             logger.LogInformation("✓ Added step: Create Shipment\n");
 
             // Validate definition
@@ -83,27 +83,27 @@ public class OrderProcessingExample
             logger.LogInformation("✓ Definition validation passed\n");
 
             // Get updated definition with steps
-            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
+            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id).ConfigureAwait(false);
 
             // Create saga instance
             var saga = await orchestrationService.CreateSagaAsync(
                 retrievedDef,
                 maxRetries: 3,
                 timeoutSeconds: 300);
-            logger.LogInformation($"✓ Created saga: {saga.Id}");
-            logger.LogInformation($"  Correlation ID: {saga.CorrelationId}");
-            logger.LogInformation($"  Status: {saga.Status}\n");
+            logger.LogInformation("✓ Created saga: {Id}", saga.Id);
+            logger.LogInformation("  Correlation ID: {CorrelationId}", saga.CorrelationId);
+            logger.LogInformation("  Status: {Status}\n", saga.Status);
 
             // Start saga
-            var startedSaga = await orchestrationService.StartSagaAsync(saga.Id);
+            var startedSaga = await orchestrationService.StartSagaAsync(saga.Id).ConfigureAwait(false);
             logger.LogInformation($"✓ Saga started");
-            logger.LogInformation($"  Total steps: {startedSaga.Steps.Count}\n");
+            logger.LogInformation("  Total steps: {Count}\n", startedSaga.Steps.Count);
 
             // Execute steps
             logger.LogInformation("Executing steps...");
             for (int i = 0; i < startedSaga.Steps.Count; i++)
             {
-                var step = await orchestrationService.ExecuteNextStepAsync(saga.Id);
+                var step = await orchestrationService.ExecuteNextStepAsync(saga.Id).ConfigureAwait(false);
                 if (step != null)
                 {
                     logger.LogInformation($"✓ Step {i + 1}: {step.Name} - {step.Status}");
@@ -116,8 +116,8 @@ public class OrderProcessingExample
             }
 
             // Get final state
-            var finalSaga = await orchestrationService.GetSagaAsync(saga.Id);
-            logger.LogInformation($"\n=== Final Status: {finalSaga.Status} ===");
+            var finalSaga = await orchestrationService.GetSagaAsync(saga.Id).ConfigureAwait(false);
+            logger.LogInformation("\n=== Final Status: {Status} ===", finalSaga.Status);
             logger.LogInformation($"Completed steps: {finalSaga.Steps.Count(s => s.Status == SagaStepStatus.Completed)}/{finalSaga.Steps.Count}");
 
             if (finalSaga.Status == SagaStatus.Completed)

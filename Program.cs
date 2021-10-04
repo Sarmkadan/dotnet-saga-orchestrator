@@ -65,8 +65,8 @@ try
     step3.SetRetryPolicy(3, 1000);
     await definitionService.AddStepAsync(definition.Id, step3);
 
-    logger.LogInformation($"✓ Created saga definition: {definition.Name} ({definition.Id})");
-    logger.LogInformation($"  Steps: {definition.Steps.Count}");
+    logger.LogInformation("✓ Created saga definition: {Name} ({Id})", definition.Name, definition.Id);
+    logger.LogInformation("  Steps: {Count}", definition.Steps.Count);
 
     // Validate definition
     var validation = definitionService.ValidateDefinition(definition);
@@ -83,16 +83,16 @@ try
     // Create a saga from the definition
     logger.LogInformation("\nCreating saga instance...");
     var saga = await orchestrationService.CreateSagaAsync(retrievedDef, maxRetries: 3, timeoutSeconds: 300);
-    logger.LogInformation($"✓ Created saga: {saga.Id}");
-    logger.LogInformation($"  Status: {saga.Status}");
-    logger.LogInformation($"  Correlation ID: {saga.CorrelationId}");
+    logger.LogInformation("✓ Created saga: {Id}", saga.Id);
+    logger.LogInformation("  Status: {Status}", saga.Status);
+    logger.LogInformation("  Correlation ID: {CorrelationId}", saga.CorrelationId);
 
     // Start the saga
     logger.LogInformation("\nStarting saga execution...");
     var startedSaga = await orchestrationService.StartSagaAsync(saga.Id);
     logger.LogInformation($"✓ Saga started");
-    logger.LogInformation($"  Status: {startedSaga.Status}");
-    logger.LogInformation($"  Total steps: {startedSaga.Steps.Count}");
+    logger.LogInformation("  Status: {Status}", startedSaga.Status);
+    logger.LogInformation("  Total steps: {Count}", startedSaga.Steps.Count);
 
     // Execute steps sequentially
     logger.LogInformation("\nExecuting saga steps...");
@@ -103,24 +103,24 @@ try
 
         if (step != null)
         {
-            logger.LogInformation($"    ✓ {step.Name}: {step.Status}");
+            logger.LogInformation("    ✓ {Name}: {Status}", step.Name, step.Status);
         }
     }
 
     // Get final saga state
     var finalSaga = await orchestrationService.GetSagaAsync(saga.Id);
     logger.LogInformation($"\n✓ Saga execution completed!");
-    logger.LogInformation($"  Final Status: {finalSaga.Status}");
+    logger.LogInformation("  Final Status: {Status}", finalSaga.Status);
     logger.LogInformation($"  Completed Steps: {finalSaga.Steps.Count(s => s.Status == SagaStepStatus.Completed)}/{finalSaga.Steps.Count}");
-    logger.LogInformation($"  Completed At: {finalSaga.CompletedAt:O}");
+    logger.LogInformation("  Completed At: {CompletedAt}", finalSaga.CompletedAt);
 
     // List all sagas
     logger.LogInformation("\nListing all sagas...");
     var allSagas = await orchestrationService.ListSagasAsync();
-    logger.LogInformation($"✓ Total sagas in system: {allSagas.Count}");
+    logger.LogInformation("✓ Total sagas in system: {Count}", allSagas.Count);
     foreach (var s in allSagas)
     {
-        logger.LogInformation($"  - {s.Id}: {s.Status} (created {s.StartedAt:O})");
+        logger.LogInformation("  - {Id}: {Status} (created {StartedAt})", s.Id, s.Status, s.StartedAt);
     }
 
     logger.LogInformation("\n=== Demo Complete ===");

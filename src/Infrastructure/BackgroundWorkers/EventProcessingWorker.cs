@@ -37,8 +37,8 @@ public class EventProcessingWorker : BackgroundService
         {
             try
             {
-                await ProcessEventsAsync(stoppingToken);
-                await Task.Delay(_checkInterval, stoppingToken);
+                await ProcessEventsAsync(stoppingToken).ConfigureAwait(false);
+                await Task.Delay(_checkInterval, stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -83,7 +83,7 @@ public class EventProcessingWorker : BackgroundService
         {
             try
             {
-                await ProcessEventAsync(@event, stoppingToken);
+                await ProcessEventAsync(@event, stoppingToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -101,23 +101,23 @@ public class EventProcessingWorker : BackgroundService
         switch (@event)
         {
             case SagaCreatedEvent sagaCreated:
-                await HandleSagaCreatedAsync(sagaCreated);
+                await HandleSagaCreatedAsync(sagaCreated).ConfigureAwait(false);
                 break;
 
             case SagaCompletedEvent sagaCompleted:
-                await HandleSagaCompletedAsync(sagaCompleted);
+                await HandleSagaCompletedAsync(sagaCompleted).ConfigureAwait(false);
                 break;
 
             case SagaFailedEvent sagaFailed:
-                await HandleSagaFailedAsync(sagaFailed);
+                await HandleSagaFailedAsync(sagaFailed).ConfigureAwait(false);
                 break;
 
             case CompensationStartedEvent compensationStarted:
-                await HandleCompensationStartedAsync(compensationStarted);
+                await HandleCompensationStartedAsync(compensationStarted).ConfigureAwait(false);
                 break;
 
             case CompensationCompletedEvent compensationCompleted:
-                await HandleCompensationCompletedAsync(compensationCompleted);
+                await HandleCompensationCompletedAsync(compensationCompleted).ConfigureAwait(false);
                 break;
 
             default:

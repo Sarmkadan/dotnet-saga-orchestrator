@@ -50,7 +50,7 @@ public class SagaEventObserver : ISagaEventObserver
         {
             try
             {
-                await _webhookHandler.SendWebhookAsync(webhook.Url, @event);
+                await _webhookHandler.SendWebhookAsync(webhook.Url, @event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -72,7 +72,7 @@ public class SagaEventObserver : ISagaEventObserver
         {
             try
             {
-                await _webhookHandler.SendWebhookAsync(webhook.Url, @event);
+                await _webhookHandler.SendWebhookAsync(webhook.Url, @event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -95,7 +95,7 @@ public class SagaEventObserver : ISagaEventObserver
         {
             try
             {
-                await _webhookHandler.SendWebhookAsync(webhook.Url, @event);
+                await _webhookHandler.SendWebhookAsync(webhook.Url, @event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -118,7 +118,7 @@ public class SagaEventObserver : ISagaEventObserver
         {
             try
             {
-                await _webhookHandler.SendWebhookAsync(webhook.Url, @event);
+                await _webhookHandler.SendWebhookAsync(webhook.Url, @event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

@@ -45,7 +45,7 @@ public class TravelBookingExample
                 "http://localhost:6001/api/hotels/cancel");
             hotelStep.SetTimeout(45);
             hotelStep.SetRetryPolicy(3, 1000);
-            await definitionService.AddStepAsync(definition.Id, hotelStep);
+            await definitionService.AddStepAsync(definition.Id, hotelStep).ConfigureAwait(false);
 
             // Step 2: Book flight
             var flightStep = new SagaStepDefinition(
@@ -55,7 +55,7 @@ public class TravelBookingExample
                 "http://localhost:6002/api/flights/cancel");
             flightStep.SetTimeout(60);
             flightStep.SetRetryPolicy(2, 2000);
-            await definitionService.AddStepAsync(definition.Id, flightStep);
+            await definitionService.AddStepAsync(definition.Id, flightStep).ConfigureAwait(false);
 
             // Step 3: Book car rental
             var carStep = new SagaStepDefinition(
@@ -65,7 +65,7 @@ public class TravelBookingExample
                 "http://localhost:6003/api/cars/cancel");
             carStep.SetTimeout(45);
             carStep.SetRetryPolicy(3, 1000);
-            await definitionService.AddStepAsync(definition.Id, carStep);
+            await definitionService.AddStepAsync(definition.Id, carStep).ConfigureAwait(false);
 
             logger.LogInformation("✓ Created travel booking definition\n");
 
@@ -76,14 +76,14 @@ public class TravelBookingExample
                 return;
             }
 
-            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
+            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id).ConfigureAwait(false);
 
             var saga = await orchestrationService.CreateSagaAsync(
                 retrievedDef,
                 maxRetries: 3,
                 timeoutSeconds: 600);
 
-            logger.LogInformation($"✓ Travel saga created: {saga.Id}");
+            logger.LogInformation("✓ Travel saga created: {Id}", saga.Id);
             logger.LogInformation("Booking details:");
             logger.LogInformation("  Destination: Paris, France");
             logger.LogInformation("  Dates: 2026-06-15 to 2026-06-22");
@@ -91,20 +91,20 @@ public class TravelBookingExample
             logger.LogInformation("  Flight: Round-trip economy");
             logger.LogInformation("  Car: Mid-size sedan\n");
 
-            await orchestrationService.StartSagaAsync(saga.Id);
+            await orchestrationService.StartSagaAsync(saga.Id).ConfigureAwait(false);
             logger.LogInformation("✓ Processing bookings...\n");
 
             // Execute all bookings
             for (int i = 0; i < 3; i++)
             {
-                var step = await orchestrationService.ExecuteNextStepAsync(saga.Id);
+                var step = await orchestrationService.ExecuteNextStepAsync(saga.Id).ConfigureAwait(false);
                 if (step != null)
                 {
-                    logger.LogInformation($"✓ {step.Name}: {step.Status}");
+                    logger.LogInformation("✓ {Name}: {Status}", step.Name, step.Status);
                 }
             }
 
-            var finalSaga = await orchestrationService.GetSagaAsync(saga.Id);
+            var finalSaga = await orchestrationService.GetSagaAsync(saga.Id).ConfigureAwait(false);
 
             if (finalSaga.Status == SagaStatus.Completed)
             {

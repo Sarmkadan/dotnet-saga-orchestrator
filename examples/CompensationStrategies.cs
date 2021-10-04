@@ -47,7 +47,7 @@ public class CompensationStrategiesExample
                 "http://localhost:8001/api/db/delete");
             step1.SetTimeout(30);
             step1.SetRetryPolicy(2, 1000);
-            await definitionService.AddStepAsync(definition.Id, step1);
+            await definitionService.AddStepAsync(definition.Id, step1).ConfigureAwait(false);
 
             var step2 = new SagaStepDefinition(
                 "Step 2: Cache Update",
@@ -56,7 +56,7 @@ public class CompensationStrategiesExample
                 "http://localhost:8002/api/cache/clear");
             step2.SetTimeout(30);
             step2.SetRetryPolicy(2, 1000);
-            await definitionService.AddStepAsync(definition.Id, step2);
+            await definitionService.AddStepAsync(definition.Id, step2).ConfigureAwait(false);
 
             var step3 = new SagaStepDefinition(
                 "Step 3: Message Queue",
@@ -65,7 +65,7 @@ public class CompensationStrategiesExample
                 "http://localhost:8003/api/queue/revoke");
             step3.SetTimeout(30);
             step3.SetRetryPolicy(2, 1000);
-            await definitionService.AddStepAsync(definition.Id, step3);
+            await definitionService.AddStepAsync(definition.Id, step3).ConfigureAwait(false);
 
             var step4 = new SagaStepDefinition(
                 "Step 4: External Service",
@@ -74,9 +74,9 @@ public class CompensationStrategiesExample
                 "http://localhost:8004/api/external/rollback");
             step4.SetTimeout(30);
             step4.SetRetryPolicy(2, 1000);
-            await definitionService.AddStepAsync(definition.Id, step4);
+            await definitionService.AddStepAsync(definition.Id, step4).ConfigureAwait(false);
 
-            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
+            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id).ConfigureAwait(false);
 
             // Demonstrate each strategy
             var strategies = new[]
@@ -88,34 +88,34 @@ public class CompensationStrategiesExample
 
             foreach (var (strategy, description) in strategies)
             {
-                logger.LogInformation($"\n=== Testing: {description} ===\n");
+                logger.LogInformation("\n=== Testing: {Description} ===\n", description);
 
                 var saga = await orchestrationService.CreateSagaAsync(
                     retrievedDef,
                     maxRetries: 2,
                     timeoutSeconds: 300);
 
-                logger.LogInformation($"Saga: {saga.Id}");
-                logger.LogInformation($"Strategy: {strategy}\n");
+                logger.LogInformation("Saga: {Id}", saga.Id);
+                logger.LogInformation("Strategy: {Strategy}\n", strategy);
 
-                await orchestrationService.StartSagaAsync(saga.Id);
+                await orchestrationService.StartSagaAsync(saga.Id).ConfigureAwait(false);
 
                 // Execute first 3 steps (step 4 will fail and trigger compensation)
                 for (int i = 0; i < 3; i++)
                 {
-                    var step = await orchestrationService.ExecuteNextStepAsync(saga.Id);
+                    var step = await orchestrationService.ExecuteNextStepAsync(saga.Id).ConfigureAwait(false);
                     if (step != null)
                     {
-                        logger.LogInformation($"✓ Executed: {step.Name}");
+                        logger.LogInformation("✓ Executed: {Name}", step.Name);
                     }
                 }
 
                 // Simulate failure in step 4
-                var sagaBeforeFail = await orchestrationService.GetSagaAsync(saga.Id);
+                var sagaBeforeFail = await orchestrationService.GetSagaAsync(saga.Id).ConfigureAwait(false);
                 logger.LogInformation("\nStep 4: Failed (simulated)\n");
 
                 // Trigger compensation with strategy
-                logger.LogInformation($"Triggering compensation with {description}:\n");
+                logger.LogInformation("Triggering compensation with {Description}:\n", description);
 
                 switch (strategy)
                 {
@@ -142,10 +142,10 @@ public class CompensationStrategiesExample
                 }
 
                 // Execute compensation
-                var compensatedSaga = await orchestrationService.CompensateSagaAsync(saga.Id, strategy);
+                var compensatedSaga = await orchestrationService.CompensateSagaAsync(saga.Id, strategy).ConfigureAwait(false);
 
                 logger.LogInformation($"✓ Compensation complete");
-                logger.LogInformation($"  Final Status: {compensatedSaga.Status}\n");
+                logger.LogInformation("  Final Status: {Status}\n", compensatedSaga.Status);
             }
 
             // Demonstrate Manual compensation
@@ -156,17 +156,17 @@ public class CompensationStrategiesExample
                 maxRetries: 2,
                 timeoutSeconds: 300);
 
-            logger.LogInformation($"Saga: {manualSaga.Id}");
+            logger.LogInformation("Saga: {Id}", manualSaga.Id);
             logger.LogInformation("Strategy: Manual\n");
 
-            await orchestrationService.StartSagaAsync(manualSaga.Id);
+            await orchestrationService.StartSagaAsync(manualSaga.Id).ConfigureAwait(false);
 
             for (int i = 0; i < 2; i++)
             {
-                var step = await orchestrationService.ExecuteNextStepAsync(manualSaga.Id);
+                var step = await orchestrationService.ExecuteNextStepAsync(manualSaga.Id).ConfigureAwait(false);
                 if (step != null)
                 {
-                    logger.LogInformation($"✓ Executed: {step.Name}");
+                    logger.LogInformation("✓ Executed: {Name}", step.Name);
                 }
             }
 
@@ -181,7 +181,7 @@ public class CompensationStrategiesExample
                 manualSaga.Id,
                 CompensationStrategy.Manual);
 
-            logger.LogInformation($"Status: {manualCompensation.Status}");
+            logger.LogInformation("Status: {Status}", manualCompensation.Status);
             logger.LogInformation("Awaiting manual intervention...\n");
 
             logger.LogInformation("✓ Compensation strategies example completed");

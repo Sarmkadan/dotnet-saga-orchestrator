@@ -55,7 +55,7 @@ public class AdvancedRetriesExample
             logger.LogInformation("  Initial Delay: 500ms");
             logger.LogInformation("  Backoff: Exponential (500ms, 1s, 2s, 4s, 8s)\n");
 
-            await definitionService.AddStepAsync(definition.Id, unreliableStep);
+            await definitionService.AddStepAsync(definition.Id, unreliableStep).ConfigureAwait(false);
 
             // Step 2: Conservative retries for sensitive service
             var sensitiveStep = new SagaStepDefinition(
@@ -74,7 +74,7 @@ public class AdvancedRetriesExample
             logger.LogInformation("  Initial Delay: 2000ms");
             logger.LogInformation("  Backoff: Exponential (2s, 4s)\n");
 
-            await definitionService.AddStepAsync(definition.Id, sensitiveStep);
+            await definitionService.AddStepAsync(definition.Id, sensitiveStep).ConfigureAwait(false);
 
             // Step 3: Fast retries for responsive service
             var responsiveStep = new SagaStepDefinition(
@@ -93,7 +93,7 @@ public class AdvancedRetriesExample
             logger.LogInformation("  Initial Delay: 100ms");
             logger.LogInformation("  Backoff: Exponential (100ms, 200ms, 400ms, ...)\n");
 
-            await definitionService.AddStepAsync(definition.Id, responsiveStep);
+            await definitionService.AddStepAsync(definition.Id, responsiveStep).ConfigureAwait(false);
 
             var validation = definitionService.ValidateDefinition(definition);
             if (!validation.IsValid)
@@ -102,7 +102,7 @@ public class AdvancedRetriesExample
                 return;
             }
 
-            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
+            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id).ConfigureAwait(false);
 
             var saga = await orchestrationService.CreateSagaAsync(
                 retrievedDef,
@@ -110,11 +110,11 @@ public class AdvancedRetriesExample
                 timeoutSeconds: 600);
 
             logger.LogInformation("=== Saga Configuration ===");
-            logger.LogInformation($"Saga ID: {saga.Id}");
+            logger.LogInformation("Saga ID: {Id}", saga.Id);
             logger.LogInformation($"Max Retries: 3");
             logger.LogInformation($"Timeout: 600 seconds\n");
 
-            await orchestrationService.StartSagaAsync(saga.Id);
+            await orchestrationService.StartSagaAsync(saga.Id).ConfigureAwait(false);
             logger.LogInformation("✓ Saga started\n");
 
             // Execute steps with detailed logging
@@ -122,13 +122,13 @@ public class AdvancedRetriesExample
 
             for (int i = 0; i < 3; i++)
             {
-                var step = await orchestrationService.ExecuteNextStepAsync(saga.Id);
+                var step = await orchestrationService.ExecuteNextStepAsync(saga.Id).ConfigureAwait(false);
 
                 if (step != null)
                 {
                     logger.LogInformation($"Step {i + 1}: {step.Name}");
-                    logger.LogInformation($"  Status: {step.Status}");
-                    logger.LogInformation($"  Retry Count: {step.RetryCount}");
+                    logger.LogInformation("  Status: {Status}", step.Status);
+                    logger.LogInformation("  Retry Count: {RetryCount}", step.RetryCount);
 
                     if (step.CompletedAt.HasValue && step.StartedAt.HasValue)
                     {
@@ -138,22 +138,22 @@ public class AdvancedRetriesExample
 
                     if (!string.IsNullOrEmpty(step.ErrorMessage))
                     {
-                        logger.LogInformation($"  Last Error: {step.ErrorMessage}");
+                        logger.LogInformation("  Last Error: {ErrorMessage}", step.ErrorMessage);
                     }
 
                     logger.LogInformation();
                 }
             }
 
-            var finalSaga = await orchestrationService.GetSagaAsync(saga.Id);
+            var finalSaga = await orchestrationService.GetSagaAsync(saga.Id).ConfigureAwait(false);
 
             logger.LogInformation("=== Execution Summary ===\n");
-            logger.LogInformation($"Final Status: {finalSaga.Status}");
+            logger.LogInformation("Final Status: {Status}", finalSaga.Status);
 
             foreach (var step in finalSaga.Steps)
             {
-                logger.LogInformation($"\n{step.Name}:");
-                logger.LogInformation($"  Status: {step.Status}");
+                logger.LogInformation("\n{Name}:", step.Name);
+                logger.LogInformation("  Status: {Status}", step.Status);
                 logger.LogInformation($"  Total Attempts: {step.RetryCount + 1}");
             }
 

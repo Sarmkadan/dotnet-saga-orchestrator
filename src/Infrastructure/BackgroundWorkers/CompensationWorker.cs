@@ -41,8 +41,8 @@ public class CompensationWorker : BackgroundService
         {
             try
             {
-                await ProcessCompensationsAsync(stoppingToken);
-                await Task.Delay(_checkInterval, stoppingToken);
+                await ProcessCompensationsAsync(stoppingToken).ConfigureAwait(false);
+                await Task.Delay(_checkInterval, stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -59,7 +59,7 @@ public class CompensationWorker : BackgroundService
 
     private async Task ProcessCompensationsAsync(CancellationToken stoppingToken)
     {
-        var allSagas = await _sagaRepository.GetAllAsync();
+        var allSagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
         var failedSagas = allSagas.Where(s => s.Status == SagaStatus.Failed).ToList();
         var compensatingSagas = allSagas.Where(s => s.Status == SagaStatus.Compensating).ToList();
 
@@ -77,7 +77,7 @@ public class CompensationWorker : BackgroundService
                     var strategy = saga.CompensationStrategy;
 
                     // Initiate compensation
-                    await _compensationService.InitiateCompensationAsync(saga.Id, strategy);
+                    await _compensationService.InitiateCompensationAsync(saga.Id, strategy).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -100,7 +100,7 @@ public class CompensationWorker : BackgroundService
                 {
                     _logger.LogInformation("Compensation completed for saga {SagaId}", saga.Id);
                     saga.Status = SagaStatus.Compensated;
-                    await _sagaRepository.UpdateAsync(saga);
+                    await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

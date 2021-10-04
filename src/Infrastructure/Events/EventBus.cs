@@ -81,7 +81,7 @@ public class EventBus : IEventBus
             tasks.Add(handler(@event));
         }
 
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     public IReadOnlyList<DomainEvent> GetEventHistory()

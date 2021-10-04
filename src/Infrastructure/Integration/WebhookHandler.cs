@@ -116,7 +116,7 @@ public class WebhookHandler : IWebhookHandler
                     "application/json")
             };
 
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             _logger.LogInformation(

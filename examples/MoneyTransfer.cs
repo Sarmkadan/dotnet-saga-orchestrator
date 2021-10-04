@@ -46,7 +46,7 @@ public class MoneyTransferExample
                 "http://localhost:5001/api/accounts/unlock");
             validateStep.SetTimeout(15);
             validateStep.SetRetryPolicy(3, 500);
-            await definitionService.AddStepAsync(definition.Id, validateStep);
+            await definitionService.AddStepAsync(definition.Id, validateStep).ConfigureAwait(false);
 
             // Step 2: Debit source account
             var debitStep = new SagaStepDefinition(
@@ -56,7 +56,7 @@ public class MoneyTransferExample
                 "http://localhost:5002/api/ledger/credit");
             debitStep.SetTimeout(30);
             debitStep.SetRetryPolicy(5, 1000);
-            await definitionService.AddStepAsync(definition.Id, debitStep);
+            await definitionService.AddStepAsync(definition.Id, debitStep).ConfigureAwait(false);
 
             // Step 3: Credit destination account
             var creditStep = new SagaStepDefinition(
@@ -66,7 +66,7 @@ public class MoneyTransferExample
                 "http://localhost:5002/api/ledger/debit");
             creditStep.SetTimeout(30);
             creditStep.SetRetryPolicy(5, 1000);
-            await definitionService.AddStepAsync(definition.Id, creditStep);
+            await definitionService.AddStepAsync(definition.Id, creditStep).ConfigureAwait(false);
 
             logger.LogInformation("✓ Created definition with 3 steps\n");
 
@@ -78,7 +78,7 @@ public class MoneyTransferExample
                 return;
             }
 
-            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
+            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id).ConfigureAwait(false);
 
             // Create and execute saga
             var saga = await orchestrationService.CreateSagaAsync(
@@ -86,26 +86,26 @@ public class MoneyTransferExample
                 maxRetries: 5,
                 timeoutSeconds: 300);
 
-            logger.LogInformation($"✓ Transfer saga created: {saga.Id}");
+            logger.LogInformation("✓ Transfer saga created: {Id}", saga.Id);
             logger.LogInformation($"  From: Account-123");
             logger.LogInformation($"  To: Account-456");
             logger.LogInformation($"  Amount: $1,000.00\n");
 
-            await orchestrationService.StartSagaAsync(saga.Id);
+            await orchestrationService.StartSagaAsync(saga.Id).ConfigureAwait(false);
             logger.LogInformation("✓ Transfer initiated\n");
 
             // Execute all steps
             logger.LogInformation("Processing transfer...");
             for (int i = 0; i < 3; i++)
             {
-                var step = await orchestrationService.ExecuteNextStepAsync(saga.Id);
+                var step = await orchestrationService.ExecuteNextStepAsync(saga.Id).ConfigureAwait(false);
                 if (step != null)
                 {
-                    logger.LogInformation($"✓ {step.Name}: {step.Status}");
+                    logger.LogInformation("✓ {Name}: {Status}", step.Name, step.Status);
                 }
             }
 
-            var finalSaga = await orchestrationService.GetSagaAsync(saga.Id);
+            var finalSaga = await orchestrationService.GetSagaAsync(saga.Id).ConfigureAwait(false);
 
             if (finalSaga.Status == SagaStatus.Completed)
             {
@@ -116,7 +116,7 @@ public class MoneyTransferExample
             else if (finalSaga.Status == SagaStatus.Failed)
             {
                 logger.LogInformation("\n✗ Transfer failed - initiating compensation");
-                await orchestrationService.CompensateSagaAsync(saga.Id);
+                await orchestrationService.CompensateSagaAsync(saga.Id).ConfigureAwait(false);
                 logger.LogInformation("✓ Compensation completed - funds restored");
             }
         }

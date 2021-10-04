@@ -37,10 +37,10 @@ public class MetricsMonitoringExample
 
             // Check system health
             logger.LogInformation("System Health Check:");
-            var health = await healthCheckService.GetHealthAsync();
-            logger.LogInformation($"  Service Status: {health.ServiceStatus}");
-            logger.LogInformation($"  Active Sagas: {health.ActiveSagaCount}");
-            logger.LogInformation($"  Uptime: {health.Uptime}\n");
+            var health = await healthCheckService.GetHealthAsync().ConfigureAwait(false);
+            logger.LogInformation("  Service Status: {ServiceStatus}", health.ServiceStatus);
+            logger.LogInformation("  Active Sagas: {ActiveSagaCount}", health.ActiveSagaCount);
+            logger.LogInformation("  Uptime: {Uptime}\n", health.Uptime);
 
             // Create a test saga for metrics
             var definition = await definitionService.CreateDefinitionAsync(
@@ -54,7 +54,7 @@ public class MetricsMonitoringExample
                 "http://localhost:5001/api/step1/undo");
             step1.SetTimeout(30);
             step1.SetRetryPolicy(2, 1000);
-            await definitionService.AddStepAsync(definition.Id, step1);
+            await definitionService.AddStepAsync(definition.Id, step1).ConfigureAwait(false);
 
             var step2 = new SagaStepDefinition(
                 "Step 2",
@@ -63,9 +63,9 @@ public class MetricsMonitoringExample
                 "http://localhost:5002/api/step2/undo");
             step2.SetTimeout(30);
             step2.SetRetryPolicy(2, 1000);
-            await definitionService.AddStepAsync(definition.Id, step2);
+            await definitionService.AddStepAsync(definition.Id, step2).ConfigureAwait(false);
 
-            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
+            var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id).ConfigureAwait(false);
 
             // Create and execute multiple sagas
             logger.LogInformation("Creating test sagas...");
@@ -78,13 +78,13 @@ public class MetricsMonitoringExample
                     maxRetries: 3,
                     timeoutSeconds: 300);
 
-                await orchestrationService.StartSagaAsync(saga.Id);
+                await orchestrationService.StartSagaAsync(saga.Id).ConfigureAwait(false);
                 sagaIds.Add(saga.Id);
 
                 // Execute steps
                 for (int j = 0; j < 2; j++)
                 {
-                    await orchestrationService.ExecuteNextStepAsync(saga.Id);
+                    await orchestrationService.ExecuteNextStepAsync(saga.Id).ConfigureAwait(false);
                 }
 
                 logger.LogInformation($"✓ Completed saga {i + 1}/5: {saga.Id}");
@@ -98,31 +98,31 @@ public class MetricsMonitoringExample
             var metrics = metricsService.GetMetrics();
 
             logger.LogInformation("Saga Statistics:");
-            logger.LogInformation($"  Total Sagas: {metrics.TotalSagas}");
-            logger.LogInformation($"  Completed: {metrics.CompletedSagas}");
-            logger.LogInformation($"  Failed: {metrics.FailedSagas}");
-            logger.LogInformation($"  Success Rate: {metrics.SuccessRate:P2}");
-            logger.LogInformation($"  Failure Rate: {metrics.FailureRate:P2}\n");
+            logger.LogInformation("  Total Sagas: {TotalSagas}", metrics.TotalSagas);
+            logger.LogInformation("  Completed: {CompletedSagas}", metrics.CompletedSagas);
+            logger.LogInformation("  Failed: {FailedSagas}", metrics.FailedSagas);
+            logger.LogInformation("  Success Rate: {SuccessRate}", metrics.SuccessRate);
+            logger.LogInformation("  Failure Rate: {FailureRate}\n", metrics.FailureRate);
 
             logger.LogInformation("Duration Metrics (ms):");
-            logger.LogInformation($"  Minimum: {metrics.MinDurationMs}");
-            logger.LogInformation($"  Maximum: {metrics.MaxDurationMs}");
-            logger.LogInformation($"  Average: {metrics.AverageDurationMs:F2}");
-            logger.LogInformation($"  Median: {metrics.MedianDurationMs:F2}\n");
+            logger.LogInformation("  Minimum: {MinDurationMs}", metrics.MinDurationMs);
+            logger.LogInformation("  Maximum: {MaxDurationMs}", metrics.MaxDurationMs);
+            logger.LogInformation("  Average: {AverageDurationMs}", metrics.AverageDurationMs);
+            logger.LogInformation("  Median: {MedianDurationMs}\n", metrics.MedianDurationMs);
 
             // Performance percentiles
             logger.LogInformation("Performance Percentiles:");
             if (metrics.P50DurationMs.HasValue)
-                logger.LogInformation($"  P50 (Median): {metrics.P50DurationMs:F2}ms");
+                logger.LogInformation("  P50 (Median): {P50DurationMs}ms", metrics.P50DurationMs);
             if (metrics.P95DurationMs.HasValue)
-                logger.LogInformation($"  P95: {metrics.P95DurationMs:F2}ms");
+                logger.LogInformation("  P95: {P95DurationMs}ms", metrics.P95DurationMs);
             if (metrics.P99DurationMs.HasValue)
-                logger.LogInformation($"  P99: {metrics.P99DurationMs:F2}ms\n");
+                logger.LogInformation("  P99: {P99DurationMs}ms\n", metrics.P99DurationMs);
 
             // List all sagas with their details
             logger.LogInformation("=== Completed Sagas ===\n");
 
-            var allSagas = await orchestrationService.ListSagasAsync();
+            var allSagas = await orchestrationService.ListSagasAsync().ConfigureAwait(false);
 
             foreach (var saga in allSagas)
             {
@@ -130,11 +130,11 @@ public class MetricsMonitoringExample
                     ? (saga.CompletedAt.Value - saga.StartedAt.Value).TotalSeconds
                     : 0;
 
-                logger.LogInformation($"Saga: {saga.Id}");
-                logger.LogInformation($"  Status: {saga.Status}");
-                logger.LogInformation($"  Created: {saga.CreatedAt:O}");
-                logger.LogInformation($"  Duration: {duration:F2}s");
-                logger.LogInformation($"  Steps: {saga.Steps.Count}");
+                logger.LogInformation("Saga: {Id}", saga.Id);
+                logger.LogInformation("  Status: {Status}", saga.Status);
+                logger.LogInformation("  Created: {CreatedAt}", saga.CreatedAt);
+                logger.LogInformation("  Duration: {Duration}s", duration);
+                logger.LogInformation("  Steps: {Count}", saga.Steps.Count);
                 logger.LogInformation($"  Completed: {saga.Steps.Count(s => s.Status == SagaStepStatus.Completed)}");
             }
 

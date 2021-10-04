@@ -66,10 +66,10 @@ public class HttpClientFactory : IHttpClientFactory
 
     public async Task<T> SendAsync<T>(HttpClient client, HttpRequestMessage request)
     {
-        var response = await client.SendAsync(request);
+        var response = await client.SendAsync(request).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         return System.Text.Json.JsonSerializer.Deserialize<T>(content)
             ?? throw new InvalidOperationException("Failed to deserialize response");
     }

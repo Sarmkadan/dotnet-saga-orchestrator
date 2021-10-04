@@ -42,9 +42,9 @@ public class HealthCheckService : IHealthCheckService
     {
         try
         {
-            var allSagas = await _sagaRepository.GetAllAsync();
+            var allSagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
             var activeSagas = allSagas.Count(s => s.Status.ToString() == "Running" || s.Status.ToString() == "Compensating");
-            var services = await _serviceRegistry.GetAllServicesAsync();
+            var services = await _serviceRegistry.GetAllServicesAsync().ConfigureAwait(false);
             var unhealthyServices = services.Count(s => !s.IsHealthy);
 
             var status = unhealthyServices > 0 ? "degraded" : "healthy";
@@ -74,11 +74,11 @@ public class HealthCheckService : IHealthCheckService
     {
         try
         {
-            var allSagas = await _sagaRepository.GetAllAsync();
+            var allSagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
             var completed = allSagas.Count(s => s.Status.ToString() == "Completed");
             var failed = allSagas.Count(s => s.Status.ToString() == "Failed");
             var running = allSagas.Count(s => s.Status.ToString() == "Running");
-            var services = await _serviceRegistry.GetAllServicesAsync();
+            var services = await _serviceRegistry.GetAllServicesAsync().ConfigureAwait(false);
 
             var metrics = new Dictionary<string, object>
             {

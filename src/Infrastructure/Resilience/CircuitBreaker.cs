@@ -49,7 +49,7 @@ public class CircuitBreaker : ICircuitBreaker
             if (!canExecute)
                 return false;
 
-            await action();
+            await action().ConfigureAwait(false);
             RecordSuccess(identifier);
             return true;
         }
@@ -68,7 +68,7 @@ public class CircuitBreaker : ICircuitBreaker
             if (!canExecute)
                 throw new InvalidOperationException($"Circuit breaker is open for {identifier}");
 
-            var result = await action();
+            var result = await action().ConfigureAwait(false);
             RecordSuccess(identifier);
             return result;
         }

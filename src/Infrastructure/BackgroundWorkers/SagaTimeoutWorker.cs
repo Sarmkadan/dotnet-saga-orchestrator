@@ -41,8 +41,8 @@ public class SagaTimeoutWorker : BackgroundService
         {
             try
             {
-                await CheckAndHandleTimeoutsAsync(stoppingToken);
-                await Task.Delay(_checkInterval, stoppingToken);
+                await CheckAndHandleTimeoutsAsync(stoppingToken).ConfigureAwait(false);
+                await Task.Delay(_checkInterval, stoppingToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -59,7 +59,7 @@ public class SagaTimeoutWorker : BackgroundService
 
     private async Task CheckAndHandleTimeoutsAsync(CancellationToken stoppingToken)
     {
-        var sagas = await _sagaRepository.GetAllAsync();
+        var sagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
         var runningOrCompensating = sagas.Where(s =>
             s.Status == SagaStatus.Running || s.Status == SagaStatus.Compensating).ToList();
 
@@ -71,7 +71,7 @@ public class SagaTimeoutWorker : BackgroundService
                 if (elapsedTime > TimeSpan.FromSeconds(saga.TimeoutSeconds))
                 {
                     _logger.LogWarning("Saga {SagaId} has exceeded timeout limit. Aborting.", saga.Id);
-                    await _orchestrationService.AbortSagaAsync(saga.Id);
+                    await _orchestrationService.AbortSagaAsync(saga.Id).ConfigureAwait(false);
                 }
 
                 // Check individual step timeouts
@@ -84,7 +84,7 @@ public class SagaTimeoutWorker : BackgroundService
                         _logger.LogWarning("Step {StepId} in saga {SagaId} has timed out.", step.Id, saga.Id);
                         // Mark step as failed, which triggers compensation
                         step.Status = SagaStepStatus.TimedOut;
-                        await _sagaRepository.UpdateAsync(saga);
+                        await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
                     }
                 }
             }

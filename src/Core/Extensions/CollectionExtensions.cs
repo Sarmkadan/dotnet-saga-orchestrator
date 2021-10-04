@@ -144,7 +144,7 @@ public static class CollectionExtensions
     {
         foreach (var item in items)
         {
-            await action(item);
+            await action(item).ConfigureAwait(false);
         }
     }
 

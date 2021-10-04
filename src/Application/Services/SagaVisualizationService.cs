@@ -69,7 +69,7 @@ public class SagaVisualizationService : ISagaVisualizationService
 
         try
         {
-            var saga = await _sagaRepository.GetByIdAsync(sagaId);
+            var saga = await _sagaRepository.GetByIdAsync(sagaId).ConfigureAwait(false);
             if (saga == null)
                 throw new KeyNotFoundException($"Saga '{sagaId}' not found.");
 
@@ -92,7 +92,7 @@ public class SagaVisualizationService : ISagaVisualizationService
     {
         try
         {
-            var sagas = await _sagaRepository.GetAllAsync();
+            var sagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
             return sagas.Select(BuildSnapshot).ToList().AsReadOnly();
         }
         catch (Exception ex)
@@ -121,13 +121,13 @@ public class SagaVisualizationService : ISagaVisualizationService
         {
             try
             {
-                var snapshot = await GetSnapshotAsync(sagaId, cancellationToken);
-                await onUpdate(snapshot);
+                var snapshot = await GetSnapshotAsync(sagaId, cancellationToken).ConfigureAwait(false);
+                await onUpdate(snapshot).ConfigureAwait(false);
 
                 if (snapshot.IsTerminal)
                     break;
 
-                await Task.Delay(pollInterval, cancellationToken);
+                await Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

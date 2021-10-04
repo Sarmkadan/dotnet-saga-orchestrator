@@ -53,7 +53,7 @@ public class SagaOrchestrationService
             maxRetries ?? SagaConstants.DefaultMaxRetries,
             timeoutSeconds ?? SagaConstants.DefaultSagaTimeoutSeconds);
 
-        var created = await _sagaRepository.CreateAsync(saga);
+        var created = await _sagaRepository.CreateAsync(saga).ConfigureAwait(false);
         return created ?? throw new SagaException("Failed to create saga", saga.Id);
     }
 
@@ -73,7 +73,7 @@ public class SagaOrchestrationService
         // Create step instances from definition
         InitializeStepsFromDefinition(saga);
 
-        var updated = await _sagaRepository.UpdateAsync(saga);
+        var updated = await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
         return updated ?? throw new SagaException("Failed to update saga", sagaId);
     }
 
@@ -94,27 +94,27 @@ public class SagaOrchestrationService
         {
             // All steps completed
             saga.Complete();
-            await _sagaRepository.UpdateAsync(saga);
+            await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
             return null!;
         }
 
         // Execute the step
         nextStep.Start();
-        await _stepRepository.UpdateAsync(nextStep);
+        await _stepRepository.UpdateAsync(nextStep).ConfigureAwait(false);
 
         try
         {
             // Simulate step execution (would call actual service endpoint)
-            var result = await SimulateStepExecutionAsync(nextStep, cancellationToken);
+            var result = await SimulateStepExecutionAsync(nextStep, cancellationToken).ConfigureAwait(false);
 
             nextStep.Complete(result);
-            await _stepRepository.UpdateAsync(nextStep);
+            await _stepRepository.UpdateAsync(nextStep).ConfigureAwait(false);
 
             // Check if saga is complete
             if (saga.Steps.All(s => s.Status == SagaStepStatus.Completed))
             {
                 saga.Complete();
-                await _sagaRepository.UpdateAsync(saga);
+                await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -132,12 +132,12 @@ public class SagaOrchestrationService
                 saga.Fail($"Step '{nextStep.Name}' failed after {nextStep.RetryCount} retries: {ex.Message}");
             }
 
-            await _stepRepository.UpdateAsync(nextStep);
-            await _sagaRepository.UpdateAsync(saga);
+            await _stepRepository.UpdateAsync(nextStep).ConfigureAwait(false);
+            await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
 
             if (saga.Status == SagaStatus.Failed)
             {
-                await _compensationService.BeginCompensationAsync(saga);
+                await _compensationService.BeginCompensationAsync(saga).ConfigureAwait(false);
             }
         }
 
@@ -164,14 +164,14 @@ public class SagaOrchestrationService
         if (step.CanRetry())
         {
             step.PrepareForRetry();
-            await _stepRepository.UpdateAsync(step);
+            await _stepRepository.UpdateAsync(step).ConfigureAwait(false);
         }
         else
         {
             saga.Fail($"Step '{step.Name}' timed out and cannot be retried");
-            await _stepRepository.UpdateAsync(step);
-            await _sagaRepository.UpdateAsync(saga);
-            await _compensationService.BeginCompensationAsync(saga);
+            await _stepRepository.UpdateAsync(step).ConfigureAwait(false);
+            await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
+            await _compensationService.BeginCompensationAsync(saga).ConfigureAwait(false);
         }
 
         return true;
@@ -192,7 +192,7 @@ public class SagaOrchestrationService
         saga.FailureReason = reason;
         saga.FailedAt = DateTime.UtcNow;
 
-        await _sagaRepository.UpdateAsync(saga);
+        await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public class SagaOrchestrationService
     /// </summary>
     public async Task<List<Saga>> ListSagasAsync(SagaStatus? status = null, int pageSize = 100, int pageNumber = 1)
     {
-        var sagas = await _sagaRepository.GetAllAsync();
+        var sagas = await _sagaRepository.GetAllAsync().ConfigureAwait(false);
 
         if (status.HasValue)
             sagas = sagas.Where(s => s.Status == status.Value).ToList();
@@ -242,7 +242,7 @@ public class SagaOrchestrationService
     private async Task<Dictionary<string, object>> SimulateStepExecutionAsync(SagaStep step, CancellationToken cancellationToken)
     {
         // Simulate service call delay
-        await Task.Delay(100, cancellationToken);
+        await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 
         // In production, this would make an HTTP call to the service
         var response = new Dictionary<string, object>

@@ -40,7 +40,7 @@ public class SagaDefinitionService
 
         var definition = new SagaDefinition(name, description);
 
-        var created = await _repository.CreateAsync(definition);
+        var created = await _repository.CreateAsync(definition).ConfigureAwait(false);
         if (created == null)
             throw new SagaException("Failed to create saga definition");
 
@@ -63,7 +63,7 @@ public class SagaDefinitionService
 
         definition.AddStep(stepDefinition);
 
-        var updated = await _repository.UpdateAsync(definition);
+        var updated = await _repository.UpdateAsync(definition).ConfigureAwait(false);
         if (updated == null)
             throw new SagaException("Failed to update saga definition");
 
@@ -90,7 +90,7 @@ public class SagaDefinitionService
             definition.Steps[i].Order = i + 1;
         }
 
-        var updated = await _repository.UpdateAsync(definition);
+        var updated = await _repository.UpdateAsync(definition).ConfigureAwait(false);
         if (updated == null)
             throw new SagaException("Failed to update saga definition");
 
@@ -155,7 +155,7 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<SagaDefinition?> GetDefinitionByNameAsync(string name)
     {
-        return await _repository.GetByNameAsync(name);
+        return await _repository.GetByNameAsync(name).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<List<SagaDefinition>> ListDefinitionsAsync(bool activeOnly = false)
     {
-        var definitions = await _repository.GetAllAsync();
+        var definitions = await _repository.GetAllAsync().ConfigureAwait(false);
 
         if (activeOnly)
             definitions = definitions.Where(d => d.IsActive).ToList();
@@ -181,7 +181,7 @@ public class SagaDefinitionService
 
         definition.IsActive = true;
 
-        var updated = await _repository.UpdateAsync(definition);
+        var updated = await _repository.UpdateAsync(definition).ConfigureAwait(false);
         if (updated == null)
             throw new SagaException("Failed to activate definition");
 
@@ -198,7 +198,7 @@ public class SagaDefinitionService
 
         definition.IsActive = false;
 
-        var updated = await _repository.UpdateAsync(definition);
+        var updated = await _repository.UpdateAsync(definition).ConfigureAwait(false);
         if (updated == null)
             throw new SagaException("Failed to deactivate definition");
 
@@ -224,7 +224,7 @@ public class SagaDefinitionService
             clone.AddStep(step.Clone());
         }
 
-        var created = await _repository.CreateAsync(clone);
+        var created = await _repository.CreateAsync(clone).ConfigureAwait(false);
         if (created == null)
             throw new SagaException("Failed to clone saga definition");
 

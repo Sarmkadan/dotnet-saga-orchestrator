@@ -314,7 +314,7 @@ public class SagaRepositoryMockTests
             .Setup(r => r.GetByIdAsync("saga_test123"))
             .ReturnsAsync(expectedSaga);
 
-        var result = await repositoryMock.Object.GetByIdAsync("saga_test123");
+        var result = await repositoryMock.Object.GetByIdAsync("saga_test123").ConfigureAwait(false);
 
         result.Should().NotBeNull();
         result!.Id.Should().Be("saga_test123");
@@ -330,7 +330,7 @@ public class SagaRepositoryMockTests
             .Setup(r => r.GetByIdAsync(It.IsAny<string>()))
             .ReturnsAsync((Saga?)null);
 
-        var result = await repositoryMock.Object.GetByIdAsync("saga_missing");
+        var result = await repositoryMock.Object.GetByIdAsync("saga_missing").ConfigureAwait(false);
 
         result.Should().BeNull();
     }
@@ -349,7 +349,7 @@ public class SagaRepositoryMockTests
             .Setup(r => r.GetByStatusAsync(SagaStatus.Running))
             .ReturnsAsync(runningSagas);
 
-        var result = await repositoryMock.Object.GetByStatusAsync(SagaStatus.Running);
+        var result = await repositoryMock.Object.GetByStatusAsync(SagaStatus.Running).ConfigureAwait(false);
 
         result.Should().HaveCount(2);
         result.Should().AllSatisfy(s => s.Status.Should().Be(SagaStatus.Running));
@@ -366,7 +366,7 @@ public class SagaRepositoryMockTests
             .Setup(r => r.CreateAsync(It.Is<Saga>(s => s.Id == "saga_new001")))
             .ReturnsAsync(saga);
 
-        var result = await repositoryMock.Object.CreateAsync(saga);
+        var result = await repositoryMock.Object.CreateAsync(saga).ConfigureAwait(false);
 
         result.Should().NotBeNull();
         result!.Id.Should().Be("saga_new001");

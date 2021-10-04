@@ -138,7 +138,7 @@ public static class DateTimeExtensions
     public static async Task<TimeSpan> MeasureAsync(Func<Task> action)
     {
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        await action();
+        await action().ConfigureAwait(false);
         watch.Stop();
         return watch.Elapsed;
     }

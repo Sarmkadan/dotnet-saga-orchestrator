@@ -52,7 +52,7 @@ public class SagaEventPublisher
         // Notify all subscribers
         var subscribers = GetSubscribers();
         var tasks = subscribers.Select(handler => handler(sagaEvent));
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class SagaEventPublisher
             throw new ArgumentNullException(nameof(events));
 
         var tasks = events.Select(PublishAsync);
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ public class SagaEventPublisher
             WriteIndented = true
         });
 
-        await System.IO.File.WriteAllTextAsync(filePath, json);
+        await System.IO.File.WriteAllTextAsync(filePath, json).ConfigureAwait(false);
     }
 
     // Private helper methods

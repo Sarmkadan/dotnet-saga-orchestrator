@@ -48,7 +48,7 @@ public class CompensationService
             throw new SagaException($"Cannot compensate saga in {saga.Status} status", saga.Id);
 
         saga.BeginCompensation();
-        await _sagaRepository.UpdateAsync(saga);
+        await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
 
         // Create compensation transactions for completed steps
         var completedSteps = saga.Steps
@@ -61,7 +61,7 @@ public class CompensationService
             compensation.Initialize(saga.Id, step.Id, step.Name, step.Order, step.CompensationUrl);
             compensation.SetRequestPayload(step.Response);
 
-            await _compensationRepository.CreateAsync(compensation);
+            await _compensationRepository.CreateAsync(compensation).ConfigureAwait(false);
         }
     }
 
@@ -76,7 +76,7 @@ public class CompensationService
         if (saga.Status != SagaStatus.Compensating)
             throw new SagaException($"Cannot execute compensation for saga in {saga.Status} status", sagaId);
 
-        var compensations = await _compensationRepository.GetBySagaIdAsync(sagaId);
+        var compensations = await _compensationRepository.GetBySagaIdAsync(sagaId).ConfigureAwait(false);
 
         // Get next pending compensation based on strategy
         var nextCompensation = GetNextCompensationByStrategy(saga.Definition.CompensationStrategy, compensations);
@@ -85,14 +85,14 @@ public class CompensationService
         {
             // All compensations complete
             saga.CompleteCompensation();
-            await _sagaRepository.UpdateAsync(saga);
+            await _sagaRepository.UpdateAsync(saga).ConfigureAwait(false);
 
             // Mark all steps as compensated
             var steps = saga.Steps.Where(s => s.Status == SagaStepStatus.Completed).ToList();
             foreach (var step in steps)
             {
                 step.Compensate();
-                await _stepRepository.UpdateAsync(step);
+                await _stepRepository.UpdateAsync(step).ConfigureAwait(false);
             }
 
             return null;
@@ -100,14 +100,14 @@ public class CompensationService
 
         // Execute compensation
         nextCompensation.Start();
-        await _compensationRepository.UpdateAsync(nextCompensation);
+        await _compensationRepository.UpdateAsync(nextCompensation).ConfigureAwait(false);
 
         try
         {
-            var result = await SimulateCompensationCallAsync(nextCompensation, cancellationToken);
+            var result = await SimulateCompensationCallAsync(nextCompensation, cancellationToken).ConfigureAwait(false);
             nextCompensation.Complete(result);
 
-            await _compensationRepository.UpdateAsync(nextCompensation);
+            await _compensationRepository.UpdateAsync(nextCompensation).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -118,7 +118,7 @@ public class CompensationService
                 nextCompensation.PrepareForRetry();
             }
 
-            await _compensationRepository.UpdateAsync(nextCompensation);
+            await _compensationRepository.UpdateAsync(nextCompensation).ConfigureAwait(false);
         }
 
         return nextCompensation;
@@ -129,7 +129,7 @@ public class CompensationService
     /// </summary>
     public async Task<bool> RetryCompensationAsync(string compensationId)
     {
-        var compensation = await _compensationRepository.GetByIdAsync(compensationId);
+        var compensation = await _compensationRepository.GetByIdAsync(compensationId).ConfigureAwait(false);
         if (compensation == null)
             throw new SagaException($"Compensation transaction '{compensationId}' not found");
 
@@ -140,7 +140,7 @@ public class CompensationService
             throw new SagaException($"Compensation cannot be retried: exceeded max retries", compensation.SagaId);
 
         compensation.PrepareForRetry();
-        await _compensationRepository.UpdateAsync(compensation);
+        await _compensationRepository.UpdateAsync(compensation).ConfigureAwait(false);
 
         return true;
     }
@@ -150,7 +150,7 @@ public class CompensationService
     /// </summary>
     public async Task<List<CompensationTransaction>> GetCompensationsAsync(string sagaId)
     {
-        return await _compensationRepository.GetBySagaIdAsync(sagaId);
+        return await _compensationRepository.GetBySagaIdAsync(sagaId).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class CompensationService
     /// </summary>
     public async Task<List<CompensationTransaction>> CheckTimeoutsAsync(string sagaId)
     {
-        var compensations = await _compensationRepository.GetBySagaIdAsync(sagaId);
+        var compensations = await _compensationRepository.GetBySagaIdAsync(sagaId).ConfigureAwait(false);
         var timedOut = new List<CompensationTransaction>();
 
         foreach (var compensation in compensations)
@@ -172,7 +172,7 @@ public class CompensationService
                     compensation.PrepareForRetry();
                 }
 
-                await _compensationRepository.UpdateAsync(compensation);
+                await _compensationRepository.UpdateAsync(compensation).ConfigureAwait(false);
                 timedOut.Add(compensation);
             }
         }
@@ -205,7 +205,7 @@ public class CompensationService
         CancellationToken cancellationToken)
     {
         // Simulate HTTP call delay
-        await Task.Delay(100, cancellationToken);
+        await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 
         // In production, this would make an HTTP call to the compensation endpoint
         var response = new Dictionary<string, object>

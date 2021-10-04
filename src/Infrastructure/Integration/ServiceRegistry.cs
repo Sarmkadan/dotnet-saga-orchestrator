@@ -76,7 +76,7 @@ public class ServiceRegistry : IServiceRegistry
 
     public async Task<bool> IsServiceHealthyAsync(string name)
     {
-        var service = await GetServiceAsync(name);
+        var service = await GetServiceAsync(name).ConfigureAwait(false);
         return service?.IsHealthy ?? false;
     }
 

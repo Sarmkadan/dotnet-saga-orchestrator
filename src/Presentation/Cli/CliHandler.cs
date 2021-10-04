@@ -84,7 +84,7 @@ public class CliHandler : ICliHandler
 
         try
         {
-            var definitions = await _definitionService.GetAllDefinitionsAsync();
+            var definitions = await _definitionService.GetAllDefinitionsAsync().ConfigureAwait(false);
             var definition = definitions.FirstOrDefault(d => d.Name.Equals(definitionName, StringComparison.OrdinalIgnoreCase));
 
             if (definition == null)
@@ -93,7 +93,7 @@ public class CliHandler : ICliHandler
                 return 1;
             }
 
-            var saga = await _orchestrationService.CreateSagaAsync(definition.Id, definitionName);
+            var saga = await _orchestrationService.CreateSagaAsync(definition.Id, definitionName).ConfigureAwait(false);
             Console.WriteLine($"✓ Created saga: {saga.Id}");
             Console.WriteLine($"  Status: {saga.Status}");
 
@@ -121,7 +121,7 @@ public class CliHandler : ICliHandler
 
         try
         {
-            var saga = await _orchestrationService.GetSagaAsync(sagaId);
+            var saga = await _orchestrationService.GetSagaAsync(sagaId).ConfigureAwait(false);
             if (saga == null)
             {
                 Console.Error.WriteLine($"Saga '{sagaId}' not found");
@@ -136,7 +136,7 @@ public class CliHandler : ICliHandler
             }
             else
             {
-                var updatedSaga = await _orchestrationService.ExecuteNextStepAsync(sagaId);
+                var updatedSaga = await _orchestrationService.ExecuteNextStepAsync(sagaId).ConfigureAwait(false);
                 var currentStep = updatedSaga.Steps.LastOrDefault();
                 if (currentStep != null)
                 {
@@ -164,7 +164,7 @@ public class CliHandler : ICliHandler
 
         try
         {
-            var saga = await _orchestrationService.GetSagaAsync(sagaId);
+            var saga = await _orchestrationService.GetSagaAsync(sagaId).ConfigureAwait(false);
             if (saga == null)
             {
                 Console.Error.WriteLine($"Saga '{sagaId}' not found");
@@ -197,7 +197,7 @@ public class CliHandler : ICliHandler
     {
         try
         {
-            var sagas = await _orchestrationService.GetAllSagasAsync();
+            var sagas = await _orchestrationService.GetAllSagasAsync().ConfigureAwait(false);
             var limit = 50;
 
             if (command.Arguments.TryGetValue("limit", out var limitStr) && int.TryParse(limitStr, out var parsedLimit))
