@@ -1,6 +1,6 @@
-[![Build](https://github.com/sarmkadan/dotnet-saga-orchestrator/actions/workflows/build.yml/badge.svg)](https://github.com/sarmkadan/dotnet-saga-orchestrator/actions/workflows/build.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
+![CI](https://github.com/sarmkadan/dotnet-saga-orchestrator/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/github/license/sarmkadan/dotnet-saga-orchestrator)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)
 
 # Distributed Saga Orchestrator for .NET Microservices
 
