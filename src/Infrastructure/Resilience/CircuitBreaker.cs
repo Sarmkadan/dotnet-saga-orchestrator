@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System.Collections.Concurrent;
+
 namespace SagaOrchestrator.Infrastructure.Resilience;
 
 /// <summary>
@@ -27,7 +29,7 @@ public enum CircuitBreakerState
 
 public class CircuitBreaker : ICircuitBreaker
 {
-    private readonly Dictionary<string, CircuitBreakerMetrics> _metrics;
+    private readonly ConcurrentDictionary<string, CircuitBreakerMetrics> _metrics;
     private readonly int _failureThreshold;
     private readonly TimeSpan _timeout;
     private readonly object _lock = new();
@@ -109,9 +111,11 @@ public class CircuitBreaker : ICircuitBreaker
         {
             if (!_metrics.TryGetValue(identifier, out var metrics))
             {
-                _metrics[identifier] = new CircuitBreakerMetrics();
+                _metrics[identifier] = new CircuitBreakerMetrics { LastAccessedAt = DateTime.UtcNow };
                 return true;
             }
+
+            metrics.LastAccessedAt = DateTime.UtcNow;
 
             if (metrics.State == CircuitBreakerState.Closed)
                 return true;
@@ -172,5 +176,26 @@ public class CircuitBreaker : ICircuitBreaker
         public int FailureCount { get; set; }
         public int SuccessCount { get; set; }
         public DateTime LastFailureTime { get; set; }
+        public DateTime LastAccessedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Removes metrics entries that haven't been accessed within the specified time window.
+    /// Call periodically to prevent unbounded growth of the metrics dictionary.
+    /// </summary>
+    public int EvictStaleEntries(TimeSpan maxIdleTime)
+    {
+        var cutoff = DateTime.UtcNow - maxIdleTime;
+        var staleKeys = _metrics
+            .Where(kvp => kvp.Value.LastAccessedAt < cutoff && kvp.Value.State == CircuitBreakerState.Closed)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (var key in staleKeys)
+        {
+            _metrics.TryRemove(key, out _);
+        }
+
+        return staleKeys.Count;
     }
 }
