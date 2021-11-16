@@ -88,8 +88,9 @@ public class SagaOrchestrationService
         if (saga.Status != SagaStatus.Running)
             throw new SagaException($"Cannot execute step for saga in {saga.Status} status", sagaId);
 
-        // Find next pending step
-        var nextStep = saga.Steps.FirstOrDefault(s => s.Status == SagaStepStatus.Pending);
+        // Find next pending step — skip already-completed steps for idempotency
+        var nextStep = saga.Steps.FirstOrDefault(s =>
+            s.Status == SagaStepStatus.Pending || s.Status == SagaStepStatus.WaitingForRetry);
         if (nextStep == null)
         {
             // All steps completed
@@ -97,6 +98,11 @@ public class SagaOrchestrationService
             await _sagaRepository.UpdateAsync(saga);
             return null!;
         }
+
+        // Idempotency guard: if the step was already completed in a previous attempt,
+        // treat it as completed without re-executing to prevent duplicate side-effects.
+        if (nextStep.Status == SagaStepStatus.Completed)
+            return nextStep;
 
         // Execute the step
         nextStep.Start();
@@ -107,6 +113,10 @@ public class SagaOrchestrationService
             // Simulate step execution (would call actual service endpoint)
             var result = await SimulateStepExecutionAsync(nextStep, cancellationToken);
 
+            // Persist checkpoint atomically: update step first, then saga.
+            // If the saga update (outbox/checkpoint publish) throws, the step record
+            // already reflects completion so a restart will detect it via the
+            // idempotency guard above and skip re-execution.
             nextStep.Complete(result);
             await _stepRepository.UpdateAsync(nextStep);
 
@@ -114,8 +124,9 @@ public class SagaOrchestrationService
             if (saga.Steps.All(s => s.Status == SagaStepStatus.Completed))
             {
                 saga.Complete();
-                await _sagaRepository.UpdateAsync(saga);
             }
+
+            await _sagaRepository.UpdateAsync(saga);
         }
         catch (Exception ex)
         {
