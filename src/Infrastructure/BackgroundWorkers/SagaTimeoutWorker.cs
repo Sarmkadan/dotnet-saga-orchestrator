@@ -75,16 +75,13 @@ public class SagaTimeoutWorker : BackgroundService
                 }
 
                 // Check individual step timeouts
-                var executingSteps = saga.Steps.Where(s => s.Status.ToString() == "Executing").ToList();
+                var executingSteps = saga.Steps.Where(s => s.Status == SagaStepStatus.Executing).ToList();
                 foreach (var step in executingSteps)
                 {
-                    var stepElapsed = DateTime.UtcNow - step.StartedAt;
-                    if (stepElapsed > TimeSpan.FromSeconds(step.TimeoutSeconds))
+                    if (step.IsTimedOut())
                     {
-                        _logger.LogWarning("Step {StepId} in saga {SagaId} has timed out.", step.Id, saga.Id);
-                        // Mark step as failed, which triggers compensation
-                        step.Status = SagaStepStatus.TimedOut;
-                        await _sagaRepository.UpdateAsync(saga);
+                        _logger.LogWarning("Step {StepId} in saga {SagaId} has timed out. Triggering compensation.", step.Id, saga.Id);
+                        await _orchestrationService.HandleTimeoutAsync(saga.Id, step.Id);
                     }
                 }
             }
