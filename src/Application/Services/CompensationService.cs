@@ -13,6 +13,7 @@ using SagaOrchestrator.Core.Domain.Enums;
 using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Exceptions;
 using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Infrastructure.Telemetry;
 
 namespace SagaOrchestrator.Application.Services;
 
@@ -102,6 +103,9 @@ public class CompensationService
         nextCompensation.Start();
         await _compensationRepository.UpdateAsync(nextCompensation);
 
+        using var compActivity = SagaActivitySource.StartCompensation(
+            sagaId, nextCompensation.Id, nextCompensation.StepName, nextCompensation.Order);
+
         try
         {
             var result = await SimulateCompensationCallAsync(nextCompensation, cancellationToken);
@@ -111,6 +115,7 @@ public class CompensationService
         }
         catch (Exception ex)
         {
+            SagaActivitySource.RecordCompensationFailure(compActivity, ex.Message);
             nextCompensation.Fail(ex.Message);
 
             if (nextCompensation.CanRetry())

@@ -15,6 +15,7 @@ using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Exceptions;
 using SagaOrchestrator.Core.Utilities;
 using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Infrastructure.Telemetry;
 
 namespace SagaOrchestrator.Application.Services;
 
@@ -69,6 +70,8 @@ public class SagaOrchestrationService
         if (saga.Status != SagaStatus.Initialized)
             throw new SagaException($"Cannot start saga in {saga.Status} status", sagaId);
 
+        using var activity = SagaActivitySource.StartSaga(saga.Id, saga.Definition.Id, saga.CorrelationId);
+
         saga.Start();
 
         // Create step instances from definition
@@ -109,6 +112,9 @@ public class SagaOrchestrationService
         nextStep.Start();
         await _stepRepository.UpdateAsync(nextStep);
 
+        using var stepActivity = SagaActivitySource.StartStep(
+            saga.Id, nextStep.Id, nextStep.Name, nextStep.Order, nextStep.RetryCount + 1);
+
         try
         {
             // Simulate step execution (would call actual service endpoint)
@@ -125,12 +131,15 @@ public class SagaOrchestrationService
             if (saga.Steps.All(s => s.Status == SagaStepStatus.Completed))
             {
                 saga.Complete();
+                using var completeActivity = SagaActivitySource.RecordSagaComplete(
+                    saga.Id, saga.Status.ToString(), saga.Steps.Count);
             }
 
             await _sagaRepository.UpdateAsync(saga);
         }
         catch (Exception ex)
         {
+            SagaActivitySource.RecordStepFailure(stepActivity, ex.Message);
             nextStep.Fail(ex.Message);
 
             // Check if we can retry using per-step policy when available
