@@ -13,6 +13,7 @@ using SagaOrchestrator.Core.Constants;
 using SagaOrchestrator.Core.Domain.Enums;
 using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Exceptions;
+using SagaOrchestrator.Core.Utilities;
 using SagaOrchestrator.Data.Repositories;
 
 namespace SagaOrchestrator.Application.Services;
@@ -132,10 +133,18 @@ public class SagaOrchestrationService
         {
             nextStep.Fail(ex.Message);
 
-            // Check if we can retry
+            // Check if we can retry using per-step policy when available
             if (nextStep.CanRetry() && nextStep.RetryCount < nextStep.MaxRetries)
             {
                 nextStep.PrepareForRetry();
+
+                // Apply backoff delay from per-step RetryPolicy when present
+                if (nextStep.RetryPolicy != null && nextStep.RetryPolicy.CanRetry(nextStep.RetryCount - 1))
+                {
+                    var delayMs = nextStep.RetryPolicy.CalculateDelay(nextStep.RetryCount);
+                    if (delayMs > 0)
+                        await Task.Delay(delayMs, cancellationToken);
+                }
             }
             else
             {
@@ -245,6 +254,7 @@ public class SagaOrchestrationService
             step.SagaId = saga.Id;
             step.MaxRetries = stepDef.MaxRetries;
             step.TimeoutSeconds = stepDef.TimeoutSeconds;
+            step.RetryPolicy = stepDef.RetryPolicy;
 
             saga.Steps.Add(step);
         }

@@ -5,6 +5,7 @@
 // =============================================================================
 
 using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Utilities;
 
 namespace SagaOrchestrator.Core.Builders;
 
@@ -74,6 +75,18 @@ public class SagaStepBuilder
 
         _step.MaxRetries = maxRetries;
         _step.RetryDelayMs = delayMs;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures per-step retry policy with exponential backoff and optional jitter.
+    /// </summary>
+    public SagaStepBuilder WithRetryPolicy(RetryPolicy policy)
+    {
+        ArgumentNullException.ThrowIfNull(policy, nameof(policy));
+        _step.RetryPolicy = policy;
+        _step.MaxRetries = policy.MaxRetries;
+        _step.RetryDelayMs = policy.InitialDelayMs;
         return this;
     }
 
