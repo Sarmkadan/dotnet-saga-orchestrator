@@ -7,6 +7,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SagaOrchestrator.Application.Services;
 using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Infrastructure.Logging;
 
 namespace SagaOrchestrator.Configuration;
 
@@ -31,6 +32,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ISagaDefinitionRepository, InMemorySagaDefinitionRepository>();
 
         // Register services
+        services.AddSingleton<ISagaLogger, SagaLogger>();
         services.AddSingleton<SagaDefinitionService>();
         services.AddSingleton<CompensationService>();
         services.AddSingleton<SagaOrchestrationService>();
@@ -64,6 +66,7 @@ public static class ServiceConfiguration
         if (services == null)
             throw new ArgumentNullException(nameof(services));
 
+        services.AddSingleton<ISagaLogger, SagaLogger>();
         services.AddSingleton<SagaDefinitionService>();
         services.AddSingleton<CompensationService>();
         services.AddSingleton<SagaOrchestrationService>();

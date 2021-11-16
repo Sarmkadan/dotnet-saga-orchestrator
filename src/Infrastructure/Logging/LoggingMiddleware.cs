@@ -24,6 +24,9 @@ public interface ISagaLogger
     void LogCompensationCompleted(Saga saga);
     void LogSagaCompleted(Saga saga, TimeSpan duration);
     void LogSagaFailed(Saga saga, Exception ex);
+
+    /// <summary>Logs the full step-by-step execution timeline for a saga.</summary>
+    void LogExecutionTimeline(Saga saga);
 }
 
 public class SagaLogger : ISagaLogger
@@ -149,5 +152,41 @@ public class SagaLogger : ISagaLogger
         _logger.LogError(ex,
             "Saga execution failed | Id: {SagaId}, Name: {SagaName}, Error: {Error}",
             saga.Id, saga.Name, ex.Message);
+    }
+
+    /// <inheritdoc />
+    public void LogExecutionTimeline(Saga saga)
+    {
+        var steps = saga.Steps.OrderBy(s => s.Order).ToList();
+
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["SagaId"]    = saga.Id,
+            ["SagaName"]  = saga.Name,
+            ["Status"]    = saga.Status,
+            ["StepCount"] = steps.Count
+        });
+
+        _logger.LogInformation(
+            "Saga execution timeline | Id: {SagaId}, Name: {SagaName}, Status: {Status}, Steps: {StepCount}",
+            saga.Id, saga.Name, saga.Status, steps.Count);
+
+        foreach (var step in steps)
+        {
+            var duration = step.StartedAt.HasValue && step.CompletedAt.HasValue
+                ? (step.CompletedAt.Value - step.StartedAt.Value)
+                : (TimeSpan?)null;
+
+            var durationStr = duration.HasValue ? $"{duration.Value.TotalMilliseconds:F0}ms" : "N/A";
+
+            _logger.LogInformation(
+                "  [{Order}] {StepName}: {Status} | Duration: {Duration} | StartedAt: {StartedAt} | Retries: {RetryCount}",
+                step.Order,
+                step.Name,
+                step.Status,
+                durationStr,
+                step.StartedAt?.ToString("O") ?? "N/A",
+                step.RetryCount);
+        }
     }
 }
