@@ -70,6 +70,28 @@ For practical implementations of the saga orchestrator, check out the [examples/
 - [IntegrationExample.cs](examples/IntegrationExample.cs): Shows how to register the orchestrator in a Dependency Injection container.
 - Other advanced scenarios include [MoneyTransfer.cs](examples/MoneyTransfer.cs) and [OrderProcessing.cs](examples/OrderProcessing.cs).
 
+## Docker
+
+This project includes a `docker-compose.yml` file to quickly spin up the orchestrator alongside necessary dependencies like Redis for distributed scenarios, as well as mock services for testing.
+
+### Running with Docker
+
+```bash
+docker-compose up -d
+```
+
+This will start:
+- `saga-orchestrator`: The main application.
+- `redis`: Used for caching and distributed coordination.
+- Mock services (inventory, payment, shipping) for testing examples.
+- Prometheus and Grafana for metrics monitoring (optional).
+
+You can stop the services using:
+
+```bash
+docker-compose down
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
