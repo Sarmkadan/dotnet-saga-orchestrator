@@ -194,7 +194,6 @@ public class SagaStepBuilder
         ValidateStep();
         return _step;
     }
-...
 
     private void ValidateStep()
     {
