@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SagaOrchestrator.Application.Services;
 using SagaOrchestrator.Configuration;
+using SagaOrchestrator.Core.Domain.Enums;
 using SagaOrchestrator.Core.Domain.Models;
 
 /// Metrics and monitoring example
@@ -37,9 +38,9 @@ public class MetricsMonitoringExample
 
             // Check system health
             logger.LogInformation("System Health Check:");
-            var health = await healthCheckService.GetHealthAsync();
-            logger.LogInformation($"  Service Status: {health.ServiceStatus}");
-            logger.LogInformation($"  Active Sagas: {health.ActiveSagaCount}");
+            var health = await healthCheckService.CheckHealthAsync();
+            logger.LogInformation($"  Service Status: {health.Status}");
+            logger.LogInformation($"  Active Sagas: {health.ActiveSagas}");
             logger.LogInformation($"  Uptime: {health.Uptime}\n");
 
             // Create a test saga for metrics
@@ -95,7 +96,7 @@ public class MetricsMonitoringExample
             // Gather and display metrics
             logger.LogInformation("=== Performance Metrics ===\n");
 
-            var metrics = metricsService.GetMetrics();
+            var metrics = await metricsService.GetMetricsAsync();
 
             logger.LogInformation("Saga Statistics:");
             logger.LogInformation($"  Total Sagas: {metrics.TotalSagas}");
@@ -104,20 +105,18 @@ public class MetricsMonitoringExample
             logger.LogInformation($"  Success Rate: {metrics.SuccessRate:P2}");
             logger.LogInformation($"  Failure Rate: {metrics.FailureRate:P2}\n");
 
-            logger.LogInformation("Duration Metrics (ms):");
-            logger.LogInformation($"  Minimum: {metrics.MinDurationMs}");
-            logger.LogInformation($"  Maximum: {metrics.MaxDurationMs}");
-            logger.LogInformation($"  Average: {metrics.AverageDurationMs:F2}");
-            logger.LogInformation($"  Median: {metrics.MedianDurationMs:F2}\n");
+            var performanceStats = await metricsService.GetPerformanceStatsAsync();
+
+            logger.LogInformation("Duration Metrics (seconds):");
+            logger.LogInformation($"  Minimum: {performanceStats.MinDurationSeconds:F2}");
+            logger.LogInformation($"  Maximum: {performanceStats.MaxDurationSeconds:F2}");
+            logger.LogInformation($"  Average: {performanceStats.AverageDurationSeconds:F2}");
+            logger.LogInformation($"  Median: {performanceStats.MedianDurationSeconds:F2}\n");
 
             // Performance percentiles
             logger.LogInformation("Performance Percentiles:");
-            if (metrics.P50DurationMs.HasValue)
-                logger.LogInformation($"  P50 (Median): {metrics.P50DurationMs:F2}ms");
-            if (metrics.P95DurationMs.HasValue)
-                logger.LogInformation($"  P95: {metrics.P95DurationMs:F2}ms");
-            if (metrics.P99DurationMs.HasValue)
-                logger.LogInformation($"  P99: {metrics.P99DurationMs:F2}ms\n");
+            logger.LogInformation($"  P95: {performanceStats.P95DurationSeconds:F2}s");
+            logger.LogInformation($"  P99: {performanceStats.P99DurationSeconds:F2}s\n");
 
             // List all sagas with their details
             logger.LogInformation("=== Completed Sagas ===\n");
@@ -126,8 +125,8 @@ public class MetricsMonitoringExample
 
             foreach (var saga in allSagas)
             {
-                var duration = saga.CompletedAt.HasValue && saga.StartedAt.HasValue
-                    ? (saga.CompletedAt.Value - saga.StartedAt.Value).TotalSeconds
+                var duration = saga.CompletedAt.HasValue
+                    ? (saga.CompletedAt.Value - saga.StartedAt).TotalSeconds
                     : 0;
 
                 logger.LogInformation($"Saga: {saga.Id}");

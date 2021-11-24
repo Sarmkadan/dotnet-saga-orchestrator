@@ -73,11 +73,8 @@ public class CompensationWorker : BackgroundService
                 {
                     _logger.LogWarning("Initiating compensation for failed saga {SagaId}", saga.Id);
 
-                    // Get the compensation strategy from the definition
-                    var strategy = saga.CompensationStrategy;
-
-                    // Initiate compensation
-                    await _compensationService.InitiateCompensationAsync(saga.Id, strategy);
+                    // Initiate compensation using the strategy configured on the saga definition
+                    await _compensationService.BeginCompensationAsync(saga);
                 }
             }
             catch (Exception ex)
@@ -91,7 +88,7 @@ public class CompensationWorker : BackgroundService
         {
             try
             {
-                var compensationTxns = saga.CompensationTransactions;
+                var compensationTxns = await _compensationService.GetCompensationsAsync(saga.Id);
                 var allCompleted = compensationTxns.All(t =>
                     t.Status == CompensationStatus.Completed ||
                     t.Status == CompensationStatus.Failed);

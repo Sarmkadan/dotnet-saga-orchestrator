@@ -4,6 +4,7 @@
 // CTO & Software Architect
 // =============================================================================
 
+using SagaOrchestrator.Application.DTOs;
 using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Exceptions;
 
@@ -84,10 +85,10 @@ public class SagaDefinitionValidator : ISagaDefinitionValidator
         if (string.IsNullOrWhiteSpace(step.ServiceName))
             errors.Add($"{stepPrefix}: Service name cannot be null or empty");
 
-        if (string.IsNullOrWhiteSpace(step.Action))
+        if (string.IsNullOrWhiteSpace(step.ServiceUrl))
             errors.Add($"{stepPrefix}: Action URL cannot be null or empty");
 
-        if (!Uri.IsWellFormedUriString(step.Action, UriKind.Absolute))
+        if (!Uri.IsWellFormedUriString(step.ServiceUrl, UriKind.Absolute))
             errors.Add($"{stepPrefix}: Action URL is not valid");
 
         if (step.TimeoutSeconds <= 0)
@@ -102,7 +103,7 @@ public class SagaDefinitionValidator : ISagaDefinitionValidator
         if (step.MaxRetries > 10)
             errors.Add($"{stepPrefix}: Max retries cannot exceed 10");
 
-        if (!string.IsNullOrWhiteSpace(step.Compensation) && !Uri.IsWellFormedUriString(step.Compensation, UriKind.Absolute))
+        if (!string.IsNullOrWhiteSpace(step.CompensationUrl) && !Uri.IsWellFormedUriString(step.CompensationUrl, UriKind.Absolute))
             errors.Add($"{stepPrefix}: Compensation URL is not valid if provided");
 
         return errors;

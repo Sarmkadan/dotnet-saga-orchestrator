@@ -1,5 +1,6 @@
 #nullable enable
 
+using SagaOrchestrator.Application.DTOs;
 using SagaOrchestrator.Application.Validators;
 using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Exceptions;
@@ -302,7 +303,7 @@ public class SagaDefinitionValidatorTests
         var act = () => validator.ValidateAsync(definition);
 
         var exception = await act.Should().ThrowAsync<InvalidSagaDefinitionException>();
-        exception.Which.Message.Should().ContainMatch("*is invalid*");
+        exception.Which.Message.Should().Match("*is invalid*");
     }
 }
 

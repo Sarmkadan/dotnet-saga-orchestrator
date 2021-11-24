@@ -146,7 +146,7 @@ public class RetryPolicyTests
     }
 }
 
-public class SagaIdGeneratorTests
+public class SagaIdGeneratorAdditionalTests
 {
     [Fact]
     public void GenerateSagaId_ReturnsIdWithSagaPrefix()

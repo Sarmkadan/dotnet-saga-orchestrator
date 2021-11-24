@@ -7,6 +7,7 @@
 using Microsoft.Extensions.Logging;
 using SagaOrchestrator.Application.DTOs;
 using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Infrastructure.Integration;
 
 namespace SagaOrchestrator.Application.Services;
 
@@ -110,7 +111,7 @@ public class HealthCheckService : IHealthCheckService
         if (completedSagas.Count == 0)
             return 0;
 
-        var totalMs = completedSagas.Sum(s => (s.CompletedAt ?? DateTime.UtcNow - s.CreatedAt).TotalMilliseconds);
+        var totalMs = completedSagas.Sum(s => ((s.CompletedAt ?? DateTime.UtcNow) - s.CreatedAt).TotalMilliseconds);
         return totalMs / completedSagas.Count;
     }
 }

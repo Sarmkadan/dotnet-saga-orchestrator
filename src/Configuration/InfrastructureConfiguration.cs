@@ -16,6 +16,7 @@ using SagaOrchestrator.Infrastructure.Logging;
 using SagaOrchestrator.Infrastructure.RateLimiting;
 using SagaOrchestrator.Infrastructure.Serialization;
 using SagaOrchestrator.Presentation.Cli;
+using IHttpClientFactory = SagaOrchestrator.Infrastructure.Http.IHttpClientFactory;
 
 namespace SagaOrchestrator.Configuration;
 

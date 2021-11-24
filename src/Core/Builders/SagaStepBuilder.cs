@@ -5,6 +5,7 @@
 // =============================================================================
 
 using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Extensions;
 using SagaOrchestrator.Core.Utilities;
 
 namespace SagaOrchestrator.Core.Builders;
@@ -70,7 +71,7 @@ public class SagaStepBuilder
         {
             if (!Uri.IsWellFormedUriString(compensationUrl, UriKind.Absolute))
                 throw new ArgumentException("Compensation URL is not valid", nameof(compensationUrl));
-            _step.Compensation = compensationUrl;
+            _step.CompensationUrl = compensationUrl;
         }
         return this;
     }
@@ -102,7 +103,7 @@ public class SagaStepBuilder
             throw new ArgumentException("Delay must be non-negative", nameof(delayMs));
 
         _step.MaxRetries = maxRetries;
-        _step.RetryDelayMs = delayMs;
+        _step.RetryDelayMilliseconds = delayMs;
         return this;
     }
 
@@ -116,7 +117,7 @@ public class SagaStepBuilder
         ArgumentNullException.ThrowIfNull(policy, nameof(policy));
         _step.RetryPolicy = policy;
         _step.MaxRetries = policy.MaxRetries;
-        _step.RetryDelayMs = policy.InitialDelayMs;
+        _step.RetryDelayMilliseconds = policy.InitialDelayMs;
         return this;
     }
 
@@ -205,10 +206,10 @@ public class SagaStepBuilder
         if (string.IsNullOrWhiteSpace(_step.ServiceName))
             errors.Add("Service name is required");
 
-        if (string.IsNullOrWhiteSpace(_step.Action))
+        if (string.IsNullOrWhiteSpace(_step.ServiceUrl))
             errors.Add("Action URL is required");
 
-        if (!Uri.IsWellFormedUriString(_step.Action, UriKind.Absolute))
+        if (!Uri.IsWellFormedUriString(_step.ServiceUrl, UriKind.Absolute))
             errors.Add("Action URL is not valid");
 
         if (_step.TimeoutSeconds <= 0)
@@ -232,7 +233,7 @@ public class SagaDefinitionBuilder
 
     private SagaDefinitionBuilder(string name, string description)
     {
-        _definition = new SagaDefinition(Guid.NewGuid().ToString(), name, description);
+        _definition = new SagaDefinition(name, description);
     }
 
     public static SagaDefinitionBuilder Create(string name, string description = "")

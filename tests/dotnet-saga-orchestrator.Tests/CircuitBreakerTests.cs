@@ -61,14 +61,14 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 2, timeoutSeconds: 60);
 
         // First failure
-        _ = await breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException("Fail 1");
         }, "failing-service").CatchAsync();
 
         // Second failure
-        _ = await breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException("Fail 2");
@@ -84,7 +84,7 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 1, timeoutSeconds: 60);
 
         // Trigger open state
-        _ = await breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException("Fail");
@@ -110,7 +110,7 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 1, timeoutSeconds: 60);
 
         // Trigger open state
-        _ = await breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException("Fail");
@@ -161,7 +161,7 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 1, timeoutSeconds: 1);
 
         // Trigger open state
-        _ = await breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException("Fail");
@@ -191,7 +191,7 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 1, timeoutSeconds: 1);
 
         // Trigger open state
-        _ = await breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException("Fail");
@@ -205,7 +205,7 @@ public class CircuitBreakerTests
         breaker.GetState("test-service").Should().Be(CircuitBreakerState.HalfOpen);
 
         // Failure in half-open reopens circuit
-        _ = await breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException("Fail again");
@@ -264,7 +264,7 @@ public class CircuitBreakerTests
         var breaker = new CircuitBreaker(failureThreshold: 1, timeoutSeconds: 60);
 
         // Fail for service-a
-        _ = await breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException();

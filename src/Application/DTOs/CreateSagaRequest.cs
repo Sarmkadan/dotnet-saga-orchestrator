@@ -29,6 +29,12 @@ public class CreateSagaRequest
     public Dictionary<string, object>? Metadata { get; set; }
 
     /// <summary>
+    /// Optional initial payload data for the saga, serialized as a string.
+    /// </summary>
+    [JsonPropertyName("data")]
+    public string? Data { get; set; }
+
+    /// <summary>
     /// Validates the request
     /// </summary>
     public bool IsValid()

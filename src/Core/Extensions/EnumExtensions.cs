@@ -44,7 +44,7 @@ public static class EnumExtensions
         }
         catch
         {
-            return null;
+            return default;
         }
     }
 
@@ -107,7 +107,7 @@ public static class EnumExtensions
         }
         catch
         {
-            return null;
+            return default;
         }
     }
 

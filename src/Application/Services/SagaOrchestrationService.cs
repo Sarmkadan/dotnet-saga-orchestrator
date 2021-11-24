@@ -213,6 +213,43 @@ public class SagaOrchestrationService
     }
 
     /// <summary>
+    /// Compensates a failed saga, running all pending compensation transactions
+    /// to completion using the strategy configured on the saga's definition.
+    /// </summary>
+    public async Task<Saga> CompensateSagaAsync(string sagaId)
+    {
+        var saga = await _sagaRepository.GetByIdAsync(sagaId)
+            ?? throw new SagaNotFoundException(sagaId);
+
+        if (saga.Status != SagaStatus.Compensating)
+        {
+            await _compensationService.BeginCompensationAsync(saga);
+        }
+
+        while (await _compensationService.ExecuteNextCompensationAsync(sagaId) != null)
+        {
+            // Keep executing compensation transactions until none remain.
+        }
+
+        return await _sagaRepository.GetByIdAsync(sagaId)
+            ?? throw new SagaNotFoundException(sagaId);
+    }
+
+    /// <summary>
+    /// Compensates a failed saga using an explicit compensation strategy override.
+    /// </summary>
+    public async Task<Saga> CompensateSagaAsync(string sagaId, CompensationStrategy strategy)
+    {
+        var saga = await _sagaRepository.GetByIdAsync(sagaId)
+            ?? throw new SagaNotFoundException(sagaId);
+
+        saga.Definition.CompensationStrategy = strategy;
+        await _sagaRepository.UpdateAsync(saga);
+
+        return await CompensateSagaAsync(sagaId);
+    }
+
+    /// <summary>
     /// Aborts a running saga
     /// </summary>
     public async Task AbortSagaAsync(string sagaId, string reason = "User abort")

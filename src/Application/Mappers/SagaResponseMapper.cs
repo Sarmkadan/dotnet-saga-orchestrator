@@ -24,22 +24,7 @@ public class SagaResponseMapper : ISagaResponseMapper
 {
     public SagaResponse MapToResponse(Saga saga)
     {
-        return new SagaResponse
-        {
-            Id = saga.Id,
-            Name = saga.Name,
-            DefinitionId = saga.DefinitionId,
-            Status = saga.Status.ToString(),
-            CreatedAt = saga.CreatedAt,
-            CompletedAt = saga.CompletedAt,
-            TotalSteps = saga.Steps.Count,
-            CompletedSteps = saga.Steps.Count(s => s.Status.ToString() == "Completed"),
-            FailedSteps = saga.Steps.Count(s => s.Status.ToString() == "Failed"),
-            Steps = saga.Steps.Select(MapStepToResponse).ToList(),
-            Data = saga.Data,
-            TimeoutSeconds = saga.TimeoutSeconds,
-            CompensationStrategy = saga.CompensationStrategy.ToString()
-        };
+        return SagaResponse.FromSaga(saga);
     }
 
     public List<SagaResponse> MapToResponses(List<Saga> sagas)
@@ -49,27 +34,16 @@ public class SagaResponseMapper : ISagaResponseMapper
 
     public SagaStepResponse MapStepToResponse(SagaStep step)
     {
-        return new SagaStepResponse
-        {
-            Id = step.Id,
-            Name = step.Name,
-            Status = step.Status.ToString(),
-            Order = step.Order,
-            StartedAt = step.StartedAt,
-            CompletedAt = step.CompletedAt,
-            DurationMs = step.CompletedAt.HasValue
-                ? (long)(step.CompletedAt.Value - step.StartedAt).TotalMilliseconds
-                : 0,
-            RetryCount = step.RetryCount,
-            MaxRetries = step.MaxRetries,
-            TimeoutSeconds = step.TimeoutSeconds,
-            ServiceName = step.ServiceName,
-            Error = step.Error
-        };
+        return SagaStepResponse.FromStep(step);
     }
 }
 
-public class SagaStepResponse
+/// <summary>
+/// Extended, detail-oriented step response shape (duration in milliseconds,
+/// retry/timeout policy fields) kept for consumers that need more detail than
+/// the standard <see cref="SagaStepResponse"/> DTO exposes.
+/// </summary>
+public class SagaStepResponseDetail
 {
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;

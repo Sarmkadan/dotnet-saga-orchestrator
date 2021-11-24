@@ -194,7 +194,7 @@ public class CollectionExtensionsTests
     {
         var items = new[] { "apple", "apricot", "banana", "blueberry" };
 
-        var result = items.DistinctBy(s => s[0]).ToList();
+        var result = SagaOrchestrator.Core.Extensions.CollectionExtensions.DistinctBy(items, s => s[0]).ToList();
 
         result.Should().HaveCount(2);
         result.Should().Contain("apple");

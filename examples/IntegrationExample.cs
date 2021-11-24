@@ -6,6 +6,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SagaOrchestrator.Application.Services;
+using SagaOrchestrator.Configuration;
 
 /// <summary>
 /// Example showing how to wire the saga orchestrator into an ASP.NET Core or Generic Host application.
@@ -16,7 +17,7 @@ public class IntegrationExample
     {
         // Register the orchestrator in DI container
         services.AddSagaOrchestrator(options => {
-            options.DefaultMaxRetries = 3;
+            options.RetryPolicies.DefaultMaxRetries = 3;
         });
 
         // Register your custom services

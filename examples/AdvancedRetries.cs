@@ -48,7 +48,7 @@ public class AdvancedRetriesExample
             // Configure aggressive retry: 5 attempts with exponential backoff
             unreliableStep.SetRetryPolicy(
                 maxRetries: 5,
-                initialDelayMs: 500);
+                delayMilliseconds: 500);
 
             logger.LogInformation("Step 1: Unreliable Service");
             logger.LogInformation("  Max Retries: 5");
@@ -67,7 +67,7 @@ public class AdvancedRetriesExample
             // Configure conservative retry: 2 attempts with longer delay
             sensitiveStep.SetRetryPolicy(
                 maxRetries: 2,
-                initialDelayMs: 2000);
+                delayMilliseconds: 2000);
 
             logger.LogInformation("Step 2: Sensitive Service");
             logger.LogInformation("  Max Retries: 2");
@@ -86,7 +86,7 @@ public class AdvancedRetriesExample
             // Configure fast retries: many attempts with short delay
             responsiveStep.SetRetryPolicy(
                 maxRetries: 10,
-                initialDelayMs: 100);
+                delayMilliseconds: 100);
 
             logger.LogInformation("Step 3: Responsive Service");
             logger.LogInformation("  Max Retries: 10");
@@ -141,7 +141,7 @@ public class AdvancedRetriesExample
                         logger.LogInformation($"  Last Error: {step.ErrorMessage}");
                     }
 
-                    logger.LogInformation();
+                    logger.LogInformation("");
                 }
             }
 

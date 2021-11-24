@@ -5,6 +5,7 @@
 // =============================================================================
 
 using System.Collections.Concurrent;
+using SagaOrchestrator.Core.Extensions;
 
 namespace SagaOrchestrator.Infrastructure.Resilience;
 
@@ -101,7 +102,7 @@ public class CircuitBreaker : ICircuitBreaker
     {
         lock (_lock)
         {
-            _metrics.Remove(identifier);
+            _metrics.TryRemove(identifier, out _);
         }
     }
 
