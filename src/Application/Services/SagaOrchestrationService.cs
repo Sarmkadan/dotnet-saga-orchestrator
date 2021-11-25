@@ -59,8 +59,15 @@ public class SagaOrchestrationService
             maxRetries ?? SagaConstants.DefaultMaxRetries,
             timeoutSeconds ?? SagaConstants.DefaultSagaTimeoutSeconds);
 
-        var created = await _sagaRepository.CreateAsync(saga);
-        return created ?? throw new SagaException("Failed to create saga", saga.Id);
+        try
+        {
+            var created = await _sagaRepository.CreateAsync(saga);
+            return created ?? throw new SagaException("Failed to create saga", saga.Id);
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error creating saga", ex);
+        }
     }
 
     /// <summary>
@@ -68,8 +75,19 @@ public class SagaOrchestrationService
     /// </summary>
     public async Task<Saga> StartSagaAsync(string sagaId)
     {
-        var saga = await _sagaRepository.GetByIdAsync(sagaId)
-            ?? throw new SagaNotFoundException(sagaId);
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must be provided", nameof(sagaId));
+
+        Saga saga;
+        try
+        {
+            saga = await _sagaRepository.GetByIdAsync(sagaId)
+                ?? throw new SagaNotFoundException(sagaId);
+        }
+        catch (Exception ex) when (!(ex is SagaNotFoundException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga for start", ex);
+        }
 
         if (saga.Status != SagaStatus.Initialized)
             throw new SagaException($"Cannot start saga in {saga.Status} status", sagaId);
@@ -81,8 +99,15 @@ public class SagaOrchestrationService
         // Create step instances from definition
         InitializeStepsFromDefinition(saga);
 
-        var updated = await _sagaRepository.UpdateAsync(saga);
-        return updated ?? throw new SagaException("Failed to update saga", sagaId);
+        try
+        {
+            var updated = await _sagaRepository.UpdateAsync(saga);
+            return updated ?? throw new SagaException("Failed to update saga", sagaId);
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error updating saga after start", ex);
+        }
     }
 
     /// <summary>
@@ -90,8 +115,19 @@ public class SagaOrchestrationService
     /// </summary>
     public async Task<SagaStep> ExecuteNextStepAsync(string sagaId, CancellationToken cancellationToken = default)
     {
-        var saga = await _sagaRepository.GetByIdAsync(sagaId)
-            ?? throw new SagaNotFoundException(sagaId);
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must be provided", nameof(sagaId));
+
+        Saga saga;
+        try
+        {
+            saga = await _sagaRepository.GetByIdAsync(sagaId)
+                ?? throw new SagaNotFoundException(sagaId);
+        }
+        catch (Exception ex) when (!(ex is SagaNotFoundException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga for step execution", ex);
+        }
 
         if (saga.Status != SagaStatus.Running)
             throw new SagaException($"Cannot execute step for saga in {saga.Status} status", sagaId);
@@ -125,9 +161,6 @@ public class SagaOrchestrationService
             var result = await SimulateStepExecutionAsync(nextStep, cancellationToken);
 
             // Persist checkpoint atomically: update step first, then saga.
-            // If the saga update (outbox/checkpoint publish) throws, the step record
-            // already reflects completion so a restart will detect it via the
-            // idempotency guard above and skip re-execution.
             nextStep.Complete(result);
             await _stepRepository.UpdateAsync(nextStep);
 
@@ -172,7 +205,14 @@ public class SagaOrchestrationService
 
             if (saga.Status == SagaStatus.Failed)
             {
-                await _compensationService.BeginCompensationAsync(saga);
+                try
+                {
+                    await _compensationService.BeginCompensationAsync(saga);
+                }
+                catch (Exception compEx)
+                {
+                    throw new DotnetSagaOrchestratorException("Error during compensation start", compEx);
+                }
             }
         }
 
@@ -184,8 +224,21 @@ public class SagaOrchestrationService
     /// </summary>
     public async Task<bool> HandleTimeoutAsync(string sagaId, string stepId)
     {
-        var saga = await _sagaRepository.GetByIdAsync(sagaId)
-            ?? throw new SagaNotFoundException(sagaId);
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must be provided", nameof(sagaId));
+        if (string.IsNullOrWhiteSpace(stepId))
+            throw new ArgumentException("Step ID must be provided", nameof(stepId));
+
+        Saga saga;
+        try
+        {
+            saga = await _sagaRepository.GetByIdAsync(sagaId)
+                ?? throw new SagaNotFoundException(sagaId);
+        }
+        catch (Exception ex) when (!(ex is SagaNotFoundException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga for timeout handling", ex);
+        }
 
         var step = saga.Steps.FirstOrDefault(s => s.Id == stepId);
         if (step == null)
@@ -206,7 +259,14 @@ public class SagaOrchestrationService
             saga.Fail($"Step '{step.Name}' timed out and cannot be retried");
             await _stepRepository.UpdateAsync(step);
             await _sagaRepository.UpdateAsync(saga);
-            await _compensationService.BeginCompensationAsync(saga);
+            try
+            {
+                await _compensationService.BeginCompensationAsync(saga);
+            }
+            catch (Exception compEx)
+            {
+                throw new DotnetSagaOrchestratorException("Error during compensation after timeout", compEx);
+            }
         }
 
         return true;
@@ -218,12 +278,30 @@ public class SagaOrchestrationService
     /// </summary>
     public async Task<Saga> CompensateSagaAsync(string sagaId)
     {
-        var saga = await _sagaRepository.GetByIdAsync(sagaId)
-            ?? throw new SagaNotFoundException(sagaId);
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must be provided", nameof(sagaId));
+
+        Saga saga;
+        try
+        {
+            saga = await _sagaRepository.GetByIdAsync(sagaId)
+                ?? throw new SagaNotFoundException(sagaId);
+        }
+        catch (Exception ex) when (!(ex is SagaNotFoundException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga for compensation", ex);
+        }
 
         if (saga.Status != SagaStatus.Compensating)
         {
-            await _compensationService.BeginCompensationAsync(saga);
+            try
+            {
+                await _compensationService.BeginCompensationAsync(saga);
+            }
+            catch (Exception compEx)
+            {
+                throw new DotnetSagaOrchestratorException("Error starting compensation", compEx);
+            }
         }
 
         while (await _compensationService.ExecuteNextCompensationAsync(sagaId) != null)
@@ -240,8 +318,19 @@ public class SagaOrchestrationService
     /// </summary>
     public async Task<Saga> CompensateSagaAsync(string sagaId, CompensationStrategy strategy)
     {
-        var saga = await _sagaRepository.GetByIdAsync(sagaId)
-            ?? throw new SagaNotFoundException(sagaId);
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must be provided", nameof(sagaId));
+
+        Saga saga;
+        try
+        {
+            saga = await _sagaRepository.GetByIdAsync(sagaId)
+                ?? throw new SagaNotFoundException(sagaId);
+        }
+        catch (Exception ex) when (!(ex is SagaNotFoundException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga for strategy override", ex);
+        }
 
         saga.Definition.CompensationStrategy = strategy;
         await _sagaRepository.UpdateAsync(saga);
@@ -254,8 +343,19 @@ public class SagaOrchestrationService
     /// </summary>
     public async Task AbortSagaAsync(string sagaId, string reason = "User abort")
     {
-        var saga = await _sagaRepository.GetByIdAsync(sagaId)
-            ?? throw new SagaNotFoundException(sagaId);
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must be provided", nameof(sagaId));
+
+        Saga saga;
+        try
+        {
+            saga = await _sagaRepository.GetByIdAsync(sagaId)
+                ?? throw new SagaNotFoundException(sagaId);
+        }
+        catch (Exception ex) when (!(ex is SagaNotFoundException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga for abort", ex);
+        }
 
         if (saga.Status != SagaStatus.Running && saga.Status != SagaStatus.Initialized)
             throw new SagaException($"Cannot abort saga in {saga.Status} status", sagaId);
@@ -272,6 +372,9 @@ public class SagaOrchestrationService
     /// </summary>
     public async Task<Saga> GetSagaAsync(string sagaId)
     {
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must be provided", nameof(sagaId));
+
         return await _sagaRepository.GetByIdAsync(sagaId)
             ?? throw new SagaNotFoundException(sagaId);
     }
