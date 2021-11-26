@@ -8,6 +8,9 @@ using SagaOrchestrator.Core.Domain.Models;
 
 namespace SagaOrchestrator.Benchmarks
 {
+    /// <summary>
+    /// A set of benchmarks for the Saga Orchestrator.
+    /// </summary>
     [MemoryDiagnoser]
     public class SagaOrchestratorBenchmarks
     {
@@ -19,6 +22,10 @@ namespace SagaOrchestrator.Benchmarks
         private string _definitionId = null!;
         private string _sagaId = null!;
 
+        /// <summary>
+        /// Sets up the benchmark by building a minimal DI container with the orchestrator services,
+        /// creating a baseline definition and saga, and storing them for reuse in benchmarks.
+        /// </summary>
         [GlobalSetup]
         public void Setup()
         {
@@ -46,6 +53,11 @@ namespace SagaOrchestrator.Benchmarks
             _sagaId = saga.Id;
         }
 
+        /// <summary>
+        /// Creates a new definition with the specified name and description.
+        /// </summary>
+        /// <param name="name">The name of the definition.</param>
+        /// <param name="description">The description of the definition.</param>
         [Benchmark]
         public void CreateDefinition()
         {
@@ -55,6 +67,11 @@ namespace SagaOrchestrator.Benchmarks
                 .GetResult();
         }
 
+        /// <summary>
+        /// Adds a new step to the specified definition.
+        /// </summary>
+        /// <param name="definitionId">The ID of the definition to add the step to.</param>
+        /// <param name="step">The step to add.</param>
         [Benchmark]
         public void AddStep()
         {
@@ -70,6 +87,10 @@ namespace SagaOrchestrator.Benchmarks
                 .GetResult();
         }
 
+        /// <summary>
+        /// Creates a new saga with the specified definition.
+        /// </summary>
+        /// <param name="definition">The definition to use for the saga.</param>
         [Benchmark]
         public void CreateSaga()
         {
@@ -79,6 +100,10 @@ namespace SagaOrchestrator.Benchmarks
                 .GetResult();
         }
 
+        /// <summary>
+        /// Starts the specified saga.
+        /// </summary>
+        /// <param name="sagaId">The ID of the saga to start.</param>
         [Benchmark]
         public void StartSaga()
         {
@@ -88,6 +113,11 @@ namespace SagaOrchestrator.Benchmarks
                 .GetResult();
         }
 
+        /// <summary>
+        /// Executes the next step in the specified saga.
+        /// </summary>
+        /// <param name="sagaId">The ID of the saga to execute the next step in.</param>
+        /// <param name="cancellationToken">The cancellation token to use.</param>
         [Benchmark]
         public void ExecuteNextStep()
         {
@@ -98,6 +128,10 @@ namespace SagaOrchestrator.Benchmarks
                 .GetResult();
         }
 
+        /// <summary>
+        /// Runs the benchmarks and prints the results to the console.
+        /// </summary>
+        /// <param name="args">The command-line arguments.</param>
         public static void Main(string[] args)
         {
             var summary = BenchmarkRunner.Run<SagaOrchestratorBenchmarks>();
