@@ -18,12 +18,10 @@ public static class SagaDebuggerServiceValidation
     /// </summary>
     /// <param name="value">The service instance to validate.</param>
     /// <returns>A list of human-readable validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
     public static IReadOnlyList<string> Validate(this SagaDebuggerService value)
     {
-        if (value is null)
-        {
-            return new[] { "SagaDebuggerService instance is null." };
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var problems = new List<string>();
 
@@ -99,7 +97,7 @@ public static class SagaDebuggerServiceValidation
                             problems.Add($"Snapshot '{snapshot.SnapshotId}' has default CapturedAt date.");
                         }
 
-                        if (snapshot.SagaId != snapshot.SagaId?.Trim())
+                        if (!string.IsNullOrEmpty(snapshot.SagaId) && snapshot.SagaId != snapshot.SagaId.Trim())
                         {
                             problems.Add($"Snapshot '{snapshot.SnapshotId}' has whitespace in SagaId.");
                         }
@@ -189,13 +187,11 @@ public static class SagaDebuggerServiceValidation
     /// Ensures that the specified <see cref="SagaDebuggerService"/> instance is valid.
     /// </summary>
     /// <param name="value">The service instance to validate.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">Thrown when the service is invalid, containing a list of problems.</exception>
     public static void EnsureValid(this SagaDebuggerService value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value), "SagaDebuggerService instance cannot be null.");
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var problems = Validate(value);
         if (problems.Count == 0)
@@ -204,7 +200,7 @@ public static class SagaDebuggerServiceValidation
         }
 
         throw new ArgumentException(
-            $"SagaDebuggerService is invalid. Problems:\n{string.Join("\n", problems.Select((p, i) => $"  {i + 1}. {p}"))}",
+            $"SagaDebuggerService is invalid. Problems:\n{string.Join("\n", problems.Select((p, i) => $" {i + 1}. {p}"))}",
             nameof(value));
     }
 }
