@@ -27,12 +27,10 @@ public static class SagaActivitySourceJsonExtensions
     /// <param name="value">The SagaActivitySource.Name value to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the SagaActivitySource telemetry data.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(string value, bool indented = false)
     {
-        if (value == null)
-        {
-            return "null";
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
             ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
@@ -47,8 +45,11 @@ public static class SagaActivitySourceJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A SagaActivitySource telemetry data object, or null if the JSON is null or empty.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static SagaActivitySourceTelemetry? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrWhiteSpace(json) || json == "null")
         {
             return null;
@@ -63,13 +64,16 @@ public static class SagaActivitySourceJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized SagaActivitySource telemetry data, or null if deserialization fails.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out SagaActivitySourceTelemetry? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         value = default;
 
         if (string.IsNullOrWhiteSpace(json) || json == "null")
         {
-            return true;
+            return false;
         }
 
         try
