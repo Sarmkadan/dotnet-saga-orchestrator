@@ -1,20 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace SagaOrchestrator.Infrastructure.Caching
 {
     /// <summary>
-    /// Validation helpers for CacheKeyBuilder static methods.
-    /// Provides validation for all parameters passed to CacheKeyBuilder methods.
+    /// Validation helpers for <see cref="CacheKeyBuilder"/> static methods.
+    /// Provides validation for all parameters passed to <see cref="CacheKeyBuilder"/> methods.
     /// </summary>
-    public static class CacheKeyBuilderValidation
+    public sealed class CacheKeyBuilderValidation
     {
         /// <summary>
-        /// Validates sagaId parameter for BuildSagaKey method.
+        /// Validates <paramref name="sagaId"/> parameter for <see cref="CacheKeyBuilder.BuildSagaKey"/> method.
         /// </summary>
-        public static IReadOnlyList<string> ValidateSagaId(string sagaId)
+        /// <param name="sagaId">The saga identifier to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="sagaId"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateSagaId([NotNullWhen(false)] string? sagaId)
         {
+            ArgumentNullException.ThrowIfNull(sagaId);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(sagaId))
@@ -26,10 +32,18 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Validates definitionId and name parameters for BuildDefinitionKey and BuildDefinitionByNameKey methods.
+        /// Validates <paramref name="definitionId"/> and <paramref name="name"/> parameters for
+        /// <see cref="CacheKeyBuilder.BuildDefinitionKey"/> and <see cref="CacheKeyBuilder.BuildDefinitionByNameKey"/> methods.
         /// </summary>
-        public static IReadOnlyList<string> ValidateDefinition(string definitionId, string name)
+        /// <param name="definitionId">The definition identifier to validate.</param>
+        /// <param name="name">The name to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="definitionId"/> or <paramref name="name"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateDefinition([NotNullWhen(false)] string? definitionId, [NotNullWhen(false)] string? name)
         {
+            ArgumentNullException.ThrowIfNull(definitionId);
+            ArgumentNullException.ThrowIfNull(name);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(definitionId))
@@ -46,10 +60,15 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Validates status parameter for BuildSagasByStatusKey method.
+        /// Validates <paramref name="status"/> parameter for <see cref="CacheKeyBuilder.BuildSagasByStatusKey"/> method.
         /// </summary>
-        public static IReadOnlyList<string> ValidateStatus(string status)
+        /// <param name="status">The status to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="status"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateStatus([NotNullWhen(false)] string? status)
         {
+            ArgumentNullException.ThrowIfNull(status);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(status))
@@ -61,10 +80,15 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Validates serviceName parameter for BuildServiceKey method.
+        /// Validates <paramref name="serviceName"/> parameter for <see cref="CacheKeyBuilder.BuildServiceKey"/> method.
         /// </summary>
-        public static IReadOnlyList<string> ValidateServiceName(string serviceName)
+        /// <param name="serviceName">The service name to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="serviceName"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateServiceName([NotNullWhen(false)] string? serviceName)
         {
+            ArgumentNullException.ThrowIfNull(serviceName);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(serviceName))
@@ -76,10 +100,18 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Validates identifier and resource parameters for BuildRateLimitKey method.
+        /// Validates <paramref name="identifier"/> and <paramref name="resource"/> parameters for
+        /// <see cref="CacheKeyBuilder.BuildRateLimitKey"/> method.
         /// </summary>
-        public static IReadOnlyList<string> ValidateRateLimit(string identifier, string resource)
+        /// <param name="identifier">The identifier to validate.</param>
+        /// <param name="resource">The resource to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="identifier"/> or <paramref name="resource"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateRateLimit([NotNullWhen(false)] string? identifier, [NotNullWhen(false)] string? resource)
         {
+            ArgumentNullException.ThrowIfNull(identifier);
+            ArgumentNullException.ThrowIfNull(resource);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(identifier))
@@ -96,10 +128,15 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Validates userId parameter for BuildUserCacheKey method.
+        /// Validates <paramref name="userId"/> parameter for <see cref="CacheKeyBuilder.BuildUserCacheKey"/> method.
         /// </summary>
-        public static IReadOnlyList<string> ValidateUserId(string userId)
+        /// <param name="userId">The user identifier to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="userId"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateUserId([NotNullWhen(false)] string? userId)
         {
+            ArgumentNullException.ThrowIfNull(userId);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(userId))
@@ -111,10 +148,15 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Validates sessionId parameter for BuildSessionKey method.
+        /// Validates <paramref name="sessionId"/> parameter for <see cref="CacheKeyBuilder.BuildSessionKey"/> method.
         /// </summary>
-        public static IReadOnlyList<string> ValidateSessionId(string sessionId)
+        /// <param name="sessionId">The session identifier to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="sessionId"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateSessionId([NotNullWhen(false)] string? sessionId)
         {
+            ArgumentNullException.ThrowIfNull(sessionId);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(sessionId))
@@ -126,10 +168,15 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Validates webhookId parameter for BuildWebhookKey method.
+        /// Validates <paramref name="webhookId"/> parameter for <see cref="CacheKeyBuilder.BuildWebhookKey"/> method.
         /// </summary>
-        public static IReadOnlyList<string> ValidateWebhookId(string webhookId)
+        /// <param name="webhookId">The webhook identifier to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="webhookId"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateWebhookId([NotNullWhen(false)] string? webhookId)
         {
+            ArgumentNullException.ThrowIfNull(webhookId);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(webhookId))
@@ -141,10 +188,16 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Validates key parameter for IsSagaKey, IsDefinitionKey, and ExtractIdFromKey methods.
+        /// Validates <paramref name="key"/> parameter for <see cref="CacheKeyBuilder.IsSagaKey"/>,
+        /// <see cref="CacheKeyBuilder.IsDefinitionKey"/>, and <see cref="CacheKeyBuilder.ExtractIdFromKey"/> methods.
         /// </summary>
-        public static IReadOnlyList<string> ValidateCacheKey(string key)
+        /// <param name="key">The cache key to validate.</param>
+        /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
+        public static IReadOnlyList<string> ValidateCacheKey([NotNullWhen(false)] string? key)
         {
+            ArgumentNullException.ThrowIfNull(key);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(key))
@@ -156,81 +209,117 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Checks if sagaId is valid for BuildSagaKey method.
+        /// Checks if <paramref name="sagaId"/> is valid for <see cref="CacheKeyBuilder.BuildSagaKey"/> method.
         /// </summary>
-        public static bool IsValidSagaId(string sagaId)
+        /// <param name="sagaId">The saga identifier to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="sagaId"/> is <see langword="null"/>.</exception>
+        public static bool IsValidSagaId([NotNullWhen(true)] string? sagaId)
         {
             return ValidateSagaId(sagaId).Count == 0;
         }
 
         /// <summary>
-        /// Checks if definitionId and name are valid for BuildDefinitionKey and BuildDefinitionByNameKey methods.
+        /// Checks if <paramref name="definitionId"/> and <paramref name="name"/> are valid for
+        /// <see cref="CacheKeyBuilder.BuildDefinitionKey"/> and <see cref="CacheKeyBuilder.BuildDefinitionByNameKey"/> methods.
         /// </summary>
-        public static bool IsValidDefinition(string definitionId, string name)
+        /// <param name="definitionId">The definition identifier to check.</param>
+        /// <param name="name">The name to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="definitionId"/> or <paramref name="name"/> is <see langword="null"/>.</exception>
+        public static bool IsValidDefinition([NotNullWhen(true)] string? definitionId, [NotNullWhen(true)] string? name)
         {
             return ValidateDefinition(definitionId, name).Count == 0;
         }
 
         /// <summary>
-        /// Checks if status is valid for BuildSagasByStatusKey method.
+        /// Checks if <paramref name="status"/> is valid for <see cref="CacheKeyBuilder.BuildSagasByStatusKey"/> method.
         /// </summary>
-        public static bool IsValidStatus(string status)
+        /// <param name="status">The status to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="status"/> is <see langword="null"/>.</exception>
+        public static bool IsValidStatus([NotNullWhen(true)] string? status)
         {
             return ValidateStatus(status).Count == 0;
         }
 
         /// <summary>
-        /// Checks if serviceName is valid for BuildServiceKey method.
+        /// Checks if <paramref name="serviceName"/> is valid for <see cref="CacheKeyBuilder.BuildServiceKey"/> method.
         /// </summary>
-        public static bool IsValidServiceName(string serviceName)
+        /// <param name="serviceName">The service name to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="serviceName"/> is <see langword="null"/>.</exception>
+        public static bool IsValidServiceName([NotNullWhen(true)] string? serviceName)
         {
             return ValidateServiceName(serviceName).Count == 0;
         }
 
         /// <summary>
-        /// Checks if identifier and resource are valid for BuildRateLimitKey method.
+        /// Checks if <paramref name="identifier"/> and <paramref name="resource"/> are valid for
+        /// <see cref="CacheKeyBuilder.BuildRateLimitKey"/> method.
         /// </summary>
-        public static bool IsValidRateLimit(string identifier, string resource)
+        /// <param name="identifier">The identifier to check.</param>
+        /// <param name="resource">The resource to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="identifier"/> or <paramref name="resource"/> is <see langword="null"/>.</exception>
+        public static bool IsValidRateLimit([NotNullWhen(true)] string? identifier, [NotNullWhen(true)] string? resource)
         {
             return ValidateRateLimit(identifier, resource).Count == 0;
         }
 
         /// <summary>
-        /// Checks if userId is valid for BuildUserCacheKey method.
+        /// Checks if <paramref name="userId"/> is valid for <see cref="CacheKeyBuilder.BuildUserCacheKey"/> method.
         /// </summary>
-        public static bool IsValidUserId(string userId)
+        /// <param name="userId">The user identifier to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="userId"/> is <see langword="null"/>.</exception>
+        public static bool IsValidUserId([NotNullWhen(true)] string? userId)
         {
             return ValidateUserId(userId).Count == 0;
         }
 
         /// <summary>
-        /// Checks if sessionId is valid for BuildSessionKey method.
+        /// Checks if <paramref name="sessionId"/> is valid for <see cref="CacheKeyBuilder.BuildSessionKey"/> method.
         /// </summary>
-        public static bool IsValidSessionId(string sessionId)
+        /// <param name="sessionId">The session identifier to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="sessionId"/> is <see langword="null"/>.</exception>
+        public static bool IsValidSessionId([NotNullWhen(true)] string? sessionId)
         {
             return ValidateSessionId(sessionId).Count == 0;
         }
 
         /// <summary>
-        /// Checks if webhookId is valid for BuildWebhookKey method.
+        /// Checks if <paramref name="webhookId"/> is valid for <see cref="CacheKeyBuilder.BuildWebhookKey"/> method.
         /// </summary>
-        public static bool IsValidWebhookId(string webhookId)
+        /// <param name="webhookId">The webhook identifier to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="webhookId"/> is <see langword="null"/>.</exception>
+        public static bool IsValidWebhookId([NotNullWhen(true)] string? webhookId)
         {
             return ValidateWebhookId(webhookId).Count == 0;
         }
 
         /// <summary>
-        /// Checks if key is valid for IsSagaKey, IsDefinitionKey, and ExtractIdFromKey methods.
+        /// Checks if <paramref name="key"/> is valid for <see cref="CacheKeyBuilder.IsSagaKey"/>,
+        /// <see cref="CacheKeyBuilder.IsDefinitionKey"/>, and <see cref="CacheKeyBuilder.ExtractIdFromKey"/> methods.
         /// </summary>
-        public static bool IsValidCacheKey(string key)
+        /// <param name="key">The cache key to check.</param>
+        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
+        public static bool IsValidCacheKey([NotNullWhen(true)] string? key)
         {
             return ValidateCacheKey(key).Count == 0;
         }
 
         /// <summary>
-        /// Ensures sagaId is valid for BuildSagaKey method, throwing an exception if not.
+        /// Ensures <paramref name="sagaId"/> is valid for <see cref="CacheKeyBuilder.BuildSagaKey"/> method,
+        /// throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidSagaId(string sagaId)
+        /// <param name="sagaId">The saga identifier to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="sagaId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="sagaId"/> is null or whitespace.</exception>
+        public static void EnsureValidSagaId([NotNull] string sagaId)
         {
             var errors = ValidateSagaId(sagaId);
             if (errors.Count > 0)
@@ -240,9 +329,15 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Ensures definitionId and name are valid for BuildDefinitionKey and BuildDefinitionByNameKey methods, throwing an exception if not.
+        /// Ensures <paramref name="definitionId"/> and <paramref name="name"/> are valid for
+        /// <see cref="CacheKeyBuilder.BuildDefinitionKey"/> and <see cref="CacheKeyBuilder.BuildDefinitionByNameKey"/> methods,
+        /// throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidDefinition(string definitionId, string name)
+        /// <param name="definitionId">The definition identifier to validate.</param>
+        /// <param name="name">The name to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="definitionId"/> or <paramref name="name"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="definitionId"/> or <paramref name="name"/> is null or whitespace.</exception>
+        public static void EnsureValidDefinition([NotNull] string definitionId, [NotNull] string name)
         {
             var errors = ValidateDefinition(definitionId, name);
             if (errors.Count > 0)
@@ -252,9 +347,13 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Ensures status is valid for BuildSagasByStatusKey method, throwing an exception if not.
+        /// Ensures <paramref name="status"/> is valid for <see cref="CacheKeyBuilder.BuildSagasByStatusKey"/> method,
+        /// throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidStatus(string status)
+        /// <param name="status">The status to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="status"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="status"/> is null or whitespace.</exception>
+        public static void EnsureValidStatus([NotNull] string status)
         {
             var errors = ValidateStatus(status);
             if (errors.Count > 0)
@@ -264,9 +363,13 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Ensures serviceName is valid for BuildServiceKey method, throwing an exception if not.
+        /// Ensures <paramref name="serviceName"/> is valid for <see cref="CacheKeyBuilder.BuildServiceKey"/> method,
+        /// throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidServiceName(string serviceName)
+        /// <param name="serviceName">The service name to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="serviceName"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="serviceName"/> is null or whitespace.</exception>
+        public static void EnsureValidServiceName([NotNull] string serviceName)
         {
             var errors = ValidateServiceName(serviceName);
             if (errors.Count > 0)
@@ -276,9 +379,14 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Ensures identifier and resource are valid for BuildRateLimitKey method, throwing an exception if not.
+        /// Ensures <paramref name="identifier"/> and <paramref name="resource"/> are valid for
+        /// <see cref="CacheKeyBuilder.BuildRateLimitKey"/> method, throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidRateLimit(string identifier, string resource)
+        /// <param name="identifier">The identifier to validate.</param>
+        /// <param name="resource">The resource to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="identifier"/> or <paramref name="resource"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="identifier"/> or <paramref name="resource"/> is null or whitespace.</exception>
+        public static void EnsureValidRateLimit([NotNull] string identifier, [NotNull] string resource)
         {
             var errors = ValidateRateLimit(identifier, resource);
             if (errors.Count > 0)
@@ -288,9 +396,13 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Ensures userId is valid for BuildUserCacheKey method, throwing an exception if not.
+        /// Ensures <paramref name="userId"/> is valid for <see cref="CacheKeyBuilder.BuildUserCacheKey"/> method,
+        /// throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidUserId(string userId)
+        /// <param name="userId">The user identifier to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="userId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="userId"/> is null or whitespace.</exception>
+        public static void EnsureValidUserId([NotNull] string userId)
         {
             var errors = ValidateUserId(userId);
             if (errors.Count > 0)
@@ -300,9 +412,13 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Ensures sessionId is valid for BuildSessionKey method, throwing an exception if not.
+        /// Ensures <paramref name="sessionId"/> is valid for <see cref="CacheKeyBuilder.BuildSessionKey"/> method,
+        /// throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidSessionId(string sessionId)
+        /// <param name="sessionId">The session identifier to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="sessionId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="sessionId"/> is null or whitespace.</exception>
+        public static void EnsureValidSessionId([NotNull] string sessionId)
         {
             var errors = ValidateSessionId(sessionId);
             if (errors.Count > 0)
@@ -312,9 +428,13 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Ensures webhookId is valid for BuildWebhookKey method, throwing an exception if not.
+        /// Ensures <paramref name="webhookId"/> is valid for <see cref="CacheKeyBuilder.BuildWebhookKey"/> method,
+        /// throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidWebhookId(string webhookId)
+        /// <param name="webhookId">The webhook identifier to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="webhookId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="webhookId"/> is null or whitespace.</exception>
+        public static void EnsureValidWebhookId([NotNull] string webhookId)
         {
             var errors = ValidateWebhookId(webhookId);
             if (errors.Count > 0)
@@ -324,9 +444,14 @@ namespace SagaOrchestrator.Infrastructure.Caching
         }
 
         /// <summary>
-        /// Ensures key is valid for IsSagaKey, IsDefinitionKey, and ExtractIdFromKey methods, throwing an exception if not.
+        /// Ensures <paramref name="key"/> is valid for <see cref="CacheKeyBuilder.IsSagaKey"/>,
+        /// <see cref="CacheKeyBuilder.IsDefinitionKey"/>, and <see cref="CacheKeyBuilder.ExtractIdFromKey"/> methods,
+        /// throwing an <see cref="ArgumentException"/> if not.
         /// </summary>
-        public static void EnsureValidCacheKey(string key)
+        /// <param name="key">The cache key to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="key"/> is null or whitespace.</exception>
+        public static void EnsureValidCacheKey([NotNull] string key)
         {
             var errors = ValidateCacheKey(key);
             if (errors.Count > 0)
