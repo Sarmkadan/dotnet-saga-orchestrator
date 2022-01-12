@@ -15,7 +15,7 @@ namespace SagaOrchestrator.Core.Domain.Models;
 /// </summary>
 public static class SagaStepJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
@@ -28,12 +28,10 @@ public static class SagaStepJsonExtensions
     /// <param name="value">The SagaStep instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the SagaStep.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this SagaStep value, bool indented = false)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
             ? new JsonSerializerOptions(_jsonSerializerOptions)
@@ -50,8 +48,11 @@ public static class SagaStepJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A SagaStep instance, or null if the JSON is null or empty.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static SagaStep? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrWhiteSpace(json))
         {
             return null;
@@ -66,9 +67,12 @@ public static class SagaStepJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The resulting SagaStep instance, or null if deserialization fails.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out SagaStep? value)
     {
         value = default;
+
+        ArgumentNullException.ThrowIfNull(json);
 
         if (string.IsNullOrWhiteSpace(json))
         {
