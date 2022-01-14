@@ -13,6 +13,7 @@ namespace SagaOrchestrator.Configuration;
 /// <summary>
 /// Extension methods for registering saga visualization services with the dependency injection container.
 /// </summary>
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is <see langword="null"/>.</exception>
 public static class VisualizationServiceExtensions
 {
     /// <summary>
@@ -20,7 +21,7 @@ public static class VisualizationServiceExtensions
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to configure.</param>
     /// <returns>The same <see cref="IServiceCollection"/> for chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is <see langword="null"/>.</exception>
     /// <example>
     /// <code>
     /// services.AddSagaOrchestrator()
@@ -29,8 +30,7 @@ public static class VisualizationServiceExtensions
     /// </example>
     public static IServiceCollection AddSagaVisualization(this IServiceCollection services)
     {
-        if (services == null)
-            throw new ArgumentNullException(nameof(services));
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddSingleton<ISagaVisualizationService, SagaVisualizationService>();
         services.AddSingleton<ISagaStateRenderer, SagaStateRenderer>();
