@@ -45,25 +45,24 @@ public static class DebuggerServiceExtensions
     /// <code>
     /// // Development – full debugging with time-travel:
     /// services.AddSagaOrchestrator()
-    ///         .AddSagaDebugger(opts =>
-    ///         {
-    ///             opts.IsEnabled              = true;
-    ///             opts.EnableTimeTravel       = true;
-    ///             opts.AutoCaptureOnStepTransition = true;
-    ///             opts.MaxSnapshotsPerSaga    = 100;
-    ///         });
+    /// .AddSagaDebugger(opts =>
+    /// {
+    /// opts.IsEnabled = true;
+    /// opts.EnableTimeTravel = true;
+    /// opts.AutoCaptureOnStepTransition = true;
+    /// opts.MaxSnapshotsPerSaga = 100;
+    /// });
     ///
     /// // Production – debugger disabled (default), zero overhead:
     /// services.AddSagaOrchestrator()
-    ///         .AddSagaDebugger();
+    /// .AddSagaDebugger();
     /// </code>
     /// </example>
     public static IServiceCollection AddSagaDebugger(
         this IServiceCollection services,
         Action<DebuggerOptions>? configure = null)
     {
-        if (services is null)
-            throw new ArgumentNullException(nameof(services));
+        ArgumentNullException.ThrowIfNull(services);
 
         var options = new DebuggerOptions();
         configure?.Invoke(options);
@@ -90,22 +89,22 @@ public static class DebuggerServiceExtensions
     /// <example>
     /// <code>
     /// var debuggerOptions = new DebuggerOptionsBuilder()
-    ///     .Enable()
-    ///     .WithMaxSnapshotsPerSaga(200)
-    ///     .WithAutoCapture(onStepTransition: true, onCompensation: true)
-    ///     .WithTimeTravel(enabled: true)
-    ///     .Build();
+    /// .Enable()
+    /// .WithMaxSnapshotsPerSaga(200)
+    /// .WithAutoCapture(onStepTransition: true, onCompensation: true)
+    /// .WithTimeTravel(enabled: true)
+    /// .Build();
     ///
     /// services.AddSagaOrchestrator()
-    ///         .AddSagaDebugger(debuggerOptions);
+    /// .AddSagaDebugger(debuggerOptions);
     /// </code>
     /// </example>
     public static IServiceCollection AddSagaDebugger(
         this IServiceCollection services,
         DebuggerOptions options)
     {
-        if (services is null) throw new ArgumentNullException(nameof(services));
-        if (options  is null) throw new ArgumentNullException(nameof(options));
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
 
         services.AddSingleton(options);
         services.AddSingleton<ISagaDebugger, SagaDebuggerService>();
