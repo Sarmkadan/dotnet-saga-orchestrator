@@ -9,7 +9,7 @@ namespace SagaOrchestrator.Configuration;
 /// </summary>
 public static class DebuggerOptionsJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
@@ -22,12 +22,10 @@ public static class DebuggerOptionsJsonExtensions
     /// <param name="value">The options to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the options.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this DebuggerOptions value, bool indented = false)
     {
-        if (value is null)
-        {
-            return "{}";
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var options = new JsonSerializerOptions(_jsonOptions)
         {
@@ -40,14 +38,11 @@ public static class DebuggerOptionsJsonExtensions
     /// Deserializes a JSON string into a <see cref="DebuggerOptions"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized options, or null if the JSON is empty or whitespace.</returns>
-    /// <exception cref="JsonException">Thrown when the JSON is invalid.</exception>
+    /// <returns>The deserialized options, or <see langword="null"/> if the JSON is empty or whitespace.</returns>
+    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized into a <see cref="DebuggerOptions"/> instance.</exception>
     public static DebuggerOptions? FromJson(string json)
     {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
         return JsonSerializer.Deserialize<DebuggerOptions>(json, _jsonOptions);
     }
@@ -56,8 +51,8 @@ public static class DebuggerOptionsJsonExtensions
     /// Attempts to deserialize a JSON string into a <see cref="DebuggerOptions"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">Receives the deserialized options if successful, otherwise null.</param>
-    /// <returns>True if deserialization succeeded; false if an exception occurred.</returns>
+    /// <param name="value">Receives the deserialized options if successful, otherwise <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if deserialization succeeded; <see langword="false"/> if an exception occurred.</returns>
     public static bool TryFromJson(string json, out DebuggerOptions? value)
     {
         value = null;
