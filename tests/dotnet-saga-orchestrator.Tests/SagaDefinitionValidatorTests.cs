@@ -14,6 +14,7 @@ public class SagaDefinitionValidatorTests
     private static SagaStepDefinition CreateValidStep(string name = "PaymentStep") =>
         new SagaStepDefinition(name, "payment-svc", "http://payment-svc/charge", "http://payment-svc/refund")
         {
+            Order = 1,
             TimeoutSeconds = 30,
             MaxRetries = 3
         };
