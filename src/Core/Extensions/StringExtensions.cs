@@ -62,7 +62,7 @@ public static class StringExtensions
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        return value.Length < 2
+        return value.Length == 0
             ? value
             : char.ToLowerInvariant(value[0]) + value[1..];
     }
@@ -120,6 +120,7 @@ public static class StringExtensions
     public static string Truncate(this string value, int maxLength, string ellipsis = "...")
     {
         ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(ellipsis);
         ArgumentOutOfRangeException.ThrowIfNegative(maxLength);
 
         if (value.Length <= maxLength)
@@ -127,7 +128,8 @@ public static class StringExtensions
             return value;
         }
 
-        return value[..Math.Min(maxLength, value.Length)] + ellipsis;
+        var contentLength = Math.Max(0, maxLength - ellipsis.Length);
+        return value[..Math.Min(contentLength, value.Length)] + ellipsis;
     }
 
     /// <summary>

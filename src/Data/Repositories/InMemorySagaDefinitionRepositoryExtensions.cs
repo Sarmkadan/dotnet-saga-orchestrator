@@ -127,11 +127,8 @@ public static class InMemorySagaDefinitionRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="cutoffDate">The date threshold for filtering saga definitions.</param>
     /// <returns>A list of saga definitions created after the cutoff date.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="cutoffDate"/> is null.</exception>
     public static async Task<IReadOnlyList<SagaDefinition>> GetCreatedAfterAsync(this InMemorySagaDefinitionRepository repository, DateTime cutoffDate)
     {
-        ArgumentNullException.ThrowIfNull(cutoffDate);
-
         var allDefinitions = await repository.GetAllAsync().ConfigureAwait(false);
         return allDefinitions
             .Where(d => d.CreatedAt > cutoffDate)

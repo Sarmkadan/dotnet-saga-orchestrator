@@ -18,11 +18,9 @@ public static class CollectionExtensions
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
     /// <param name="items">The collection to check.</param>
     /// <returns><see langword="true" /> if the collection is null or empty; otherwise, <see langword="false" />.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="items" /> is <see langword="null" />.</exception>
     public static bool IsEmpty<T>(this IEnumerable<T>? items)
     {
-        ArgumentNullException.ThrowIfNull(items);
-        return !items.Any();
+        return items is null || !items.Any();
     }
 
     /// <summary>
@@ -31,11 +29,9 @@ public static class CollectionExtensions
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
     /// <param name="items">The collection to check.</param>
     /// <returns><see langword="true" /> if the collection is not null and contains elements; otherwise, <see langword="false" />.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="items" /> is <see langword="null" />.</exception>
     public static bool IsNotEmpty<T>(this IEnumerable<T>? items)
     {
-        ArgumentNullException.ThrowIfNull(items);
-        return items.Any();
+        return items is not null && items.Any();
     }
 
     /// <summary>
@@ -391,6 +387,6 @@ public static class CollectionExtensions
         ArgumentNullException.ThrowIfNull(items);
 
         var list = items as IList<T> ?? items.ToList();
-        return list.IsEmpty() ? default : list[new Random().Next(list.Count)];
+        return list.IsEmpty() ? default : list[Random.Shared.Next(list.Count)];
     }
 }
