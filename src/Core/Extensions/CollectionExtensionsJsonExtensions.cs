@@ -21,47 +21,47 @@ public static class CollectionExtensionsJsonExtensions
     };
 
     /// <summary>
-    /// Serializes a <see cref="CollectionExtensions"/> instance to a JSON string.
+    /// Serializes a <see cref="CollectionExtensionsData"/> instance to a JSON string.
     /// </summary>
-    /// <param name="value">The <see cref="CollectionExtensions"/> to serialize.</param>
+    /// <param name="data">The <see cref="CollectionExtensionsData"/> to serialize.</param>
     /// <param name="indented">If true, the JSON will be formatted with indentation.</param>
-    /// <returns>A JSON string representation of the <see cref="CollectionExtensions"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    public static string ToJson(this CollectionExtensions value, bool indented = false)
+    /// <returns>A JSON string representation of the <see cref="CollectionExtensionsData"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="data"/> is null.</exception>
+    public static string ToJson(this CollectionExtensionsData data, bool indented = false)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(data);
 
         JsonSerializerOptions options = indented ? new(JsonSerializerOptions) { WriteIndented = true } : JsonSerializerOptions;
-        return JsonSerializer.Serialize(value, options);
+        return JsonSerializer.Serialize(data, options);
     }
 
     /// <summary>
-    /// Deserializes a JSON string into a <see cref="CollectionExtensions"/>.
+    /// Deserializes a JSON string into a <see cref="CollectionExtensionsData"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>A <see cref="CollectionExtensions"/> instance.</returns>
+    /// <returns>A <see cref="CollectionExtensionsData"/> instance.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null or empty.</exception>
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
-    public static CollectionExtensions? FromJson(string json)
+    public static CollectionExtensionsData? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
-        return JsonSerializer.Deserialize<CollectionExtensions>(json, JsonSerializerOptions);
+        return JsonSerializer.Deserialize<CollectionExtensionsData>(json, JsonSerializerOptions);
     }
 
     /// <summary>
-    /// Attempts to deserialize a JSON string into a <see cref="CollectionExtensions"/>.
+    /// Attempts to deserialize a JSON string into a <see cref="CollectionExtensionsData"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized <see cref="CollectionExtensions"/> if successful; otherwise, null.</param>
+    /// <param name="value">The deserialized <see cref="CollectionExtensionsData"/> if successful; otherwise, null.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out CollectionExtensions? value)
+    public static bool TryFromJson(string json, out CollectionExtensionsData? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
         try
         {
-            value = JsonSerializer.Deserialize<CollectionExtensions>(json, JsonSerializerOptions);
+            value = JsonSerializer.Deserialize<CollectionExtensionsData>(json, JsonSerializerOptions);
             return value is not null;
         }
         catch (JsonException)
@@ -70,4 +70,9 @@ public static class CollectionExtensionsJsonExtensions
             return false;
         }
     }
+}
+
+public class CollectionExtensionsData
+{
+    // Add properties here that match the data you want to serialize
 }
