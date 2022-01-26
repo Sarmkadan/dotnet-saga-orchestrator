@@ -11,8 +11,16 @@ using Xunit;
 
 namespace SagaOrchestrator.Tests;
 
+/// <summary>
+/// Integration tests for the Saga Orchestrator system that validate end-to-end workflows,
+/// concurrent operations, and various configuration scenarios for saga definitions and executions.
+/// </summary>
 public class SagaIntegrationTests
 {
+    /// <summary>
+    /// Creates and configures an <see cref="IServiceProvider"/> with all Saga Orchestrator services registered.
+    /// </summary>
+    /// <returns>A configured service provider containing Saga Orchestrator services.</returns>
     private static IServiceProvider CreateServiceProvider()
     {
         var services = new ServiceCollection();
@@ -20,6 +28,10 @@ public class SagaIntegrationTests
         return services.BuildServiceProvider();
     }
 
+    /// <summary>
+    /// Validates the complete end-to-end saga workflow including definition creation,
+    /// saga instantiation, step execution, and successful completion.
+    /// </summary>
     [Fact]
     public async Task EndToEnd_CreateDefinition_CreateSaga_ExecuteSteps_CompletesSuccessfully()
     {
@@ -70,6 +82,10 @@ public class SagaIntegrationTests
         runningStatus.Steps.Should().HaveCount(2);
     }
 
+    /// <summary>
+    /// Tests a money transfer scenario with three sequential steps (validation, debit, credit)
+    /// to ensure proper saga definition creation and validation.
+    /// </summary>
     [Fact]
     public async Task MoneyTransferScenario_DefinitionWithThreeSteps_ValidatesAndCreates()
     {
@@ -86,21 +102,30 @@ public class SagaIntegrationTests
             "account-service",
             "http://account-service/validate",
             "http://account-service/unlock")
-        { TimeoutSeconds = 15, MaxRetries = 3 };
+        {
+            TimeoutSeconds = 15,
+            MaxRetries = 3
+        };
 
         var debitStep = new SagaStepDefinition(
             "DebitSourceAccount",
             "ledger-service",
             "http://ledger-service/debit",
             "http://ledger-service/credit")
-        { TimeoutSeconds = 30, MaxRetries = 5 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 5
+        };
 
         var creditStep = new SagaStepDefinition(
             "CreditDestinationAccount",
             "ledger-service",
             "http://ledger-service/credit",
             "http://ledger-service/debit")
-        { TimeoutSeconds = 30, MaxRetries = 5 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 5
+        };
 
         await definitionService.AddStepAsync(definition.Id, validateStep);
         await definitionService.AddStepAsync(definition.Id, debitStep);
@@ -117,6 +142,9 @@ public class SagaIntegrationTests
         saga.Definition.Steps.Should().HaveCount(3);
     }
 
+    /// <summary>
+    /// Validates concurrent saga creation across multiple threads to ensure thread safety.
+    /// </summary>
     [Fact]
     public async Task ConcurrentSagaCreation_MultipleThreads_AllSagasCreatedSuccessfully()
     {
@@ -133,7 +161,10 @@ public class SagaIntegrationTests
             "test-service",
             "http://test-service/action",
             "http://test-service/compensate")
-        { TimeoutSeconds = 30, MaxRetries = 3 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 3
+        };
 
         await definitionService.AddStepAsync(definition.Id, step);
         var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
@@ -153,6 +184,9 @@ public class SagaIntegrationTests
         sagas.Should().AllSatisfy(s => s.Status.Should().Be(SagaStatus.Initialized));
     }
 
+    /// <summary>
+    /// Validates concurrent saga execution across multiple threads to ensure thread safety.
+    /// </summary>
     [Fact]
     public async Task ConcurrentSagaExecution_MultipleThreads_AllProcessWithoutErrors()
     {
@@ -169,7 +203,10 @@ public class SagaIntegrationTests
             "svc",
             "http://svc/action",
             "http://svc/comp")
-        { TimeoutSeconds = 30, MaxRetries = 3 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 3
+        };
 
         await definitionService.AddStepAsync(definition.Id, step);
         var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
@@ -195,6 +232,9 @@ public class SagaIntegrationTests
         results.Should().AllSatisfy(s => s.Status.Should().Be(SagaStatus.Running));
     }
 
+    /// <summary>
+    /// Validates that different timeout configurations are correctly applied to saga steps.
+    /// </summary>
     [Fact]
     public async Task SagaWithDifferentTimeouts_CreatesCorrectPolicies()
     {
@@ -211,21 +251,30 @@ public class SagaIntegrationTests
             "svc1",
             "http://svc1/action",
             "http://svc1/comp")
-        { TimeoutSeconds = 10, MaxRetries = 2 };
+        {
+            TimeoutSeconds = 10,
+            MaxRetries = 2
+        };
 
         var normalStep = new SagaStepDefinition(
             "NormalStep",
             "svc2",
             "http://svc2/action",
             "http://svc2/comp")
-        { TimeoutSeconds = 60, MaxRetries = 3 };
+        {
+            TimeoutSeconds = 60,
+            MaxRetries = 3
+        };
 
         var lenientStep = new SagaStepDefinition(
             "LenientStep",
             "svc3",
             "http://svc3/action",
             "http://svc3/comp")
-        { TimeoutSeconds = 300, MaxRetries = 5 };
+        {
+            TimeoutSeconds = 300,
+            MaxRetries = 5
+        };
 
         await definitionService.AddStepAsync(definition.Id, strictStep);
         await definitionService.AddStepAsync(definition.Id, normalStep);
@@ -240,6 +289,9 @@ public class SagaIntegrationTests
         saga.Definition.Steps[2].TimeoutSeconds.Should().Be(300);
     }
 
+    /// <summary>
+    /// Validates that different retry policies are correctly applied to saga steps.
+    /// </summary>
     [Fact]
     public async Task SagaWithDifferentRetryPolicies_CreatesCorrectConfigs()
     {
@@ -256,14 +308,20 @@ public class SagaIntegrationTests
             "svc1",
             "http://svc1/action",
             "http://svc1/comp")
-        { TimeoutSeconds = 30, MaxRetries = 0 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 0
+        };
 
         var aggressiveRetryStep = new SagaStepDefinition(
             "AggressiveRetry",
             "svc2",
             "http://svc2/action",
             "http://svc2/comp")
-        { TimeoutSeconds = 30, MaxRetries = 10 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 10
+        };
 
         await definitionService.AddStepAsync(definition.Id, noRetryStep);
         await definitionService.AddStepAsync(definition.Id, aggressiveRetryStep);
@@ -275,6 +333,9 @@ public class SagaIntegrationTests
         saga.Definition.Steps[1].MaxRetries.Should().Be(10);
     }
 
+    /// <summary>
+    /// Validates saga retrieval by ID to ensure proper persistence and lookup.
+    /// </summary>
     [Fact]
     public async Task RetrieveSaga_ByExistingId_ReturnsSaga()
     {
@@ -291,7 +352,10 @@ public class SagaIntegrationTests
             "svc",
             "http://svc/action",
             "http://svc/comp")
-        { TimeoutSeconds = 30, MaxRetries = 3 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 3
+        };
 
         await definitionService.AddStepAsync(definition.Id, step);
         var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
@@ -304,6 +368,9 @@ public class SagaIntegrationTests
         retrieved.Status.Should().Be(SagaStatus.Initialized);
     }
 
+    /// <summary>
+    /// Validates the complete saga lifecycle including creation, start, failure, and compensation.
+    /// </summary>
     [Fact]
     public async Task SagaLifecycle_Create_Start_Fail_BeginCompensation_Workflow()
     {
@@ -321,7 +388,10 @@ public class SagaIntegrationTests
             "svc",
             "http://svc/action",
             "http://svc/comp")
-        { TimeoutSeconds = 30, MaxRetries = 3 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 3
+        };
 
         await definitionService.AddStepAsync(definition.Id, step);
         var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
@@ -340,6 +410,9 @@ public class SagaIntegrationTests
         running.Status.Should().Be(SagaStatus.Compensating);
     }
 
+    /// <summary>
+    /// Validates filtering sagas by status to ensure proper status-based queries.
+    /// </summary>
     [Fact]
     public async Task GetSagasByStatus_ReturnsOnlyMatchingStatus()
     {
@@ -356,7 +429,10 @@ public class SagaIntegrationTests
             "svc",
             "http://svc/action",
             "http://svc/comp")
-        { TimeoutSeconds = 30, MaxRetries = 3 };
+        {
+            TimeoutSeconds = 30,
+            MaxRetries = 3
+        };
 
         await definitionService.AddStepAsync(definition.Id, step);
         var retrievedDef = await definitionService.GetDefinitionAsync(definition.Id);
@@ -374,6 +450,9 @@ public class SagaIntegrationTests
         runningSagas.Should().Contain(s => s.Id == saga1.Id);
     }
 
+    /// <summary>
+    /// Validates that the system can handle definitions with a large number of steps (100 steps).
+    /// </summary>
     [Fact]
     public async Task SagaWithManySteps_Handles100Steps()
     {
@@ -391,7 +470,10 @@ public class SagaIntegrationTests
                 $"service-{i}",
                 $"http://service-{i}/action",
                 $"http://service-{i}/comp")
-            { TimeoutSeconds = 30, MaxRetries = 3 };
+            {
+                TimeoutSeconds = 30,
+                MaxRetries = 3
+            };
 
             await definitionService.AddStepAsync(definition.Id, step);
         }
@@ -400,6 +482,9 @@ public class SagaIntegrationTests
         retrievedDef!.Steps.Should().HaveCount(100);
     }
 
+    /// <summary>
+    /// Validates that multiple saga definitions can be created and tracked independently.
+    /// </summary>
     [Fact]
     public async Task CreateMultipleDefinitions_TracksThemIndependently()
     {
