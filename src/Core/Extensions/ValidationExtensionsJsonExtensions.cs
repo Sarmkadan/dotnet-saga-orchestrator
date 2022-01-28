@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 namespace SagaOrchestrator.Core.Extensions;
 
 /// <summary>
-/// Provides JSON serialization and deserialization helpers for <see cref="ValidationExtensions"/>.
+/// Provides JSON serialization and deserialization helpers.
 /// </summary>
 public static class ValidationExtensionsJsonExtensions
 {
@@ -23,7 +23,7 @@ public static class ValidationExtensionsJsonExtensions
     /// Not supported. Static types cannot be serialized.
     /// </summary>
     /// <exception cref="NotSupportedException">Always thrown.</exception>
-    public static string ToJson(this ValidationExtensions value, bool indented = false)
+    public static string ToJson(this object value, bool indented = false)
     {
         throw new NotSupportedException("Static types cannot be serialized.");
     }
@@ -32,7 +32,7 @@ public static class ValidationExtensionsJsonExtensions
     /// Not supported. Static types cannot be deserialized.
     /// </summary>
     /// <exception cref="NotSupportedException">Always thrown.</exception>
-    public static ValidationExtensions? FromJson(string json)
+    public static object? FromJson(string json)
     {
         throw new NotSupportedException("Static types cannot be deserialized.");
     }
@@ -41,7 +41,7 @@ public static class ValidationExtensionsJsonExtensions
     /// Not supported. Static types cannot be deserialized.
     /// </summary>
     /// <exception cref="NotSupportedException">Always thrown.</exception>
-    public static bool TryFromJson(string json, out ValidationExtensions? value)
+    public static bool TryFromJson(string json, out object? value)
     {
         throw new NotSupportedException("Static types cannot be deserialized.");
     }
