@@ -9,8 +9,17 @@ using Xunit;
 
 namespace SagaOrchestrator.Tests;
 
+/// <summary>
+/// Contains unit tests for validating <see cref="SagaDefinitionValidator"/> and <see cref="SagaRequestValidator"/> classes.
+/// Tests cover validation of saga definitions, saga step definitions, and saga creation requests.
+/// </summary>
 public class SagaDefinitionValidatorTests
 {
+    /// <summary>
+    /// Creates a valid <see cref="SagaStepDefinition"/> instance for testing purposes.
+    /// </summary>
+    /// <param name="name">The step name. Defaults to "PaymentStep".</param>
+    /// <returns>A configured <see cref="SagaStepDefinition"/> with valid properties.</returns>
     private static SagaStepDefinition CreateValidStep(string name = "PaymentStep") =>
         new SagaStepDefinition(name, "payment-svc", "http://payment-svc/charge", "http://payment-svc/refund")
         {
@@ -19,12 +28,20 @@ public class SagaDefinitionValidatorTests
             MaxRetries = 3
         };
 
+    /// <summary>
+    /// Creates a valid <see cref="SagaDefinition"/> instance for testing purposes.
+    /// </summary>
+    /// <param name="name">The saga name. Defaults to "OrderSaga".</param>
+    /// <returns>A configured <see cref="SagaDefinition"/> with valid properties and one step.</returns>
     private static SagaDefinition CreateValidDefinition(string name = "OrderSaga") =>
         new SagaDefinition(name, "Order processing saga")
         {
             Steps = new List<SagaStepDefinition> { CreateValidStep() }
         };
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAsync(SagaDefinition)"/> does not throw when validating a valid saga definition.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithValidDefinition_DoesNotThrow()
     {
@@ -36,6 +53,9 @@ public class SagaDefinitionValidatorTests
         await act.Should().NotThrowAsync();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAsync(SagaDefinition)"/> throws <see cref="InvalidSagaDefinitionException"/> when validating an invalid saga definition.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithInvalidDefinition_Throws()
     {
@@ -50,6 +70,9 @@ public class SagaDefinitionValidatorTests
         await act.Should().ThrowAsync<InvalidSagaDefinitionException>();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when the saga name is null or empty.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_NullName_ReturnsError()
     {
@@ -64,6 +87,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*name*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when the saga name exceeds 255 characters.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_NameTooLong_ReturnsError()
     {
@@ -79,6 +105,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*exceed 255*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when the saga has no steps.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_NoSteps_ReturnsError()
     {
@@ -93,6 +122,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*at least one step*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when the saga has more than 100 steps.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_TooManySteps_ReturnsError()
     {
@@ -109,6 +141,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*cannot have more than 100*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when a step has an invalid name.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_InvalidStepName_ReturnsError()
     {
@@ -128,6 +163,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*Step 1*").And.ContainMatch("*Name*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when a step has an invalid service URL.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_InvalidServiceUrl_ReturnsError()
     {
@@ -147,6 +185,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*URL is not valid*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when a step has an invalid compensation URL.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_InvalidCompensationUrl_ReturnsError()
     {
@@ -166,6 +207,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*Compensation URL*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when a step has a timeout of zero seconds.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_TimeoutZero_ReturnsError()
     {
@@ -185,6 +229,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*greater than 0*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when a step has a timeout exceeding 3600 seconds.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_TimeoutTooLarge_ReturnsError()
     {
@@ -204,6 +251,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*cannot exceed 3600*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when a step has negative retry count.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_NegativeRetries_ReturnsError()
     {
@@ -223,6 +273,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*cannot be negative*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when a step has more than 10 retries.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_TooManyRetries_ReturnsError()
     {
@@ -242,6 +295,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*cannot exceed 10*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when multiple steps have the same order value.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_DuplicateStepOrder_ReturnsError()
     {
@@ -260,6 +316,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*same order*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when step orders do not start from 1.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_OrderDoesNotStartAtOne_ReturnsError()
     {
@@ -277,6 +336,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*start from 1*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns all validation errors when multiple issues are present.
+    /// </summary>
     [Fact]
     public async Task ValidateAndGetErrorsAsync_MultipleErrors_ReturnsAll()
     {
@@ -292,6 +354,9 @@ public class SagaDefinitionValidatorTests
         errors.Should().ContainMatch("*name*").And.ContainMatch("*step*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAsync(SagaDefinition)"/> throws <see cref="InvalidSagaDefinitionException"/> with a message containing all validation errors.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_ThrowsWithAllErrors_InExceptionMessage()
     {
@@ -308,8 +373,15 @@ public class SagaDefinitionValidatorTests
     }
 }
 
+/// <summary>
+/// Contains unit tests for validating <see cref="SagaRequestValidator"/> class.
+/// Tests cover validation of saga creation requests.
+/// </summary>
 public class SagaRequestValidatorTests
 {
+    /// <summary>
+    /// Tests that <see cref="SagaRequestValidator.ValidateCreateSagaAsync(CreateSagaRequest)"/> does not throw when validating a valid create saga request.
+    /// </summary>
     [Fact]
     public async Task ValidateCreateSagaAsync_WithValidRequest_DoesNotThrow()
     {
@@ -321,6 +393,9 @@ public class SagaRequestValidatorTests
         await act.Should().NotThrowAsync();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaRequestValidator.ValidateCreateSagaAsync(CreateSagaRequest)"/> throws <see cref="ArgumentException"/> when DefinitionId is missing.
+    /// </summary>
     [Fact]
     public async Task ValidateCreateSagaAsync_MissingDefinitionId_Throws()
     {
@@ -332,6 +407,9 @@ public class SagaRequestValidatorTests
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*DefinitionId*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaRequestValidator.ValidateCreateSagaAsync(CreateSagaRequest)"/> throws <see cref="ArgumentException"/> when DefinitionId exceeds 255 characters.
+    /// </summary>
     [Fact]
     public async Task ValidateCreateSagaAsync_DefinitionIdTooLong_Throws()
     {
@@ -343,6 +421,9 @@ public class SagaRequestValidatorTests
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*exceed 255*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaRequestValidator.ValidateCreateSagaAsync(CreateSagaRequest)"/> throws <see cref="ArgumentException"/> when Data exceeds 10000 characters.
+    /// </summary>
     [Fact]
     public async Task ValidateCreateSagaAsync_DataTooLarge_Throws()
     {
@@ -354,6 +435,9 @@ public class SagaRequestValidatorTests
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*cannot exceed 10000*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaRequestValidator.ValidateCreateSagaAsync(CreateSagaRequest)"/> succeeds when Data is exactly 10000 characters (the maximum allowed).
+    /// </summary>
     [Fact]
     public async Task ValidateCreateSagaAsync_ValidLargeData_Succeeds()
     {
