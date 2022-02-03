@@ -1,1 +1,1 @@
-feat(domain): add JSON serialization helpers for CompensationTransaction
+feat(application): add JSON serialization helpers for SagaResponse
