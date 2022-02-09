@@ -5,103 +5,93 @@
 // =============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
-using SagaOrchestrator.Infrastructure.BackgroundWorkers;
-using SagaOrchestrator.Infrastructure.Caching;
-using SagaOrchestrator.Infrastructure.Context;
-using SagaOrchestrator.Infrastructure.Events;
-using SagaOrchestrator.Infrastructure.Formatting;
-using SagaOrchestrator.Infrastructure.Http;
-using SagaOrchestrator.Infrastructure.Integration;
-using SagaOrchestrator.Infrastructure.Logging;
-using SagaOrchestrator.Infrastructure.RateLimiting;
-using SagaOrchestrator.Infrastructure.Serialization;
-using SagaOrchestrator.Presentation.Cli;
-using IHttpClientFactory = SagaOrchestrator.Infrastructure.Http.IHttpClientFactory;
 
 namespace SagaOrchestrator.Configuration;
 
 /// <summary>
-/// Dependency injection configuration for infrastructure components.
-/// Registers caching, HTTP clients, event bus, formatters, and background workers.
+/// Infrastructure configuration settings for the saga orchestrator.
+/// This record defines the configuration options that can be serialized to/from JSON.
 /// </summary>
-public static class InfrastructureConfiguration
+/// <param name="EnableCaching">Whether to enable caching infrastructure.</param>
+/// <param name="EnableHttpClients">Whether to enable HTTP client infrastructure.</param>
+/// <param name="EnableEventBus">Whether to enable event bus infrastructure.</param>
+/// <param name="EnableFormatting">Whether to enable formatting infrastructure.</param>
+/// <param name="EnableLogging">Whether to enable logging infrastructure.</param>
+/// <param name="EnableIntegration">Whether to enable integration infrastructure.</param>
+/// <param name="EnableRateLimiting">Whether to enable rate limiting infrastructure.</param>
+/// <param name="EnableBackgroundWorkers">Whether to enable background workers infrastructure.</param>
+public sealed record InfrastructureConfiguration(
+    bool EnableCaching = true,
+    bool EnableHttpClients = true,
+    bool EnableEventBus = true,
+    bool EnableFormatting = true,
+    bool EnableLogging = true,
+    bool EnableIntegration = true,
+    bool EnableRateLimiting = true,
+    bool EnableBackgroundWorkers = true)
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
+    /// <summary>
+    /// Creates a default infrastructure configuration with all features enabled.
+    /// </summary>
+    public static InfrastructureConfiguration Default { get; } = new();
+
+    /// <summary>
+    /// Configures infrastructure services based on these settings.
+    /// </summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <returns>The configured service collection.</returns>
+    public IServiceCollection ConfigureServices(IServiceCollection services)
     {
-        // Caching
-        services.AddSingleton<ICacheService, CacheService>();
+        ArgumentNullException.ThrowIfNull(services);
 
-        // HTTP client factory with resilience
-        services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
-        services.AddHttpClient();
+        if (EnableCaching)
+        {
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Caching.ICacheService, global::SagaOrchestrator.Infrastructure.Caching.CacheService>();
+        }
 
-        // Event bus and observers
-        services.AddSingleton<IEventBus, EventBus>();
-        services.AddSingleton<ISagaEventObserver, SagaEventObserver>();
+        if (EnableHttpClients)
+        {
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Http.IHttpClientFactory, global::SagaOrchestrator.Infrastructure.Http.HttpClientFactory>();
+            services.AddHttpClient();
+        }
 
-        // Serialization
-        services.AddSingleton<ISagaSerializer, SagaJsonSerializer>();
+        if (EnableEventBus)
+        {
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Events.IEventBus, global::SagaOrchestrator.Infrastructure.Events.EventBus>();
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Events.ISagaEventObserver, global::SagaOrchestrator.Infrastructure.Events.SagaEventObserver>();
+        }
 
-        // Formatting and output
-        services.AddSingleton<IOutputFormatter, OutputFormatter>();
+        if (EnableFormatting)
+        {
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Serialization.ISagaSerializer, global::SagaOrchestrator.Infrastructure.Serialization.SagaJsonSerializer>();
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Formatting.IOutputFormatter, global::SagaOrchestrator.Infrastructure.Formatting.OutputFormatter>();
+        }
 
-        // Logging
-        services.AddSingleton<ISagaLogger, SagaLogger>();
+        if (EnableLogging)
+        {
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Logging.ISagaLogger, global::SagaOrchestrator.Infrastructure.Logging.SagaLogger>();
+        }
 
-        // Integration
-        services.AddSingleton<IWebhookHandler, WebhookHandler>();
-        services.AddSingleton<IServiceRegistry, ServiceRegistry>();
+        if (EnableIntegration)
+        {
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Integration.IWebhookHandler, global::SagaOrchestrator.Infrastructure.Integration.WebhookHandler>();
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Integration.IServiceRegistry, global::SagaOrchestrator.Infrastructure.Integration.ServiceRegistry>();
+        }
 
-        // Rate limiting
-        services.AddSingleton<IRateLimiter, TokenBucketRateLimiter>();
+        if (EnableRateLimiting)
+        {
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.RateLimiting.IRateLimiter, global::SagaOrchestrator.Infrastructure.RateLimiting.TokenBucketRateLimiter>();
+        }
 
-        // Request context
-        services.AddScoped<IRequestContext, RequestContext>();
-        services.AddScoped<IRequestContextProvider, RequestContextProvider>();
+        services.AddScoped<global::SagaOrchestrator.Infrastructure.Context.IRequestContext, global::SagaOrchestrator.Infrastructure.Context.RequestContext>();
+        services.AddScoped<global::SagaOrchestrator.Infrastructure.Context.IRequestContextProvider, global::SagaOrchestrator.Infrastructure.Context.RequestContextProvider>();
 
-        // CLI
-        services.AddScoped<ICliHandler, CliHandler>();
+        if (EnableBackgroundWorkers)
+        {
+            services.AddHostedService<global::SagaOrchestrator.Infrastructure.BackgroundWorkers.SagaTimeoutWorker>();
+            services.AddHostedService<global::SagaOrchestrator.Infrastructure.BackgroundWorkers.CompensationWorker>();
+        }
 
-        // Background workers
-        services.AddHostedService<SagaTimeoutWorker>();
-        services.AddHostedService<CompensationWorker>();
-
-        return services;
-    }
-
-    public static IServiceCollection AddCaching(this IServiceCollection services)
-    {
-        services.AddSingleton<ICacheService, CacheService>();
-        return services;
-    }
-
-    public static IServiceCollection AddEventHandling(this IServiceCollection services)
-    {
-        services.AddSingleton<IEventBus, EventBus>();
-        services.AddSingleton<ISagaEventObserver, SagaEventObserver>();
-        return services;
-    }
-
-    public static IServiceCollection AddIntegration(this IServiceCollection services)
-    {
-        services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
-        services.AddSingleton<IWebhookHandler, WebhookHandler>();
-        services.AddSingleton<IServiceRegistry, ServiceRegistry>();
-        services.AddHttpClient();
-        return services;
-    }
-
-    public static IServiceCollection AddFormatting(this IServiceCollection services)
-    {
-        services.AddSingleton<ISagaSerializer, SagaJsonSerializer>();
-        services.AddSingleton<IOutputFormatter, OutputFormatter>();
-        return services;
-    }
-
-    public static IServiceCollection AddBackgroundWorkers(this IServiceCollection services)
-    {
-        services.AddHostedService<SagaTimeoutWorker>();
-        services.AddHostedService<CompensationWorker>();
         return services;
     }
 }
