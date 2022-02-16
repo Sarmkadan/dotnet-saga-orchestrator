@@ -7,77 +7,94 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace SagaOrchestrator.Core.Domain.Models;
 
 /// <summary>
-/// Extension methods for SagaEvent providing additional functionality
-/// for event filtering, searching, and utility operations.
+/// Represents configuration and metadata for saga event extensions.
+/// Contains settings for event filtering, processing, and enrichment.
 /// </summary>
-public static class SagaEventExtensions
+public sealed record SagaEventExtensions
 {
-    private const StringComparison OrdinalComparison = StringComparison.Ordinal;
+    /// <summary>
+    /// Gets the minimum severity level for events to be included in processing.
+    /// </summary>
+    [JsonPropertyName("minSeverity")]
+    public EventSeverity MinSeverity { get; init; } = EventSeverity.Information;
 
     /// <summary>
-    /// Filters events by severity level.
+    /// Gets a value indicating whether error events should be automatically retried.
     /// </summary>
-    /// <param name="events">Collection of events to filter. Cannot be null.</param>
-    /// <param name="severity">Minimum severity level to include.</param>
-    /// <returns>Filtered events with severity greater than or equal to the specified level.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="events"/> is null.</exception>
-    public static IEnumerable<SagaEvent> FilterBySeverity(this IEnumerable<SagaEvent> events, EventSeverity severity)
+    [JsonPropertyName("retryErrors")]
+    public bool RetryErrors { get; init; } = false;
+
+    /// <summary>
+    /// Gets the maximum number of retry attempts for failed events.
+    /// </summary>
+    [JsonPropertyName("maxRetryCount")]
+    public int MaxRetryCount { get; init; } = 3;
+
+    /// <summary>
+    /// Gets a value indicating whether events should be enriched with additional metadata.
+    /// </summary>
+    [JsonPropertyName("enableEnrichment")]
+    public bool EnableEnrichment { get; init; } = true;
+
+    /// <summary>
+    /// Gets custom tags to apply to events matching this configuration.
+    /// </summary>
+    [JsonPropertyName("tags")]
+    public HashSet<string> Tags { get; init; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Gets event type filters to include specific event types only.
+    /// </summary>
+    [JsonPropertyName("includeEventTypes")]
+    public HashSet<string> IncludeEventTypes { get; init; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Gets event type filters to exclude specific event types.
+    /// </summary>
+    [JsonPropertyName("excludeEventTypes")]
+    public HashSet<string> ExcludeEventTypes { get; init; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Gets a value indicating whether to log event processing details.
+    /// </summary>
+    [JsonPropertyName("enableLogging")]
+    public bool EnableLogging { get; init; } = true;
+
+    /// <summary>
+    /// Gets the maximum event age in hours before events are automatically archived.
+    /// </summary>
+    [JsonPropertyName("maxEventAgeHours")]
+    public int MaxEventAgeHours { get; init; } = 24;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SagaEventExtensions"/> record.
+    /// </summary>
+    public SagaEventExtensions()
     {
-        if (events == null)
+    }
+
+    /// <summary>
+    /// Creates a default configuration for saga event extensions.
+    /// </summary>
+    /// <returns>A new SagaEventExtensions instance with default values</returns>
+    public static SagaEventExtensions CreateDefault()
+    {
+        return new SagaEventExtensions
         {
-            throw new ArgumentNullException(nameof(events));
-        }
-
-        return events.Where(e => e.Severity >= severity);
-    }
-
-    /// <summary>
-    /// Finds the first error or critical event in a sequence.
-    /// </summary>
-    /// <param name="events">Collection of events to search. Cannot be null.</param>
-    /// <returns>The first error or critical event, or null if none found.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="events"/> is null.</exception>
-    public static SagaEvent? FindFirstError(this IEnumerable<SagaEvent> events)
-    {
-        if (events == null)
-        {
-            throw new ArgumentNullException(nameof(events));
-        }
-
-        return events.FirstOrDefault(e => e.Severity >= EventSeverity.Error);
-    }
-
-    /// <summary>
-    /// Checks if any event in the collection has the specified event type.
-    /// </summary>
-    /// <param name="events">Collection of events to check. Cannot be null.</param>
-    /// <param name="eventType">Event type to search for. Cannot be null or whitespace.</param>
-    /// <returns>True if any event matches the type; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="events"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="eventType"/> is null or whitespace.</exception>
-    public static bool HasEventType(this IEnumerable<SagaEvent> events, string eventType)
-    {
-        return events is not null && !string.IsNullOrWhiteSpace(eventType)
-            && events.Any(e => string.Equals(e.EventType, eventType, OrdinalComparison));
-    }
-
-    /// <summary>
-    /// Gets all events for a specific saga.
-    /// </summary>
-    /// <param name="events">Collection of events to filter. Cannot be null.</param>
-    /// <param name="sagaId">Saga ID to match. Cannot be null or whitespace.</param>
-    /// <returns>Events belonging to the specified saga.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="events"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is null or whitespace.</exception>
-    public static IEnumerable<SagaEvent> ForSaga(this IEnumerable<SagaEvent> events, string sagaId)
-    {
-        return events is not null && !string.IsNullOrWhiteSpace(sagaId)
-            ? events.Where(e => string.Equals(e.SagaId, sagaId, OrdinalComparison))
-            : throw new ArgumentException("Saga ID cannot be null or empty", nameof(sagaId));
+            MinSeverity = EventSeverity.Information,
+            RetryErrors = false,
+            MaxRetryCount = 3,
+            EnableEnrichment = true,
+            Tags = new HashSet<string>(StringComparer.Ordinal),
+            IncludeEventTypes = new HashSet<string>(StringComparer.Ordinal),
+            ExcludeEventTypes = new HashSet<string>(StringComparer.Ordinal),
+            EnableLogging = true,
+            MaxEventAgeHours = 24
+        };
     }
 }
