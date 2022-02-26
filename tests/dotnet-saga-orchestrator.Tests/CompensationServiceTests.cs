@@ -11,11 +11,25 @@ using Xunit;
 
 namespace SagaOrchestrator.Tests;
 
+/// <summary>
+/// Contains unit tests for the <see cref="CompensationService"/> class.
+/// Tests various scenarios for saga compensation including initialization, transaction creation,
+/// and compensation execution workflows.
+/// </summary>
 public class CompensationServiceTests
 {
+    /// <summary>
+    /// Creates a valid saga step definition for testing purposes.
+    /// </summary>
+    /// <param name="name">The name of the step to create. Defaults to "Step1".</param>
+    /// <returns>A new <see cref="SagaStepDefinition"/> instance with the specified parameters.</returns>
     private static SagaStepDefinition CreateValidStep(string name = "Step1") =>
         new SagaStepDefinition(name, "svc", "http://svc/action", "http://svc/comp");
 
+    /// <summary>
+    /// Creates and initializes a test saga with a single step for testing compensation scenarios.
+    /// </summary>
+    /// <returns>A new <see cref="Saga"/> instance in Running status with initialized definition and step.</returns>
     private static Saga CreateAndInitializeSaga()
     {
         var definition = new SagaDefinition("TestSaga", "Test");
