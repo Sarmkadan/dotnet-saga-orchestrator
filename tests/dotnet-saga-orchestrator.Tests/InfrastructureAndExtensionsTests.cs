@@ -15,38 +15,60 @@ using Xunit;
 
 namespace SagaOrchestrator.Tests;
 
+/// <summary>
+/// Unit tests for the <see cref="SagaOrchestrator.Core.Extensions.StringExtensions"/> class.
+/// Tests string extension methods for common string transformations and manipulations.
+/// </summary>
 public class StringExtensionsTests
 {
+    /// <summary>
+    /// Tests that <see cref="string.ToSnakeCase()"/> correctly converts PascalCase strings to snake_case by inserting underscores between words.
+    /// </summary>
     [Fact]
     public void ToSnakeCase_PascalCaseInput_InsertsUnderscoreBetweenWords()
     {
         "OrderProcessing".ToSnakeCase().Should().Be("order_processing");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.ToSnakeCase()"/> correctly converts single-word strings to lowercase snake_case.
+    /// </summary>
     [Fact]
     public void ToSnakeCase_SingleWord_ReturnsLowercase()
     {
         "Saga".ToSnakeCase().Should().Be("saga");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.ToKebabCase()"/> correctly converts PascalCase strings to kebab-case by inserting hyphens between words.
+    /// </summary>
     [Fact]
     public void ToKebabCase_PascalCaseInput_ReturnsHyphenSeparated()
     {
         "SagaOrchestrator".ToKebabCase().Should().Be("saga-orchestrator");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.ToCamelCase()"/> correctly converts PascalCase strings to camelCase by lowercasing the first character.
+    /// </summary>
     [Fact]
     public void ToCamelCase_PascalCase_LowercasesFirstCharacter()
     {
         "SagaOrchestrator".ToCamelCase().Should().Be("sagaOrchestrator");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.ToCamelCase()"/> correctly converts single character strings to lowercase.
+    /// </summary>
     [Fact]
     public void ToCamelCase_SingleCharacter_ReturnsLowercase()
     {
         "A".ToCamelCase().Should().Be("a");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.Truncate(int)"/> correctly truncates strings longer than the specified maximum length and appends an ellipsis.
+    /// </summary>
     [Fact]
     public void Truncate_StringLongerThanMax_AppendsEllipsis()
     {
@@ -56,78 +78,117 @@ public class StringExtensionsTests
         result.Length.Should().Be(10);
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.Truncate(int)"/> returns the original string unchanged when it is shorter than the specified maximum length.
+    /// </summary>
     [Fact]
     public void Truncate_StringShorterThanMax_ReturnsOriginalUnchanged()
     {
         "Short".Truncate(20).Should().Be("Short");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.CountOccurrences(string)"/> correctly counts the number of times a substring appears in a string.
+    /// </summary>
     [Fact]
     public void CountOccurrences_SubstringRepeatedMultipleTimes_ReturnsExactCount()
     {
         "saga:step:saga:comp:saga".CountOccurrences("saga").Should().Be(3);
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.CountOccurrences(string)"/> returns zero when the substring is not present in the string.
+    /// </summary>
     [Fact]
     public void CountOccurrences_SubstringNotPresent_ReturnsZero()
     {
         "hello world".CountOccurrences("xyz").Should().Be(0);
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.ToSlug()"/> converts strings with spaces and special characters to URL-friendly slug format.
+    /// </summary>
     [Fact]
     public void ToSlug_StringWithSpacesAndSpecialChars_ReturnsUrlFriendlySlug()
     {
         "Order Processing!".ToSlug().Should().Be("order-processing");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.ToSlug()"/> returns an empty string when the input is empty.
+    /// </summary>
     [Fact]
     public void ToSlug_EmptyString_ReturnsEmptyString()
     {
         string.Empty.ToSlug().Should().BeEmpty();
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.RemovePrefix(string)"/> removes the specified prefix from the string when present.
+    /// </summary>
     [Fact]
     public void RemovePrefix_PrefixPresent_RemovesPrefix()
     {
         "saga_abc123".RemovePrefix("saga_").Should().Be("abc123");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.RemovePrefix(string)"/> returns the original string unchanged when the prefix is not present.
+    /// </summary>
     [Fact]
     public void RemovePrefix_PrefixAbsent_ReturnsOriginalValue()
     {
         "step_abc123".RemovePrefix("saga_").Should().Be("step_abc123");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.RemoveSuffix(string)"/> removes the specified suffix from the string when present.
+    /// </summary>
     [Fact]
     public void RemoveSuffix_SuffixPresent_RemovesSuffix()
     {
         "order-saga".RemoveSuffix("-saga").Should().Be("order");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.NullIfEmpty()"/> returns null when the string is empty.
+    /// </summary>
     [Fact]
     public void NullIfEmpty_EmptyString_ReturnsNull()
     {
         string.Empty.NullIfEmpty().Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.NullIfEmpty()"/> returns the original string unchanged when it is not empty.
+    /// </summary>
     [Fact]
     public void NullIfEmpty_NonEmptyString_ReturnsSameValue()
     {
         "hello".NullIfEmpty().Should().Be("hello");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.Repeat(int)"/> concatenates the string the specified number of times.
+    /// </summary>
     [Fact]
     public void Repeat_PositiveCount_ConcatenatesStringNTimes()
     {
         "ab".Repeat(3).Should().Be("ababab");
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.Repeat(int)"/> returns an empty string when the count is zero.
+    /// </summary>
     [Fact]
     public void Repeat_ZeroCount_ReturnsEmptyString()
     {
         "ab".Repeat(0).Should().BeEmpty();
     }
 
+    /// <summary>
+    /// Tests that <see cref="string.SplitAndTrim(char)"/> splits a string by the specified delimiter and trims whitespace from each resulting part.
+    /// </summary>
     [Fact]
     public void SplitAndTrim_StringWithSpacesAroundDelimiters_ReturnsTrimmedParts()
     {
