@@ -11,14 +11,31 @@ using Xunit;
 
 namespace SagaOrchestrator.Tests;
 
+/// <summary>
+/// Contains unit tests for verifying the lifecycle behavior of sagas and their definitions.
+/// Tests cover initialization, state transitions, compensation flow, and step management.
+/// </summary>
 public class SagaLifecycleTests
 {
+    /// <summary>
+    /// Creates a valid saga definition for testing purposes.
+    /// </summary>
+    /// <param name="name">The name of the saga definition. Defaults to "TestSaga".</param>
+    /// <returns>A new <see cref="SagaDefinition"/> instance with the specified name and description.</returns>
     private static SagaDefinition CreateValidDefinition(string name = "TestSaga") =>
         new SagaDefinition(name, $"{name} description");
 
+    /// <summary>
+    /// Creates a valid saga step definition for testing purposes.
+    /// </summary>
+    /// <param name="name">The name of the step. Defaults to "Step1".</param>
+    /// <returns>A new <see cref="SagaStepDefinition"/> instance with the specified parameters.</returns>
     private static SagaStepDefinition CreateValidStep(string name = "Step1") =>
         new SagaStepDefinition(name, "my-service", "http://svc/action", "http://svc/compensate");
 
+    /// <summary>
+    /// Tests that initializing a saga with a valid definition sets the correct status and configuration.
+    /// </summary>
     [Fact]
     public void Initialize_WithValidDefinition_SetsStatusToInitialized()
     {
@@ -33,6 +50,9 @@ public class SagaLifecycleTests
         saga.Definition.Should().BeSameAs(definition);
     }
 
+    /// <summary>
+    /// Tests that initializing a saga with a null definition throws an ArgumentNullException.
+    /// </summary>
     [Fact]
     public void Initialize_WithNullDefinition_ThrowsArgumentNullException()
     {
@@ -43,6 +63,9 @@ public class SagaLifecycleTests
         act.Should().Throw<ArgumentNullException>().WithMessage("*definition*");
     }
 
+    /// <summary>
+    /// Tests that starting a saga transitions it from Initialized to Running state.
+    /// </summary>
     [Fact]
     public void Start_WhenInitialized_TransitionsToRunning()
     {
@@ -54,6 +77,9 @@ public class SagaLifecycleTests
         saga.Status.Should().Be(SagaStatus.Running);
     }
 
+    /// <summary>
+    /// Tests that starting a saga that is not initialized throws an InvalidOperationException.
+    /// </summary>
     [Fact]
     public void Start_WhenNotInitialized_ThrowsInvalidOperationException()
     {
@@ -64,6 +90,9 @@ public class SagaLifecycleTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*Pending*");
     }
 
+    /// <summary>
+    /// Tests that failing a saga sets the Failed status and captures the failure reason.
+    /// </summary>
     [Fact]
     public void Fail_SetsFailedStatusAndCapturesReason()
     {
@@ -78,6 +107,9 @@ public class SagaLifecycleTests
         saga.FailedAt.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Tests that beginning compensation transitions a failed saga to the Compensating state.
+    /// </summary>
     [Fact]
     public void BeginCompensation_WhenFailed_TransitionsToCompensating()
     {
@@ -92,6 +124,9 @@ public class SagaLifecycleTests
         saga.CompensationStartedAt.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Tests that beginning compensation when the saga is not in Failed state throws an InvalidOperationException.
+    /// </summary>
     [Fact]
     public void BeginCompensation_WhenNotFailed_ThrowsInvalidOperationException()
     {
@@ -102,9 +137,12 @@ public class SagaLifecycleTests
         var act = () => saga.BeginCompensation();
 
         act.Should().Throw<InvalidOperationException>()
-           .WithMessage("Can only compensate failed sagas");
+            .WithMessage("Can only compensate failed sagas");
     }
 
+    /// <summary>
+    /// Tests that CanRetry returns true when the retry count is below max retries.
+    /// </summary>
     [Fact]
     public void CanRetry_WhenBelowMaxRetries_ReturnsTrue()
     {
@@ -117,6 +155,9 @@ public class SagaLifecycleTests
         saga.CanRetry().Should().BeTrue();
     }
 
+    /// <summary>
+    /// Tests that CanRetry returns false when the retry count equals max retries.
+    /// </summary>
     [Fact]
     public void CanRetry_WhenAtMaxRetries_ReturnsFalse()
     {
@@ -129,6 +170,9 @@ public class SagaLifecycleTests
         saga.CanRetry().Should().BeFalse();
     }
 
+    /// <summary>
+    /// Tests that CanRetry returns false when the saga status is not Failed.
+    /// </summary>
     [Fact]
     public void CanRetry_WhenStatusIsNotFailed_ReturnsFalse()
     {
@@ -139,6 +183,9 @@ public class SagaLifecycleTests
         saga.CanRetry().Should().BeFalse();
     }
 
+    /// <summary>
+    /// Tests that completing compensation sets the saga to Compensated status.
+    /// </summary>
     [Fact]
     public void CompleteCompensation_SetsCompensatedStatus()
     {
@@ -154,6 +201,9 @@ public class SagaLifecycleTests
         saga.CompletedAt.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Tests that adding steps to a saga definition assigns sequential order numbers.
+    /// </summary>
     [Fact]
     public void SagaDefinition_AddStep_AssignsSequentialOrder()
     {
@@ -169,6 +219,9 @@ public class SagaLifecycleTests
         definition.Steps.Should().HaveCount(2);
     }
 
+    /// <summary>
+    /// Tests that adding a null step to a saga definition throws an ArgumentNullException.
+    /// </summary>
     [Fact]
     public void SagaDefinition_AddStep_WithNull_ThrowsArgumentNullException()
     {
@@ -179,6 +232,9 @@ public class SagaLifecycleTests
         act.Should().Throw<ArgumentNullException>();
     }
 
+    /// <summary>
+    /// Tests that GetStepByName returns the matching step when it exists.
+    /// </summary>
     [Fact]
     public void SagaDefinition_GetStepByName_ReturnsMatchingStep()
     {
@@ -192,6 +248,9 @@ public class SagaLifecycleTests
         found!.ServiceName.Should().Be("payment-svc");
     }
 
+    /// <summary>
+    /// Tests that GetStepByName returns null when the step does not exist.
+    /// </summary>
     [Fact]
     public void SagaDefinition_GetStepByName_WhenNotFound_ReturnsNull()
     {
@@ -200,6 +259,9 @@ public class SagaLifecycleTests
         definition.GetStepByName("NonexistentStep").Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that GetStepByOrder returns the matching step by its order number.
+    /// </summary>
     [Fact]
     public void SagaDefinition_GetStepByOrder_ReturnsMatchingStep()
     {
@@ -213,6 +275,9 @@ public class SagaLifecycleTests
         found!.Name.Should().Be("Second");
     }
 
+    /// <summary>
+    /// Tests that Clone returns a new instance with identical values but different reference.
+    /// </summary>
     [Fact]
     public void SagaStepDefinition_Clone_ReturnsNewInstanceWithIdenticalValues()
     {
@@ -230,6 +295,9 @@ public class SagaLifecycleTests
         clone.MaxRetries.Should().Be(step.MaxRetries);
     }
 
+    /// <summary>
+    /// Tests that SetTimeout throws an ArgumentException when given a negative value.
+    /// </summary>
     [Fact]
     public void SagaStepDefinition_SetTimeout_NegativeValue_ThrowsArgumentException()
     {
@@ -240,6 +308,9 @@ public class SagaLifecycleTests
         act.Should().Throw<ArgumentException>().WithMessage("*positive*");
     }
 
+    /// <summary>
+    /// Tests that SetRetryPolicy updates the MaxRetries and RetryDelayMilliseconds properties.
+    /// </summary>
     [Fact]
     public void SagaStepDefinition_SetRetryPolicy_UpdatesMaxRetriesAndDelay()
     {
@@ -251,6 +322,9 @@ public class SagaLifecycleTests
         step.RetryDelayMilliseconds.Should().Be(2000);
     }
 
+    /// <summary>
+    /// Tests that Validate returns false when a compensable step lacks a compensation URL.
+    /// </summary>
     [Fact]
     public void SagaStepDefinition_Validate_WhenCompensableWithoutUrl_ReturnsFalse()
     {
