@@ -13,6 +13,7 @@ namespace SagaOrchestrator.Core.Exceptions
         /// <param name="ex">The exception to check. Cannot be null.</param>
         /// <returns>True if the error code is "SAGA_NOT_FOUND"; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="ex"/> is null.</exception>
+        /// <remarks>This method checks the error code of the exception to determine if it represents a saga not found scenario.</remarks>
         public static bool IsSagaNotFound(this SagaException ex)
         {
             ArgumentNullException.ThrowIfNull(ex);
@@ -25,6 +26,7 @@ namespace SagaOrchestrator.Core.Exceptions
         /// <param name="ex">The exception to check. Cannot be null.</param>
         /// <returns>True if the error code is "SAGA_TIMEOUT"; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="ex"/> is null.</exception>
+        /// <remarks>This method checks the error code of the exception to determine if it represents a saga timeout scenario.</remarks>
         public static bool IsSagaTimeout(this SagaException ex)
         {
             ArgumentNullException.ThrowIfNull(ex);
@@ -37,6 +39,7 @@ namespace SagaOrchestrator.Core.Exceptions
         /// <param name="ex">The exception containing the saga information. Cannot be null.</param>
         /// <returns>A formatted string with saga ID, error code, and message.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="ex"/> is null.</exception>
+        /// <remarks>This method formats a string with the saga ID, error code, and message from the exception.</remarks>
         public static string GetDetailedMessage(this SagaException ex)
         {
             ArgumentNullException.ThrowIfNull(ex);
