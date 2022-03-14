@@ -10,8 +10,15 @@ using Xunit;
 
 namespace SagaOrchestrator.Tests;
 
+/// <summary>
+/// Unit tests for the <see cref="RetryPolicy"/> class.
+/// Tests various scenarios for retry policy creation, validation, and delay calculation.
+/// </summary>
 public class RetryPolicyTests
 {
+    /// <summary>
+    /// Tests that the constructor throws an <see cref="ArgumentException"/> when negative max retries are provided.
+    /// </summary>
     [Fact]
     public void Constructor_NegativeMaxRetries_ThrowsArgumentException()
     {
@@ -20,6 +27,9 @@ public class RetryPolicyTests
         act.Should().Throw<ArgumentException>().WithMessage("*negative*");
     }
 
+    /// <summary>
+    /// Tests that the constructor throws an <see cref="ArgumentException"/> when negative initial delay is provided.
+    /// </summary>
     [Fact]
     public void Constructor_NegativeInitialDelay_ThrowsArgumentException()
     {
@@ -28,6 +38,9 @@ public class RetryPolicyTests
         act.Should().Throw<ArgumentException>().WithMessage("*negative*");
     }
 
+    /// <summary>
+    /// Tests that the constructor throws an <see cref="ArgumentException"/> when backoff multiplier is below 1.0.
+    /// </summary>
     [Fact]
     public void Constructor_BackoffMultiplierBelowOne_ThrowsArgumentException()
     {
@@ -36,6 +49,9 @@ public class RetryPolicyTests
         act.Should().Throw<ArgumentException>().WithMessage("*>= 1.0*");
     }
 
+    /// <summary>
+    /// Tests that the constructor throws an <see cref="ArgumentException"/> when max delay is less than initial delay.
+    /// </summary>
     [Fact]
     public void Constructor_MaxDelayLessThanInitialDelay_ThrowsArgumentException()
     {
@@ -44,6 +60,9 @@ public class RetryPolicyTests
         act.Should().Throw<ArgumentException>().WithMessage("*>= initial delay*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CalculateDelay"/> returns the initial delay for the first retry attempt.
+    /// </summary>
     [Fact]
     public void CalculateDelay_FirstAttempt_ReturnsInitialDelay()
     {
@@ -52,6 +71,10 @@ public class RetryPolicyTests
         policy.CalculateDelay(1).Should().Be(1000);
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CalculateDelay"/> applies exponential backoff for the second retry attempt.
+    /// The delay should be initial delay multiplied by backoff multiplier.
+    /// </summary>
     [Fact]
     public void CalculateDelay_SecondAttempt_AppliesExponentialBackoff()
     {
@@ -60,6 +83,10 @@ public class RetryPolicyTests
         policy.CalculateDelay(2).Should().Be(2000);
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CalculateDelay"/> squares the backoff multiplier for the third retry attempt.
+    /// The delay should be initial delay multiplied by backoff multiplier squared.
+    /// </summary>
     [Fact]
     public void CalculateDelay_ThirdAttempt_SquaresTheMultiplier()
     {
@@ -68,6 +95,9 @@ public class RetryPolicyTests
         policy.CalculateDelay(3).Should().Be(4000);
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CalculateDelay"/> caps the delay at max delay when exponential backoff would exceed it.
+    /// </summary>
     [Fact]
     public void CalculateDelay_LargeAttemptNumber_CapsAtMaxDelay()
     {
@@ -76,6 +106,10 @@ public class RetryPolicyTests
         policy.CalculateDelay(3).Should().Be(5000);
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CalculateDelay"/> throws an <see cref="ArgumentException"/> when attempt number is below 1.
+    /// </summary>
+    /// <param name="attempt">The invalid attempt number (0 or negative).</param>
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
@@ -88,6 +122,9 @@ public class RetryPolicyTests
         act.Should().Throw<ArgumentException>().WithMessage("*>= 1*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CalculateDelay"/> throws an <see cref="InvalidOperationException"/> when attempt number exceeds max retries.
+    /// </summary>
     [Fact]
     public void CalculateDelay_AttemptExceedsMaxRetries_ThrowsInvalidOperationException()
     {
@@ -98,6 +135,9 @@ public class RetryPolicyTests
         act.Should().Throw<InvalidOperationException>().WithMessage("*maximum retry*");
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CreateLinear"/> creates a retry policy where all retry attempts return the same fixed delay.
+    /// </summary>
     [Fact]
     public void CreateLinear_AllAttemptsReturnSameFixedDelay()
     {
@@ -108,6 +148,10 @@ public class RetryPolicyTests
         policy.CalculateDelay(3).Should().Be(500);
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CreateNoRetry"/> creates a retry policy with zero max retries and zero delay.
+    /// This policy should not allow any retries.
+    /// </summary>
     [Fact]
     public void CreateNoRetry_SetsZeroMaxRetriesAndDelay()
     {
@@ -118,6 +162,9 @@ public class RetryPolicyTests
         policy.CanRetry(0).Should().BeFalse();
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CreateExponential"/> creates a retry policy with a backoff multiplier of 2.0.
+    /// </summary>
     [Fact]
     public void CreateExponential_UsesDoubleBackoffMultiplier()
     {
@@ -129,6 +176,9 @@ public class RetryPolicyTests
         policy.CalculateDelay(2).Should().Be(1000);
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CanRetry"/> returns true when the current attempt is below max retries.
+    /// </summary>
     [Fact]
     public void CanRetry_WhenBelowMaxRetries_ReturnsTrue()
     {
@@ -137,6 +187,9 @@ public class RetryPolicyTests
         policy.CanRetry(2).Should().BeTrue();
     }
 
+    /// <summary>
+    /// Tests that <see cref="RetryPolicy.CanRetry"/> returns false when the current attempt equals max retries.
+    /// </summary>
     [Fact]
     public void CanRetry_WhenAtMaxRetries_ReturnsFalse()
     {
