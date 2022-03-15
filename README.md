@@ -178,6 +178,66 @@ These benchmarks help identify:
 - Memory efficiency of different operations
 - Scalability characteristics as saga complexity increases
 
+## IEventBus
+
+The `IEventBus` interface provides an in-memory pub/sub mechanism for saga events. It enables loose coupling between saga components by allowing event publishers to notify subscribers without direct dependencies. The event bus maintains a history of published events and supports clearing this history when needed.
+
+
+### Key Features
+
+- Type-safe event subscription and publishing
+- Thread-safe operations using locks
+- Event history tracking with retrieval and clearing capabilities
+- Generic interface supporting any `DomainEvent` type
+
+### Usage Example
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using SagaOrchestrator.Infrastructure.Events;
+
+// Setup dependency injection
+var services = new ServiceCollection();
+services.AddSingleton<IEventBus, EventBus>();
+var provider = services.BuildServiceProvider();
+
+// Get the event bus
+var eventBus = provider.GetRequiredService<IEventBus>();
+
+// Define an event handler for SagaCreatedEvent
+async Task HandleSagaCreated(SagaCreatedEvent @event)
+{
+    Console.WriteLine($"Saga created: {@event.SagaName} ({@event.SagaId}) with {@event.StepCount} steps");
+}
+
+// Subscribe to events
+// Note: Subscribe must be called before any events are published
+// to ensure handlers receive events
+
+eventBus.Subscribe<SagaCreatedEvent>(HandleSagaCreated);
+
+// Publish an event
+var sagaCreatedEvent = new SagaCreatedEvent
+{
+    SagaId = Guid.NewGuid().ToString(),
+    SagaName = "Order Processing Saga",
+    DefinitionId = Guid.NewGuid().ToString(),
+    StepCount = 5
+};
+
+await eventBus.PublishAsync(sagaCreatedEvent);
+
+// Unsubscribe when no longer needed
+eventBus.Unsubscribe<SagaCreatedEvent>(HandleSagaCreated);
+
+// Access event history
+var history = eventBus.GetEventHistory();
+Console.WriteLine($"Total events published: {history.Count}");
+
+// Clear event history when needed
+eventBus.ClearHistory();
+```
+
 ## IRateLimiter
 
 The `IRateLimiter` interface provides token bucket rate limiting for API and service call throttling. It implements a sliding window rate limiting algorithm with configurable thresholds, making it ideal for controlling the rate of outgoing requests to external services or APIs.
