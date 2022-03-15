@@ -92,6 +92,30 @@ You can stop the services using:
 docker-compose down
 ```
 
+## SagaOrchestratorBenchmarks
+
+The `SagaOrchestratorBenchmarks` class provides performance benchmarks for measuring the throughput, efficiency, and memory usage of the saga orchestrator under various load scenarios. It uses BenchmarkDotNet to track execution time, memory allocations, and operations per second across key operations like definition creation, step addition, saga creation, and step execution.
+
+
+### Usage Example
+
+```csharp
+using System;
+using SagaOrchestrator.Benchmarks;
+
+// Run all benchmarks and display results
+SagaOrchestratorBenchmarks.Main(Array.Empty<string>());
+
+// Or run benchmarks programmatically
+var benchmarks = new SagaOrchestratorBenchmarks();
+benchmarks.Setup(); // Initialize services and create baseline definition/saga
+benchmarks.CreateDefinition(); // Benchmark definition creation
+benchmarks.AddStep(); // Benchmark step addition
+benchmarks.CreateSaga(); // Benchmark saga creation
+benchmarks.StartSaga(); // Benchmark saga startup
+benchmarks.ExecuteNextStep(); // Benchmark step execution
+```
+
 ## Performance Benchmarks
 
 Performance benchmarks are available to measure the throughput and efficiency of the saga orchestrator. These benchmarks help identify performance characteristics under different loads and configurations.
