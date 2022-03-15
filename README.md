@@ -286,6 +286,96 @@ Console.WriteLine($"Available: {status.AvailableTokens}/{status.TotalTokens}, Li
 rateLimiter.Reset("api-service");
 ```
 
+## SagaActivitySourceExtensions
+
+The `SagaActivitySourceExtensions` class provides extension methods for `SagaActivitySource` to simplify telemetry operations for saga execution, step tracking, and compensation transactions. These methods add contextual tags and handle common validation patterns while maintaining compatibility with distributed tracing systems like OpenTelemetry.
+
+
+### Usage Example
+
+```csharp
+using System.Diagnostics;
+using SagaOrchestrator.Infrastructure.Telemetry;
+
+// Start a saga with telemetry
+var sagaActivity = SagaActivitySourceExtensions.StartSaga(
+    sagaId: Guid.NewGuid().ToString(),
+    definitionId: Guid.NewGuid().ToString(),
+    correlationId: Guid.NewGuid().ToString(),
+    sagaType: "OrderProcessing",
+    tenantId: "tenant-123"
+);
+
+if (sagaActivity != null)
+{
+    // Start a step with retry context
+    var stepActivity = SagaActivitySourceExtensions.StartStep(
+        sagaId: sagaActivity.Context.TraceId.ToString(),
+        stepId: Guid.NewGuid().ToString(),
+        stepName: "Reserve Inventory",
+        order: 1,
+        attempt: 1,
+        stepType: "InventoryStep",
+        serviceName: "inventory-service"
+    );
+
+    try
+    {
+        // Execute step logic...
+        Console.WriteLine("Step executed successfully");
+        stepActivity?.SetStatus(ActivityStatusCode.Ok);
+    }
+    catch (Exception ex)
+    {
+        // Record step failure with exception details
+        SagaActivitySourceExtensions.RecordStepFailure(
+            stepActivity,
+            errorMessage: "Failed to reserve inventory",
+            exception: ex
+        );
+        
+        // Start compensation for the failed step
+        var compensationActivity = SagaActivitySourceExtensions.StartCompensation(
+            sagaId: sagaActivity.Context.TraceId.ToString(),
+            compensationId: Guid.NewGuid().ToString(),
+            stepName: "Reserve Inventory",
+            stepOrder: 1,
+            compensationType: "InventoryCompensation",
+            compensatingService: "inventory-service"
+        );
+        
+        try
+        {
+            // Execute compensation logic...
+            Console.WriteLine("Compensation executed successfully");
+            compensationActivity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (Exception compensationEx)
+        {
+            // Record compensation failure
+            SagaActivitySourceExtensions.RecordCompensationFailure(
+                compensationActivity,
+                errorMessage: "Failed to compensate inventory reservation",
+                exception: compensationEx
+            );
+        }
+    }
+    finally
+    {
+        // Record saga completion with metrics
+        var duration = TimeSpan.FromSeconds(45);
+        SagaActivitySourceExtensions.RecordSagaComplete(
+            sagaId: sagaActivity.Context.TraceId.ToString(),
+            finalStatus: "Compensated",
+            totalSteps: 5,
+            duration: duration,
+            completedSteps: 2,
+            failedSteps: 3
+        );
+    }
+}
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
