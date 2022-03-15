@@ -178,6 +178,54 @@ These benchmarks help identify:
 - Memory efficiency of different operations
 - Scalability characteristics as saga complexity increases
 
+## IRateLimiter
+
+The `IRateLimiter` interface provides token bucket rate limiting for API and service call throttling. It implements a sliding window rate limiting algorithm with configurable thresholds, making it ideal for controlling the rate of outgoing requests to external services or APIs.
+
+
+### Key Features
+
+- Token bucket algorithm for smooth rate limiting
+- Sliding window implementation
+- Thread-safe operations
+- Configurable requests per second
+- Status monitoring and reset capabilities
+
+### Usage Example
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using SagaOrchestrator.Infrastructure.RateLimiting;
+
+// Setup dependency injection
+var services = new ServiceCollection();
+services.AddSingleton<IRateLimiter, TokenBucketRateLimiter>();
+var provider = services.BuildServiceProvider();
+
+// Get the rate limiter
+var rateLimiter = provider.GetRequiredService<IRateLimiter>();
+
+// Allow requests with rate limiting
+bool canProceed = await rateLimiter.AllowAsync("api-service", 10); // 10 requests per second
+
+if (canProceed)
+{
+    // Make API call
+    Console.WriteLine("Request allowed");
+}
+else
+{
+    Console.WriteLine("Rate limit exceeded");
+}
+
+// Check current rate limit status
+var status = await rateLimiter.GetStatusAsync("api-service");
+Console.WriteLine($"Available: {status.AvailableTokens}/{status.TotalTokens}, Limited: {status.IsLimited}");
+
+// Reset the rate limiter for a specific key
+rateLimiter.Reset("api-service");
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
