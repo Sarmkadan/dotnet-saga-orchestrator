@@ -178,6 +178,58 @@ These benchmarks help identify:
 - Memory efficiency of different operations
 - Scalability characteristics as saga complexity increases
 
+## CacheKeyBuilderValidation
+
+The `CacheKeyBuilderValidation` class provides validation methods for parameters used in `CacheKeyBuilder` static methods. It ensures that cache keys and identifiers are properly formatted before being used in caching operations, preventing runtime errors and invalid cache entries. The validation methods return error lists for programmatic handling or throw exceptions via the `EnsureValid*` methods for immediate failure scenarios.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Caching;
+
+// Validate saga ID before building a cache key
+var sagaId = "saga-12345";
+var sagaErrors = CacheKeyBuilderValidation.ValidateSagaId(sagaId);
+if (sagaErrors.Count > 0)
+{
+    Console.WriteLine("Saga ID validation failed:");
+    foreach (var error in sagaErrors)
+    {
+        Console.WriteLine($"- {error}");
+    }
+}
+
+// Validate definition parameters
+var definitionId = "def-67890";
+var definitionName = "Order Processing";
+var definitionErrors = CacheKeyBuilderValidation.ValidateDefinition(definitionId, definitionName);
+if (definitionErrors.Count == 0)
+{
+    var definitionKey = CacheKeyBuilder.BuildDefinitionKey(definitionId, definitionName);
+}
+
+// Use EnsureValid* methods for immediate validation with exceptions
+try
+{
+    CacheKeyBuilderValidation.EnsureValidSagaId(sagaId);
+    CacheKeyBuilderValidation.EnsureValidDefinition(definitionId, definitionName);
+    
+    // Safe to use cache builder methods
+    var sagaKey = CacheKeyBuilder.BuildSagaKey(sagaId);
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Validation failed: {ex.Message}");
+}
+
+// Validate cache keys
+var key = "saga:def-67890:12345";
+if (CacheKeyBuilderValidation.IsValidCacheKey(key))
+{
+    var isSagaKey = CacheKeyBuilder.IsSagaKey(key);
+}
+```
+
 ## IEventBus
 
 The `IEventBus` interface provides an in-memory pub/sub mechanism for saga events. It enables loose coupling between saga components by allowing event publishers to notify subscribers without direct dependencies. The event bus maintains a history of published events and supports clearing this history when needed.
