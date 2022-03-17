@@ -428,6 +428,64 @@ if (sagaActivity != null)
 }
 ```
 
+## CompensationTransactionExtensions
+
+The `CompensationTransactionExtensions` class provides extension methods for `CompensationTransaction` that simplify working with compensation transactions in saga orchestration. These methods offer convenient status checks, timing utilities, and state management capabilities for compensation operations.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a compensation transaction for a failed saga step
+var compensationTransaction = new CompensationTransaction
+{
+    Id = Guid.NewGuid().ToString(),
+    SagaId = "saga-12345",
+    StepId = "step-67890",
+    StepName = "Reserve Inventory",
+    Order = 1,
+    Status = CompensationStatus.InProgress,
+    CompensationUrl = "http://inventory-service/api/release",
+    RequestPayload = new Dictionary<string, object>
+    {
+        { "orderId", "ORD-12345" },
+        { "inventoryId", "INV-67890" },
+        { "quantity", 5 }
+    },
+    InitiatedAt = DateTime.UtcNow,
+    MaxRetries = 3,
+    TimeoutSeconds = 30
+};
+
+// Check if transaction is still active
+bool isActive = compensationTransaction.IsActive();
+Console.WriteLine($"Transaction active: {isActive}");
+
+// Update request payload with additional context
+compensationTransaction.UpdateRequestPayload(new Dictionary<string, object>
+{
+    { "compensatedAt", DateTime.UtcNow },
+    { "reason", "Step execution failed" }
+});
+
+// Check retry eligibility
+bool canRetry = compensationTransaction.CanSafelyRetry();
+Console.WriteLine($"Can safely retry: {canRetry}");
+
+// Get transaction summary
+string summary = compensationTransaction.GetSummary();
+Console.WriteLine(summary);
+
+// Track elapsed time during execution
+var elapsedMs = compensationTransaction.GetElapsedTimeMs();
+Console.WriteLine($"Elapsed time: {elapsedMs}ms");
+
+// Create a deep copy for retry operations
+var retryCopy = compensationTransaction.DeepCopy();
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
