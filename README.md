@@ -1,40 +1,39 @@
 // existing content ...
 
-## InMemoryCompensationTransactionRepositoryExtensions
+## ISagaEventObserver
 
-The `InMemoryCompensationTransactionRepositoryExtensions` class provides a set of convenience extension methods for the `ICompensationTransactionRepository`, making it easier to work with compensation transactions in memory. These extensions allow you to retrieve compensation transactions by saga ID and status, get transactions by status, count transactions by status, and filter transactions by terminal or active states.
+The `ISagaEventObserver` interface defines an observer pattern for handling saga lifecycle events, such as saga creation, completion, failure, and compensation initiation. It enables side effects like webhook delivery or event bus publishing in response to these domain events.
 
 ### Usage Example
 
 ```csharp
-using SagaOrchestrator.Data.Repositories;
-using SagaOrchestrator.Core.Domain.Enums;
-using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Infrastructure.Events;
+using SagaOrchestrator.Infrastructure.Integration;
+using Microsoft.Extensions.Logging;
 
-// Create an instance of ICompensationTransactionRepository
-var repository = new InMemoryCompensationTransactionRepository();
+// Mock dependencies for demonstration
+var webhookHandler = new FakeWebhookHandler();
+var eventBus = new FakeEventBus();
+var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<SagaEventObserver>();
 
-// Get the first compensation transaction by saga ID and status
-var transaction = await repository.GetFirstBySagaIdAndStatusAsync(
-    "Order-123",
-    CompensationStatus.Pending);
+// Create observer instance
+var observer = new SagaEventObserver(webhookHandler, eventBus, logger);
 
-// Get all compensation transactions by saga ID and status
-var transactions = await repository.GetBySagaIdAndStatusAsync(
-    "Order-123",
-    CompensationStatus.Pending);
+// Example event handling
+await observer.OnSagaCreatedAsync(new SagaCreatedEvent { SagaId = "ORDER-123" });
+await observer.OnSagaCompletedAsync(new SagaCompletedEvent { SagaId = "ORDER-123" });
+```
 
-// Get all compensation transactions by status
-var pendingTransactions = await repository.GetByStatusAsync(
-    CompensationStatus.Pending);
+Where `FakeWebhookHandler` and `FakeEventBus` are simple implementations:
+```csharp
+public class FakeWebhookHandler : IWebhookHandler
+{
+    public IEnumerable<WebhookSubscription> GetSubscriptions() => new List<WebhookSubscription>();
+    public Task SendWebhookAsync(string url, object payload) => Task.CompletedTask;
+}
 
-// Count compensation transactions by status
-var pendingCount = await repository.CountByStatusAsync(
-    CompensationStatus.Pending);
-
-// Get terminal compensation transactions
-var terminalTransactions = await repository.GetTerminalTransactionsAsync();
-
-// Get active compensation transactions
-var activeTransactions = await repository.GetActiveTransactionsAsync();
+public class FakeEventBus : IEventBus
+{
+    public Task PublishAsync<TEvent>(TEvent @event) where TEvent : class => Task.CompletedTask;
+}
 ```
