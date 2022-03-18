@@ -80,3 +80,36 @@ This example demonstrates:
 4. Storing metrics in the context metadata
 5. Updating the context with modified values
 6. Outputting context and performance information
+
+## IWebhookHandler
+
+The `IWebhookHandler` interface manages webhook subscriptions and reliable delivery of events to external systems. It provides methods for subscribing, unsubscribing, and sending webhooks, as well as retrieving a list of active subscriptions.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Integration;
+using SagaOrchestrator.Infrastructure.Events;
+
+// Create webhook handler instance
+var webhookHandler = new WebhookHandler(
+    new HttpClientFactory(),
+    new EventBus(),
+    new LoggerFactory().CreateLogger<WebhookHandler>());
+
+// Subscribe to webhook
+await webhookHandler.SubscribeWebhookAsync("https://example.com/webhook", new[] { "OrderCreated", "OrderUpdated" });
+
+// Send webhook
+await webhookHandler.SendWebhookAsync<OrderCreatedEvent>("https://example.com/webhook", new OrderCreatedEvent { OrderId = "ORDER-123" });
+
+// Get active subscriptions
+var subscriptions = webhookHandler.GetSubscriptions();
+Console.WriteLine(subscriptions.Count);
+```
+
+This example demonstrates:
+1. Creating a webhook handler instance
+2. Subscribing to a webhook with specific event types
+3. Sending a webhook with an `OrderCreatedEvent` payload
+4. Retrieving a list of active subscriptions
