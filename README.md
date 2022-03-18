@@ -238,6 +238,111 @@ The `ServiceDescriptor` class provides properties for:
 - Custom metadata storage (`Metadata` dictionary)
 - String representation via `ToString()`
 
+## IOutputFormatter
+
+The `IOutputFormatter` interface provides multi-format output formatting for saga data, supporting JSON, CSV, and table formats. It enables flexible serialization of saga information for CLI tools, APIs, and logging purposes.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Formatting;
+using SagaOrchestrator.Core.Domain.Models;
+using Microsoft.Extensions.Logging;
+
+// Create serializer and formatter
+var serializer = new SagaJsonSerializer();
+var formatter = new OutputFormatter(serializer);
+
+// Create sample sagas for demonstration
+var sagas = new List<Saga>
+{
+    new Saga
+    {
+        Id = "ORDER-123",
+        Name = "OrderProcessingSaga",
+        DefinitionId = "order-processing-v1",
+        Status = SagaStatus.Running,
+        CreatedAt = DateTime.UtcNow,
+        Steps = new List<SagaStep>
+        {
+            new SagaStep
+            {
+                Id = "step-1",
+                Name = "ValidateOrder",
+                Order = 1,
+                Status = SagaStepStatus.Completed,
+                StartedAt = DateTime.UtcNow.AddSeconds(-30),
+                CompletedAt = DateTime.UtcNow.AddSeconds(-25)
+            },
+            new SagaStep
+            {
+                Id = "step-2",
+                Name = "ProcessPayment",
+                Order = 2,
+                Status = SagaStepStatus.Completed,
+                StartedAt = DateTime.UtcNow.AddSeconds(-20),
+                CompletedAt = DateTime.UtcNow.AddSeconds(-15)
+            },
+            new SagaStep
+            {
+                Id = "step-3",
+                Name = "ShipOrder",
+                Order = 3,
+                Status = SagaStepStatus.Pending
+            }
+        }
+    },
+    new Saga
+    {
+        Id = "ORDER-456",
+        Name = "UserRegistrationSaga",
+        DefinitionId = "user-registration-v2",
+        Status = SagaStatus.Completed,
+        CreatedAt = DateTime.UtcNow.AddMinutes(-5),
+        Steps = new List<SagaStep>
+        {
+            new SagaStep
+            {
+                Id = "step-1",
+                Name = "CreateUser",
+                Order = 1,
+                Status = SagaStepStatus.Completed
+            },
+            new SagaStep
+            {
+                Id = "step-2",
+                Name = "SendWelcomeEmail",
+                Order = 2,
+                Status = SagaStepStatus.Completed
+            }
+        }
+    }
+};
+
+// Format as indented JSON (generic type)
+var jsonOutput = formatter.FormatAsJson(sagas);
+Console.WriteLine("JSON Output:");
+Console.WriteLine(jsonOutput);
+Console.WriteLine();
+
+// Format specific saga as JSON
+var singleSagaJson = formatter.FormatAsJson(sagas[0]);
+Console.WriteLine("Single Saga JSON:");
+Console.WriteLine(singleSagaJson);
+Console.WriteLine();
+
+// Format as table
+var tableOutput = formatter.FormatAsTable(sagas);
+Console.WriteLine("Table Output:");
+Console.WriteLine(tableOutput);
+Console.WriteLine();
+
+// Format as CSV
+var csvOutput = formatter.FormatAsCsv(sagas);
+Console.WriteLine("CSV Output:");
+Console.WriteLine(csvOutput);
+```
+
 ## IWebhookHandler
 
 The `IWebhookHandler` interface manages webhook subscriptions and reliable delivery of events to external systems. It provides methods for subscribing, unsubscribing, and sending webhooks, as well as retrieving a list of active subscriptions.
