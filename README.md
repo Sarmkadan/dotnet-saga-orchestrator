@@ -238,6 +238,53 @@ The `ServiceDescriptor` class provides properties for:
 - Custom metadata storage (`Metadata` dictionary)
 - String representation via `ToString()`
 
+## SagaMessageTemplates
+
+The `SagaMessageTemplates` class provides a centralized collection of formatted message templates for saga event notifications, error reporting, and status updates. It offers both concise and detailed message formats for various saga lifecycle events including creation, step execution, compensation, and timeout scenarios.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Messaging;
+
+// Simple formatted messages
+var createdMessage = SagaMessageTemplates.SagaCreated.Format("ORDER-123", "OrderProcessingSaga", 5);
+Console.WriteLine(createdMessage);
+// Output: Saga 'OrderProcessingSaga' (ID: ORDER-123) created with 5 steps
+
+var startedMessage = SagaMessageTemplates.StepStarted.Format("ProcessPayment", 2);
+Console.WriteLine(startedMessage);
+// Output: Executing step 2: ProcessPayment
+
+var completedMessage = SagaMessageTemplates.StepCompleted.Format("ValidateOrder", 150);
+Console.WriteLine(completedMessage);
+// Output: Step 'ValidateOrder' completed in 150ms
+
+var failedMessage = SagaMessageTemplates.StepFailed.Format("ShipOrder", "Connection timeout");
+Console.WriteLine(failedMessage);
+// Output: Step 'ShipOrder' failed: Connection timeout
+
+var withRetryMessage = SagaMessageTemplates.StepFailed.WithRetry("ProcessPayment", "Gateway error", 2, 3);
+Console.WriteLine(withRetryMessage);
+// Output: Step 'ProcessPayment' failed (attempt 2/3): Gateway error
+
+var completedSagaMessage = SagaMessageTemplates.SagaCompleted.Format("OrderProcessingSaga", 2500, 5, 5);
+Console.WriteLine(completedSagaMessage);
+// Output: Saga 'OrderProcessingSaga' completed successfully in 2500ms (5/5 steps)
+
+var timeoutMessage = SagaMessageTemplates.SagaTimeout.Format("OrderProcessingSaga", 300);
+Console.WriteLine(timeoutMessage);
+// Output: Saga 'OrderProcessingSaga' exceeded timeout limit of 300 seconds
+
+var stepTimeoutMessage = SagaMessageTemplates.SagaTimeout.StepTimeout("ProcessPayment", 60);
+Console.WriteLine(stepTimeoutMessage);
+// Output: Step 'ProcessPayment' exceeded timeout limit of 60 seconds
+
+// Detailed formatted messages
+var detailedCreated = SagaMessageTemplates.SagaCreated.Detailed("ORDER-123", "OrderProcessingSaga", "order-processing-v1", 5);
+Console.WriteLine(detailedCreated);
+```
+
 ## IOutputFormatter
 
 The `IOutputFormatter` interface provides multi-format output formatting for saga data, supporting JSON, CSV, and table formats. It enables flexible serialization of saga information for CLI tools, APIs, and logging purposes.
