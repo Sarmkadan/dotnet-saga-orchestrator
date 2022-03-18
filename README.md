@@ -343,9 +343,58 @@ Console.WriteLine("CSV Output:");
 Console.WriteLine(csvOutput);
 ```
 
-## IWebhookHandler
+## ICircuitBreaker
 
-The `IWebhookHandler` interface manages webhook subscriptions and reliable delivery of events to external systems. It provides methods for subscribing, unsubscribing, and sending webhooks, as well as retrieving a list of active subscriptions.
+The `ICircuitBreaker` interface implements the circuit breaker pattern for fault tolerance. It prevents cascading failures by monitoring service calls and temporarily blocking requests to failing services, allowing them to recover before resuming normal operation.
+
+
+### Usage Example
+
+
+```csharp
+using SagaOrchestrator.Infrastructure.Resilience;
+using Microsoft.Extensions.Logging;
+
+// Create circuit breaker with default settings (5 failures threshold, 60 second timeout)
+var circuitBreaker = new CircuitBreaker(failureThreshold: 5, timeoutSeconds: 60);
+
+// Execute an asynchronous action with circuit breaker protection
+var success = await circuitBreaker.ExecuteAsync(async () =>
+{
+    // Call external service
+    var response = await httpClient.GetAsync("https://api.example.com/orders");
+    response.EnsureSuccessStatusCode();
+}, "payment-gateway");
+
+if (!success)
+{
+    Console.WriteLine("Circuit breaker prevented call to failing service");
+}
+
+// Execute with return value
+var order = await circuitBreaker.ExecuteAsync(async () =>
+{
+    var response = await httpClient.GetFromJsonAsync<Order>("https://api.example.com/orders/123");
+    return response;
+}, "order-service");
+
+// Check circuit breaker state
+var state = circuitBreaker.GetState("payment-gateway");
+Console.WriteLine($"Circuit breaker state: {state}");
+
+// Reset circuit breaker for a specific service
+circuitBreaker.Reset("payment-gateway");
+
+// Access metrics properties
+var metricsState = circuitBreaker.State;
+var failures = circuitBreaker.FailureCount;
+var successes = circuitBreaker.SuccessCount;
+var lastFailure = circuitBreaker.LastFailureTime;
+var lastAccessed = circuitBreaker.LastAccessedAt;
+
+// Clean up stale metrics periodically
+var evictedCount = circuitBreaker.EvictStaleEntries(TimeSpan.FromHours(1));
+```
 
 ### Usage Example
 
