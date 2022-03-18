@@ -81,9 +81,82 @@ This example demonstrates:
 5. Updating the context with modified values
 6. Outputting context and performance information
 
-## IServiceRegistry
+## ISagaLogger
 
-The `IServiceRegistry` interface provides a centralized registry for tracking external microservices used by saga steps. It maintains service endpoints, health status, configuration metadata, and enables runtime service discovery and health monitoring across distributed operations.
+The `ISagaLogger` interface provides comprehensive logging capabilities for saga operations, tracking saga creation, step execution, compensation events, and execution timelines. It enables detailed observability into saga workflows for debugging and monitoring purposes.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Logging;
+using SagaOrchestrator.Core.Domain.Models;
+using Microsoft.Extensions.Logging;
+
+// Create logger factory and logger
+var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+var sagaLogger = new SagaLogger(loggerFactory.CreateLogger<SagaLogger>());
+
+// Create a sample saga with steps
+var saga = new Saga
+{
+    Id = "ORDER-123",
+    Name = "OrderProcessingSaga",
+    DefinitionId = "order-processing-v1",
+    Status = SagaStatus.Running,
+    Steps = new List<SagaStep>
+    {
+        new SagaStep
+        {
+            Id = "step-1",
+            Name = "ValidateOrder",
+            Order = 1,
+            Status = SagaStepStatus.Completed,
+            StartedAt = DateTime.UtcNow.AddSeconds(-10),
+            CompletedAt = DateTime.UtcNow.AddSeconds(-8)
+        },
+        new SagaStep
+        {
+            Id = "step-2",
+            Name = "ProcessPayment",
+            Order = 2,
+            Status = SagaStepStatus.Completed,
+            StartedAt = DateTime.UtcNow.AddSeconds(-7),
+            CompletedAt = DateTime.UtcNow.AddSeconds(-5)
+        },
+        new SagaStep
+        {
+            Id = "step-3",
+            Name = "ShipOrder",
+            Order = 3,
+            Status = SagaStepStatus.Failed,
+            StartedAt = DateTime.UtcNow.AddSeconds(-4),
+            RetryCount = 1
+        }
+    }
+};
+
+// Log saga lifecycle events
+sagaLogger.LogSagaCreated(saga);
+sagaLogger.LogStepStarted(saga, saga.Steps[0]);
+sagaLogger.LogStepCompleted(saga, saga.Steps[0], TimeSpan.FromMilliseconds(2000));
+sagaLogger.LogStepStarted(saga, saga.Steps[1]);
+sagaLogger.LogStepCompleted(saga, saga.Steps[1], TimeSpan.FromMilliseconds(1500));
+sagaLogger.LogStepStarted(saga, saga.Steps[2]);
+
+// Log failed step
+sagaLogger.LogStepFailed(saga, saga.Steps[2], new InvalidOperationException("Payment gateway timeout"));
+
+// Log compensation
+sagaLogger.LogCompensationStarted(saga);
+sagaLogger.LogCompensationCompleted(saga);
+
+// Log final saga status
+saga.Status = SagaStatus.Failed;
+sagaLogger.LogSagaFailed(saga, new InvalidOperationException("Order processing failed after 3 steps"));
+
+// Log execution timeline
+sagaLogger.LogExecutionTimeline(saga);
+```
 
 ### Usage Example
 
