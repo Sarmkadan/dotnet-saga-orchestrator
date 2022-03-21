@@ -285,6 +285,64 @@ var detailedCreated = SagaMessageTemplates.SagaCreated.Detailed("ORDER-123", "Or
 Console.WriteLine(detailedCreated);
 ```
 
+## TimelineEntry
+
+The `TimelineEntry` record represents a single entry in a saga's debug timeline, capturing chronological events such as snapshots, state transitions, and breakpoint hits. Each entry provides metadata about when an event occurred, its type, and associated saga context, enabling comprehensive debugging and post-mortem analysis of saga execution.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Debugging;
+using SagaOrchestrator.Core.Domain.Models;
+using System;
+using System.Collections.Generic;
+
+// Create a timeline entry from a snapshot
+var snapshot = new SagaDebugSnapshot
+{
+    SnapshotId = "snap-001",
+    SequenceNumber = 1,
+    SagaId = "ORDER-123",
+    SagaStatus = SagaStatus.Running,
+    Trigger = SnapshotTrigger.Breakpoint,
+    CapturedAt = DateTime.UtcNow,
+    Label = "Payment step breakpoint triggered",
+    CompletedStepCount = 2,
+    Steps = new List<SagaStep>()
+};
+
+var snapshotEntry = TimelineEntry.FromSnapshot(snapshot);
+
+// Create a timeline entry from a saga event
+var sagaEvent = new SagaEvent
+{
+    EventId = Guid.NewGuid().ToString(),
+    SagaId = "ORDER-123",
+    EventName = "PaymentProcessed",
+    Description = "Payment gateway successfully processed payment of $99.99",
+    StepName = "ProcessPayment",
+    Timestamp = DateTime.UtcNow,
+    Data = new Dictionary<string, object>
+    {
+        { "amount", 99.99m },
+        { "currency", "USD" },
+        { "gateway", "stripe" }
+    }
+};
+
+var eventEntry = TimelineEntry.FromSagaEvent(sagaEvent);
+
+// Access timeline entry properties
+Console.WriteLine($"Entry ID: {snapshotEntry.EntryId}");
+Console.WriteLine($"Kind: {snapshotEntry.Kind}");
+Console.WriteLine($"Timestamp: {snapshotEntry.Timestamp:O}");
+Console.WriteLine($"Title: {snapshotEntry.Title}");
+Console.WriteLine($"Description: {snapshotEntry.Description}");
+Console.WriteLine($"Snapshot ID: {snapshotEntry.SnapshotId}");
+Console.WriteLine($"Step Name: {snapshotEntry.StepName}");
+Console.WriteLine($"Metadata Count: {snapshotEntry.Metadata.Count}");
+```
+
 ## IOutputFormatter
 
 The `IOutputFormatter` interface provides multi-format output formatting for saga data, supporting JSON, CSV, and table formats. It enables flexible serialization of saga information for CLI tools, APIs, and logging purposes.
