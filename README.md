@@ -501,6 +501,150 @@ var lastAccessed = circuitBreaker.LastAccessedAt;
 var evictedCount = circuitBreaker.EvictStaleEntries(TimeSpan.FromHours(1));
 ```
 
+
+## SagaDebuggerService
+
+The `SagaDebuggerService` provides distributed saga debugging capabilities through immutable snapshot capture, time-travel inspection, and breakpoint-based execution control. It captures `SagaDebugSnapshot` objects at key execution moments (manual, breakpoint triggers, or step transitions) and stores them in memory for later analysis. Snapshots can be retrieved, inspected, or used to restore saga state to any prior point in time, enabling comprehensive debugging and post-mortem analysis without modifying the live orchestration flow. Breakpoints allow pausing execution at specific steps to capture intermediate state.
+
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Debugging;
+using SagaOrchestrator.Core.Domain.Models;
+using Microsoft.Extensions.Logging;
+using System.Threading;
+
+// Setup dependencies
+var sagaRepository = new FakeSagaRepository();
+var sagaStepRepository = new FakeSagaStepRepository();
+var eventPublisher = new SagaEventPublisher();
+var options = new DebuggerOptions { IsEnabled = true, MaxSnapshotsPerSaga = 100 };
+var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+
+// Create debugger service
+var debugger = new SagaDebuggerService(
+    sagaRepository,
+    sagaStepRepository,
+    eventPublisher,
+    options);
+
+// Create and start a saga
+var saga = new Saga
+{
+    Id = "ORDER-123",
+    Name = "OrderProcessingSaga",
+    DefinitionId = "order-processing-v1",
+    Status = SagaStatus.Running,
+    CreatedAt = DateTime.UtcNow
+};
+
+await sagaRepository.AddAsync(saga);
+
+// Manually capture a snapshot
+var snapshot1 = await debugger.CaptureSnapshotAsync(
+    saga.Id,
+    SnapshotTrigger.Manual,
+    "Initial state captured"
+);
+
+Console.WriteLine($"Captured snapshot: {snapshot1.SnapshotId} (seq: {snapshot1.SequenceNumber})");
+
+// Simulate step execution
+saga.Status = SagaStatus.Running;
+await sagaRepository.UpdateAsync(saga);
+
+// Capture another snapshot after step progress
+var snapshot2 = await debugger.CaptureSnapshotAsync(
+    saga.Id,
+    SnapshotTrigger.Manual,
+    "After step execution"
+);
+
+// Set a breakpoint on a specific step
+var breakpoint = await debugger.SetBreakpointAsync(
+    saga.Id,
+    "ProcessPayment",
+    "Pause before payment processing"
+);
+
+Console.WriteLine($"Breakpoint set: {breakpoint.BreakpointId} on step '{breakpoint.StepName}'");
+
+// Get all snapshots for this saga
+var allSnapshots = await debugger.GetSnapshotsAsync(saga.Id);
+Console.WriteLine($"Total snapshots: {allSnapshots.Count}");
+
+// Travel back in time to a specific snapshot
+var restoredSnapshot = await debugger.TravelToAsync(saga.Id, snapshot1.SnapshotId);
+Console.WriteLine($"Restored to snapshot: {restoredSnapshot.SequenceNumber}");
+
+// Get timeline for debugging
+var timeline = await debugger.GetTimelineAsync(saga.Id);
+Console.WriteLine($"Timeline contains {timeline.Entries.Count} entries");
+
+// Get all breakpoints for this saga
+var breakpoints = await debugger.GetBreakpointsAsync(saga.Id);
+Console.WriteLine($"Active breakpoints: {breakpoints.Count}");
+
+// Check if a breakpoint would be hit
+var breakpointHit = await debugger.CheckBreakpointAsync(saga.Id, "ProcessPayment");
+Console.WriteLine($"Breakpoint hit: {breakpointHit}");
+
+// Remove a breakpoint
+var removed = await debugger.RemoveBreakpointAsync(breakpoint.BreakpointId);
+Console.WriteLine($"Breakpoint removed: {removed}");
+
+// Clear all breakpoints
+await debugger.ClearBreakpointsAsync(saga.Id);
+
+// Purge all snapshots for cleanup
+await debugger.PurgeSnapshotsAsync(saga.Id);
+```
+
+Where `FakeSagaRepository` and `FakeSagaStepRepository` are simple in-memory implementations:
+
+
+```csharp
+public class FakeSagaRepository : ISagaRepository
+{
+    private readonly Dictionary<string, Saga> _sagas = new();
+    
+    public Task<Saga?> GetByIdAsync(string id, CancellationToken ct = default) =>
+        Task.FromResult(_sagas.TryGetValue(id, out var saga) ? saga : null);
+    
+    public Task AddAsync(Saga entity, CancellationToken ct = default)
+    {
+        _sagas[entity.Id] = entity;
+        return Task.CompletedTask;
+    }
+    
+    public Task UpdateAsync(Saga entity, CancellationToken ct = default)
+    {
+        _sagas[entity.Id] = entity;
+        return Task.CompletedTask;
+    }
+}
+
+public class FakeSagaStepRepository : ISagaStepRepository
+{
+    private readonly Dictionary<string, List<SagaStep>> _steps = new();
+    
+    public Task<List<SagaStep>> GetBySagaIdAsync(string sagaId, CancellationToken ct = default) =>
+        Task.FromResult(_steps.TryGetValue(sagaId, out var steps) ? steps : new List<SagaStep>());
+    
+    public Task UpdateAsync(SagaStep entity, CancellationToken ct = default)
+    {
+        if (!_steps.TryGetValue(entity.SagaId, out var steps))
+            steps = new List<SagaStep>();
+        var existing = steps.FirstOrDefault(s => s.Id == entity.Id);
+        if (existing != null) existing = entity;
+        else steps.Add(entity);
+        _steps[entity.SagaId] = steps;
+        return Task.CompletedTask;
+    }
+}
+```
+
 ### Usage Example
 
 ```csharp
