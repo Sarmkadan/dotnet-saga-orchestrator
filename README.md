@@ -497,6 +497,97 @@ public class Order
 }
 ```
 
+## SagaActivitySource
+
+The `SagaActivitySource` class provides OpenTelemetry instrumentation for saga orchestration telemetry. It emits spans for saga lifecycle events including saga start, step execution, compensation, and completion, enabling distributed tracing and observability across saga workflows.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Telemetry;
+using System.Diagnostics;
+
+// Register the source with OpenTelemetry
+// services.AddOpenTelemetry()
+//   .WithTracing(b => b.AddSource(SagaActivitySource.Name));
+
+// Start a saga execution span
+var sagaActivity = SagaActivitySource.StartSaga(
+  sagaId: "ORDER-123",
+  definitionId: "order-processing-v1",
+  correlationId: "corr-456"
+);
+
+try
+{
+  // Execute saga steps with individual spans
+  var step1Activity = SagaActivitySource.StartStep(
+    sagaId: "ORDER-123",
+    stepId: "step-1",
+    stepName: "ValidateOrder",
+    order: 1,
+    attempt: 1
+  );
+  
+  // Simulate step execution
+  await Task.Delay(100);
+  step1Activity?.Dispose();
+  
+  // Start another step
+  var step2Activity = SagaActivitySource.StartStep(
+    sagaId: "ORDER-123",
+    stepId: "step-2",
+    stepName: "ProcessPayment",
+    order: 2,
+    attempt: 1
+  );
+  
+  // Simulate step execution
+  await Task.Delay(150);
+  step2Activity?.Dispose();
+  
+  // Record successful saga completion
+  var completeActivity = SagaActivitySource.RecordSagaComplete(
+    sagaId: "ORDER-123",
+    finalStatus: "Completed",
+    totalSteps: 2
+  );
+  completeActivity?.Dispose();
+}
+catch (Exception ex)
+{
+  // Record step failure
+  SagaActivitySource.RecordStepFailure(step2Activity, ex.Message);
+  
+  // Start compensation for failed step
+  var compensationActivity = SagaActivitySource.StartCompensation(
+    sagaId: "ORDER-123",
+    compensationId: "comp-1",
+    stepName: "ProcessPayment",
+    stepOrder: 2
+  );
+  
+  // Simulate compensation execution
+  await Task.Delay(50);
+  
+  // Record compensation failure if any
+  SagaActivitySource.RecordCompensationFailure(compensationActivity, "Compensation failed");
+  compensationActivity?.Dispose();
+  
+  // Record saga completion with failure status
+  var completeActivity = SagaActivitySource.RecordSagaComplete(
+    sagaId: "ORDER-123",
+    finalStatus: "Compensated",
+    totalSteps: 2
+  );
+  completeActivity?.Dispose();
+}
+finally
+{
+  sagaActivity?.Dispose();
+}
+```
+
 ## ICircuitBreaker
 
 The `ICircuitBreaker` interface implements the circuit breaker pattern for fault tolerance. It prevents cascading failures by monitoring service calls and temporarily blocking requests to failing services, allowing them to recover before resuming normal operation.
