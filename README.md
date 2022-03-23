@@ -448,6 +448,55 @@ Console.WriteLine("CSV Output:");
 Console.WriteLine(csvOutput);
 ```
 
+## IHttpClientFactory
+
+The `IHttpClientFactory` interface provides a factory for creating `HttpClient` instances with built-in resilience policies. It handles HTTP client configuration, retry logic, circuit breaking, and timeout management for external service calls, ensuring reliable communication with external APIs while preventing cascading failures.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Http;
+using System.Net.Http;
+
+// Create HTTP client factory
+var httpClientFactory = new HttpClientFactory();
+
+// Configure HTTP client settings
+var config = new HttpClientConfiguration
+{
+    BaseUrl = "https://api.example.com/v1",
+    TimeoutSeconds = 60,
+    AuthToken = "your-auth-token-here",
+    DefaultHeaders = new Dictionary<string, string>
+    {
+        { "Accept", "application/json" },
+        { "X-Request-Id", Guid.NewGuid().ToString() }
+    }
+};
+
+// Create a named HTTP client
+var client = httpClientFactory.CreateClient("payment-service", config);
+
+// Make a request to an external API
+var request = new HttpRequestMessage(HttpMethod.Get, "/orders/123");
+
+// Send request and get deserialized response
+var order = await httpClientFactory.SendAsync<Order>(client, request);
+
+Console.WriteLine($"Order retrieved: {order.Id}");
+```
+
+Where `Order` is a simple POCO:
+
+```csharp
+public class Order
+{
+    public string Id { get; set; }
+    public decimal Amount { get; set; }
+    public string Status { get; set; }
+}
+```
+
 ## ICircuitBreaker
 
 The `ICircuitBreaker` interface implements the circuit breaker pattern for fault tolerance. It prevents cascading failures by monitoring service calls and temporarily blocking requests to failing services, allowing them to recover before resuming normal operation.
