@@ -497,6 +497,75 @@ public class Order
 }
 ```
 
+## ISagaSerializer
+
+The `ISagaSerializer` interface provides JSON serialization capabilities for saga entities, supporting both compact and indented formatting. It handles polymorphic serialization, enum conversions, and custom type formatting for saga domain objects including `SagaStatus`, `SagaStepStatus`, `CompensationStatus`, `CompensationStrategy`, and `DateTime` values.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Serialization;
+using SagaOrchestrator.Core.Domain.Models;
+using System;
+
+// Create serializer instance
+var serializer = new SagaJsonSerializer();
+
+// Create a sample saga for serialization
+var saga = new Saga
+{
+  Id = "ORDER-123",
+  Name = "OrderProcessingSaga",
+  DefinitionId = "order-processing-v1",
+  Status = SagaStatus.Running,
+  CreatedAt = DateTime.UtcNow,
+  Steps = new List<SagaStep>
+  {
+    new SagaStep
+    {
+      Id = "step-1",
+      Name = "ValidateOrder",
+      Order = 1,
+      Status = SagaStepStatus.Completed,
+      StartedAt = DateTime.UtcNow.AddSeconds(-30),
+      CompletedAt = DateTime.UtcNow.AddSeconds(-25)
+    },
+    new SagaStep
+    {
+      Id = "step-2",
+      Name = "ProcessPayment",
+      Order = 2,
+      Status = SagaStepStatus.Completed,
+      StartedAt = DateTime.UtcNow.AddSeconds(-20),
+      CompletedAt = DateTime.UtcNow.AddSeconds(-15)
+    }
+  }
+};
+
+// Serialize saga to compact JSON
+var compactJson = serializer.Serialize(saga);
+Console.WriteLine("Compact JSON:");
+Console.WriteLine(compactJson);
+
+// Serialize saga to indented JSON
+var indentedJson = serializer.SerializeIndented(saga);
+Console.WriteLine("\nIndented JSON:");
+Console.WriteLine(indentedJson);
+
+// Deserialize JSON back to saga object
+var jsonString = @"{
+  \"id\": \"ORDER-456\",
+  \"name\": \"UserRegistrationSaga\",
+  \"definitionId\": \"user-registration-v2\",
+  \"status\": \"completed\",
+  \"createdAt\": \"2024-01-15T10:30:00Z\",
+  \"steps\": []
+}";
+var deserializedSaga = serializer.Deserialize<Saga>(jsonString);
+Console.WriteLine($"\nDeserialized saga: {deserializedSaga?.Name} with status {deserializedSaga?.Status}");
+```
+
+
 ## SagaActivitySource
 
 The `SagaActivitySource` class provides OpenTelemetry instrumentation for saga orchestration telemetry. It emits spans for saga lifecycle events including saga start, step execution, compensation, and completion, enabling distributed tracing and observability across saga workflows.
