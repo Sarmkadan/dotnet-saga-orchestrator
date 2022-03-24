@@ -487,6 +487,70 @@ foreach (var prefix in prefixes)
 }
 ```
 
+## ICacheService
+
+The `ICacheService` interface provides an in-memory caching abstraction with time-to-live (TTL) support. It enables efficient storage and retrieval of saga definitions, orchestration state, and other frequently accessed data while preventing memory leaks through automatic expiration and cleanup of stale entries.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Caching;
+using SagaOrchestrator.Core.Domain.Models;
+
+// Create cache service instance
+var cacheService = new CacheService();
+
+// Cache a saga definition with 1 hour expiration
+var definition = new SagaDefinition
+{
+    Id = "order-processing-v1",
+    Name = "Order Processing Saga",
+    Steps = new List<SagaStepDefinition>
+    {
+        new SagaStepDefinition { Name = "ValidateOrder", Order = 1 },
+        new SagaStepDefinition { Name = "ProcessPayment", Order = 2 },
+        new SagaStepDefinition { Name = "ShipOrder", Order = 3 }
+    }
+};
+
+await cacheService.SetAsync("saga:definition:order-processing-v1", definition, TimeSpan.FromHours(1));
+
+// Retrieve cached definition
+var cachedDefinition = await cacheService.GetAsync<SagaDefinition>("saga:definition:order-processing-v1");
+if (cachedDefinition != null)
+{
+    Console.WriteLine($"Retrieved definition: {cachedDefinition.Name}");
+}
+
+// Cache a saga instance with custom expiration
+var saga = new Saga
+{
+    Id = "ORDER-12345",
+    Name = "OrderProcessingSaga",
+    DefinitionId = "order-processing-v1",
+    Status = SagaStatus.Running
+};
+
+await cacheService.SetAsync("saga:ORDER-12345", saga, TimeSpan.FromMinutes(30));
+
+// Check if cache entry exists
+bool exists = await cacheService.ExistsAsync("saga:ORDER-12345");
+Console.WriteLine($"Cache entry exists: {exists}");
+
+// Get current cache size
+int cacheSize = cacheService.GetCacheSize();
+Console.WriteLine($"Current cache size: {cacheSize} entries");
+
+// Remove a specific entry
+await cacheService.RemoveAsync("saga:definition:order-processing-v1");
+
+// Clear entire cache (useful for testing or memory cleanup)
+await cacheService.ClearAsync();
+
+// Clean up resources
+cacheService.Dispose();
+```
+
 ## IHttpClientFactory
 
 The `IHttpClientFactory` interface provides a factory for creating `HttpClient` instances with built-in resilience policies. It handles HTTP client configuration, retry logic, circuit breaking, and timeout management for external service calls, ensuring reliable communication with external APIs while preventing cascading failures.
