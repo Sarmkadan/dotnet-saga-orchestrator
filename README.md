@@ -448,6 +448,45 @@ Console.WriteLine("CSV Output:");
 Console.WriteLine(csvOutput);
 ```
 
+## CacheKeyBuilder
+
+The `CacheKeyBuilder` static class provides standardized cache key generation for consistent key formatting across the application. It supports various cache key patterns for sagas, definitions, services, metrics, and other cacheable entities, ensuring predictable cache operations and easy key parsing.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Caching;
+
+// Build cache keys for saga operations
+string sagaKey = CacheKeyBuilder.BuildSagaKey("ORDER-12345");
+string definitionKey = CacheKeyBuilder.BuildDefinitionKey("order-processing-v1");
+string allSagasKey = CacheKeyBuilder.BuildAllSagasKey();
+string sagaByStatusKey = CacheKeyBuilder.BuildSagasByStatusKey("Running");
+
+// Build keys for other cache operations
+string compensationKey = CacheKeyBuilder.BuildCompensationKey("ORDER-12345");
+string eventHistoryKey = CacheKeyBuilder.BuildEventHistoryKey("ORDER-12345");
+string serviceKey = CacheKeyBuilder.BuildServiceKey("payment-gateway");
+string webhookKey = CacheKeyBuilder.BuildWebhookKey("wh-789");
+string userKey = CacheKeyBuilder.BuildUserCacheKey("user-42");
+string sessionKey = CacheKeyBuilder.BuildSessionKey("sess-abc123");
+
+// Generate temporary keys for transient operations
+tempKey = CacheKeyBuilder.GenerateTempKey();
+
+// Check key types and extract IDs
+bool isSaga = CacheKeyBuilder.IsSagaKey(sagaKey); // true
+bool isDefinition = CacheKeyBuilder.IsDefinitionKey(definitionKey); // true
+string sagaId = CacheKeyBuilder.ExtractIdFromKey(sagaKey); // "ORDER-12345"
+
+// Get all key prefixes for validation or logging
+var prefixes = CacheKeyBuilder.GetAllPrefixes();
+foreach (var prefix in prefixes)
+{
+    Console.WriteLine($"{prefix.Key}: {prefix.Value}");
+}
+```
+
 ## IHttpClientFactory
 
 The `IHttpClientFactory` interface provides a factory for creating `HttpClient` instances with built-in resilience policies. It handles HTTP client configuration, retry logic, circuit breaking, and timeout management for external service calls, ensuring reliable communication with external APIs while preventing cascading failures.
