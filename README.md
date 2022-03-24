@@ -551,6 +551,74 @@ await cacheService.ClearAsync();
 cacheService.Dispose();
 ```
 
+## ExceptionMapper
+
+The `ExceptionMapper` static class provides centralized exception handling and mapping to HTTP status codes and error responses. It converts domain-specific exceptions into standardized error formats for API responses, enabling consistent error handling across the application. The mapper supports saga-specific exceptions, validation errors, timeout scenarios, and general exceptions, providing appropriate HTTP status codes and error codes for each exception type.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Exceptions;
+using System;
+using System.Net;
+
+// Map a saga-specific exception
+try
+{
+    // Simulate a saga operation that might fail
+    throw new SagaNotFoundException("Saga with ID ORDER-123 was not found");
+}
+catch (Exception ex)
+{
+    // Map exception to HTTP status code and message
+    var (statusCode, message) = ExceptionMapper.MapException(ex);
+    Console.WriteLine($"Status Code: {statusCode}, Message: {message}");
+    // Output: Status Code: NotFound, Message: The requested saga was not found
+    
+    // Check if it's a saga exception
+    bool isSaga = ExceptionMapper.IsSagaException(ex);
+    Console.WriteLine($"Is saga exception: {isSaga}");
+    // Output: Is saga exception: True
+    
+    // Get error code for the exception
+    string errorCode = ExceptionMapper.GetErrorCode(ex);
+    Console.WriteLine($"Error Code: {errorCode}");
+    // Output: Error Code: SAGA_NOT_FOUND
+}
+
+// Create an ErrorResponse from exception with request tracking
+var errorResponse = ErrorResponse.FromException(
+    new SagaTimeoutException("Saga execution timed out after 30 seconds"),
+    requestId: "req-456"
+);
+
+Console.WriteLine($"Error Code: {errorResponse.Code}");
+Console.WriteLine($"Message: {errorResponse.Message}");
+Console.WriteLine($"Details: {errorResponse.Details}");
+Console.WriteLine($"Request ID: {errorResponse.RequestId}");
+Console.WriteLine($"Timestamp: {errorResponse.Timestamp:O}");
+// Output:
+// Error Code: SAGA_TIMEOUT
+// Message: Saga execution timed out
+// Details: Saga execution timed out after 30 seconds
+// Request ID: req-456
+// Timestamp: 2024-01-15T10:30:00.0000000Z
+
+// Check specific exception types
+var validationEx = new ArgumentException("Invalid email format");
+bool isValidation = ExceptionMapper.IsValidationError(validationEx);
+Console.WriteLine($"Is validation error: {isValidation}");
+// Output: Is validation error: True
+
+bool isNotFound = ExceptionMapper.IsNotFound(new SagaNotFoundException("Not found"));
+Console.WriteLine($"Is not found: {isNotFound}");
+// Output: Is not found: True
+
+bool isTimeout = ExceptionMapper.IsTimeout(new SagaTimeoutException("Timeout"));
+Console.WriteLine($"Is timeout: {isTimeout}");
+// Output: Is timeout: True
+```
+
 ## IHttpClientFactory
 
 The `IHttpClientFactory` interface provides a factory for creating `HttpClient` instances with built-in resilience policies. It handles HTTP client configuration, retry logic, circuit breaking, and timeout management for external service calls, ensuring reliable communication with external APIs while preventing cascading failures.
