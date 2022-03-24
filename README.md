@@ -619,6 +619,55 @@ Console.WriteLine($"Is timeout: {isTimeout}");
 // Output: Is timeout: True
 ```
 
+## SagaException
+
+The `SagaException` class is the base exception for all saga orchestration errors. It extends the standard `Exception` class with additional properties for tracking saga-specific context, including the saga ID and error code. This enables better error handling and debugging by providing contextual information about which saga failed and why.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Exceptions;
+using System;
+
+// Basic exception with just a message
+var basicException = new SagaException("A generic saga error occurred");
+Console.WriteLine($"Message: {basicException.Message}");
+
+// Exception with saga ID for context
+var sagaIdException = new SagaException("Payment processing failed", "ORDER-123");
+Console.WriteLine($"Saga ID: {sagaIdException.SagaId}"); // ORDER-123
+
+// Exception with saga ID and error code
+var errorCodeException = new SagaException("Invalid order data", "ORDER-456", "VALIDATION_ERROR");
+Console.WriteLine($"Saga ID: {errorCodeException.SagaId}"); // ORDER-456
+Console.WriteLine($"Error Code: {errorCodeException.ErrorCode}"); // VALIDATION_ERROR
+
+// Exception with inner exception for chaining
+try
+{
+    // Some operation that might fail
+}
+catch (Exception ex)
+{
+    var wrappedException = new SagaException("Saga execution failed", "ORDER-789", "EXECUTION_ERROR", ex);
+    throw wrappedException;
+}
+
+// Catching saga exceptions
+try
+{
+    // Some saga operation
+}
+catch (SagaException ex) when (ex.SagaId != null)
+{
+    Console.WriteLine($"Saga {ex.SagaId} failed: {ex.Message}");
+    if (ex.ErrorCode != null)
+    {
+        Console.WriteLine($"Error code: {ex.ErrorCode}");
+    }
+}
+```
+
 ## IHttpClientFactory
 
 The `IHttpClientFactory` interface provides a factory for creating `HttpClient` instances with built-in resilience policies. It handles HTTP client configuration, retry logic, circuit breaking, and timeout management for external service calls, ensuring reliable communication with external APIs while preventing cascading failures.
