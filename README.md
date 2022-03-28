@@ -15,7 +15,7 @@ var isEmpty = string.IsNullOrEmpty(trimmedString); // False
 
 // Check if null/empty/whitespace
 Console.WriteLine(originalString.IsNullOrEmpty()); // False
-Console.WriteLine(originalString.IsNullOrWhiteSpace()); // False
+Console.WriteLine(originalString.IsNullOrWhiteSpace()); // True
 Console.WriteLine("".IsNullOrEmpty()); // True
 Console.WriteLine("   ".IsNullOrWhiteSpace()); // True
 
@@ -49,7 +49,6 @@ Console.WriteLine("abc".Repeat(3)); // abcabcabc
 Console.WriteLine("  a,  b,   c  ".SplitAndTrim(',').Length); // 3
 
 // Null if empty
-Console.WriteLine("".NullIfEmpty()); // null
+Console.WriteLine("".NullIfEmpty()); // 
 Console.WriteLine("test".NullIfEmpty()); // test
-```
 ```
