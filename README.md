@@ -52,3 +52,75 @@ Console.WriteLine("  a,  b,   c  ".SplitAndTrim(',').Length); // 3
 Console.WriteLine("".NullIfEmpty()); // 
 Console.WriteLine("test".NullIfEmpty()); // test
 ```
+
+## DateTimeExtensions
+
+The `DateTimeExtensions` static class provides a comprehensive set of extension methods for `DateTime` and `TimeSpan` operations. These utilities simplify common time calculations, formatting, validation, and deadline management scenarios in distributed systems.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Extensions;
+
+// Create a deadline 2 hours from now
+var deadline = DateTime.UtcNow.AddHours(2);
+
+// Check if deadline has expired
+Console.WriteLine(deadline.IsExpired()); // False
+Console.WriteLine(DateTime.UtcNow.AddMinutes(-5).IsExpired()); // True
+
+// Calculate remaining time until deadline
+var remaining = deadline.TimeUntil();
+Console.WriteLine($"Time remaining: {remaining.FormatDuration()}"); // Time remaining: 2 hours
+
+// Calculate elapsed time since start
+var start = DateTime.UtcNow.AddMinutes(-15);
+var elapsed = start.ElapsedSince();
+Console.WriteLine($"Elapsed: {elapsed.FormatDuration()}"); // Elapsed: 15 minutes
+
+// Round down to specific time units
+var now = DateTime.UtcNow;
+Console.WriteLine(now.RoundDownToSecond()); // Current time rounded to nearest second
+Console.WriteLine(now.RoundDownToMinute()); // Current time rounded to nearest minute
+Console.WriteLine(now.RoundDownToHour()); // Current time rounded to nearest hour
+
+// Check if date is within range
+var rangeStart = DateTime.UtcNow.AddDays(-1);
+var rangeEnd = DateTime.UtcNow.AddDays(1);
+Console.WriteLine(now.IsWithinRange(rangeStart, rangeEnd)); // True
+
+// Convert to ISO 8601 and Unix timestamp
+Console.WriteLine(now.ToIso8601String()); // 2025-07-15T12:34:56.789Z
+Console.WriteLine(now.ToUnixTimestamp()); // 1752544496
+
+// Convert back from Unix timestamp
+var fromTimestamp = DateTimeExtensions.FromUnixTimestamp(1752544496);
+Console.WriteLine(fromTimestamp); // 2025-07-15T12:34:56Z
+
+// Add business days (excludes weekends)
+var monday = new DateTime(2025, 7, 14); // Monday
+Console.WriteLine(monday.AddBusinessDays(3)); // 2025-07-17 (Thursday)
+Console.WriteLine(monday.AddBusinessDays(5)); // 2025-07-21 (Monday)
+
+// Get start/end of time periods
+Console.WriteLine(now.StartOfDay()); // Today at 00:00:00
+Console.WriteLine(now.EndOfDay()); // Today at 23:59:59.9999999
+Console.WriteLine(now.StartOfMonth()); // First day of month at 00:00:00
+Console.WriteLine(now.EndOfMonth()); // Last day of month at 23:59:59.9999999
+Console.WriteLine(now.StartOfYear()); // January 1st at 00:00:00
+Console.WriteLine(now.EndOfYear()); // December 31st at 23:59:59.999
+
+// Format time spans
+var duration = TimeSpan.FromMinutes(90);
+Console.WriteLine(duration.FormatDuration()); // 1 hours
+
+// Measure execution time
+var executionTime = DateTimeExtensions.Measure(() => {
+    Thread.Sleep(100);
+});
+Console.WriteLine($"Execution took: {executionTime.TotalMilliseconds}ms");
+
+// Relative time formatting
+Console.WriteLine(DateTime.UtcNow.AddMinutes(-2).ToRelativeTime()); // 2 minutes ago
+Console.WriteLine(DateTime.UtcNow.AddHours(-1).ToRelativeTime()); // 1 hours ago
+```
