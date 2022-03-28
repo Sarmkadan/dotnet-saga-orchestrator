@@ -668,6 +668,138 @@ catch (SagaException ex) when (ex.SagaId != null)
 }
 ```
 
+## CollectionExtensions
+
+The `CollectionExtensions` static class provides a comprehensive set of extension methods for working with collections and enumerables. These utilities simplify common operations like checking for empty collections, batching, filtering, grouping, pagination, and asynchronous processing, reducing boilerplate code and improving readability throughout the codebase.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+// Sample data
+var numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+var names = new List<string> { "Alice", "Bob", "Charlie", "David" };
+var people = new List<Person> 
+{
+    new Person { Id = 1, Name = "Alice", Age = 25 },
+    new Person { Id = 2, Name = "Bob", Age = 30 },
+    new Person { Id = 3, Name = "Charlie", Age = 22 }
+};
+
+// IsEmpty and IsNotEmpty - check collection state
+if (numbers.IsEmpty())
+{
+    Console.WriteLine("Numbers collection is empty");
+}
+
+if (names.IsNotEmpty())
+{
+    Console.WriteLine($"Names collection has {names.Count} items");
+}
+
+// EmptyIfNull - safely handle null collections
+IEnumerable<int>? nullableCollection = null;
+var safeCollection = nullableCollection.EmptyIfNull();
+var result = safeCollection.Sum(); // Returns 0
+
+// Batch - split collection into chunks
+var batches = numbers.Batch(3);
+foreach (var batch in batches)
+{
+    Console.WriteLine($"Batch: {string.Join(", ", batch)}");
+}
+
+// DistinctBy - get distinct elements by property
+var distinctPeople = people.DistinctBy(p => p.Age);
+
+// FirstOrDefault - get first element or default value
+var firstEven = numbers.FirstOrDefault(0); // Returns 1
+
+// SingleOrDefaultSafe - safely get single element
+var singlePerson = people.Where(p => p.Id == 2).SingleOrDefaultSafe();
+
+// AllMatch and AnyMatch - check multiple predicates
+var allAdults = people.AllMatch(p => p.Age > 18, p => p.Age < 100);
+var anyTeenager = people.AnyMatch(p => p.Age < 25);
+
+// ToQueryString - convert dictionary to URL query string
+var queryParams = new Dictionary<string, string>
+{
+    { "page", "1" },
+    { "limit", "10" },
+    { "sort", "name" }
+};
+var queryString = queryParams.ToQueryString();
+Console.WriteLine(queryString); // page=1&limit=10&sort=name
+
+// WithIndex - enumerate with indices
+foreach (var (index, name) in names.WithIndex())
+{
+    Console.WriteLine($"{index}: {name}");
+}
+
+// Flatten - flatten nested collections
+var nestedLists = new List<List<int>>
+{
+    new List<int> { 1, 2 },
+    new List<int> { 3, 4 },
+    new List<int> { 5, 6 }
+};
+var flattened = nestedLists.Flatten();
+
+// GroupToDictionary - group by key and transform values
+var groupedByAge = people.GroupToDictionary(
+    p => p.Age / 10,
+    p => p.Name
+);
+
+// MinByOrDefault - find minimum by property
+var youngest = people.MinByOrDefault(p => p.Age);
+
+// Paginate - get specific page of results
+var page1 = numbers.Paginate(1, 3); // [1, 2, 3]
+var page2 = numbers.Paginate(2, 3); // [4, 5, 6]
+
+// Window - create sliding windows
+var windows = numbers.Window(3);
+foreach (var window in windows)
+{
+    Console.WriteLine($"Window: {string.Join(", ", window)}");
+}
+
+// ForEachIndexed - iterate with index
+people.ForEachIndexed((person, index) => 
+{
+    Console.WriteLine($"Person {index}: {person.Name} ({person.Age})");
+});
+
+// ForEachAsync - process collection asynchronously
+await numbers.ForEachAsync(async num => 
+{
+    await Task.Delay(10);
+    Console.WriteLine($"Processed: {num}");
+});
+
+// ConcatIfNotNull - safely concatenate collections
+var moreNumbers = new List<int> { 11, 12 };
+var combined = numbers.ConcatIfNotNull(moreNumbers);
+
+// RandomOrDefault - get random element
+var randomPerson = people.RandomOrDefault();
+
+public class Person
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+```
+
 ## IHttpClientFactory
 
 The `IHttpClientFactory` interface provides a factory for creating `HttpClient` instances with built-in resilience policies. It handles HTTP client configuration, retry logic, circuit breaking, and timeout management for external service calls, ensuring reliable communication with external APIs while preventing cascading failures.
