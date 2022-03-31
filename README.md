@@ -231,6 +231,60 @@ Console.WriteLine(DateTime.UtcNow.AddMinutes(-2).ToRelativeTime()); // 2 minutes
 Console.WriteLine(DateTime.UtcNow.AddHours(-1).ToRelativeTime()); // 1 hours ago
 ```
 
+## CompensationTransaction
+
+The `CompensationTransaction` class represents a compensating transaction that undoes a completed saga step, enabling rollback and eventual consistency in distributed transactions. It tracks the compensation lifecycle including status, retry attempts, timeouts, and payloads for both the original request and compensation response.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a new compensation transaction
+var compensation = new CompensationTransaction();
+
+// Initialize with saga and step information
+compensation.Initialize(
+    sagaId: "saga-12345",
+    stepId: "step-payment-processing",
+    stepName: "Process Payment",
+    order: 2,
+    compensationUrl: "https://payments.example.com/api/compensate"
+);
+
+// Set the original request payload
+compensation.SetRequestPayload(new Dictionary<string, object>
+{
+    { "paymentId", "pay-789" },
+    { "amount", 150.00 },
+    { "customerId", "cust-456" },
+    { "orderId", "ord-101" }
+});
+
+// Start the compensation
+compensation.Start();
+
+// Simulate compensation call (in real usage this would call the CompensationUrl)
+var responsePayload = new Dictionary<string, object>
+{
+    { "compensationId", "comp-999" },
+    { "status", "refunded" },
+    { "refundAmount", 150.00 }
+};
+
+// Complete successfully
+compensation.Complete(responsePayload);
+
+// Or handle failure
+// compensation.Fail("Payment service unavailable", responsePayload);
+
+// Check status
+Console.WriteLine($"Compensation Status: {compensation.Status}"); // CompensationStatus.Completed
+Console.WriteLine($"Completed at: {compensation.CompletedAt}");
+Console.WriteLine($"Retry count: {compensation.RetryCount}/{compensation.MaxRetries}");
+```
+
 ## ValidationExtensions
 
 The `ValidationExtensions` static class provides a comprehensive set of extension methods for parameter validation using a fluent API. These utilities simplify common validation patterns like null checks, range validation, string length constraints, email/URL validation, and collection validation in a clean, chainable way.
