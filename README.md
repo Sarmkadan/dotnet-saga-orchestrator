@@ -114,9 +114,54 @@ Console.WriteLine("".NullIfEmpty()); //
 Console.WriteLine("test".NullIfEmpty()); // test
 ```
 
-## DateTimeExtensions
+## SagaStepDefinition
 
-The `DateTimeExtensions` static class provides a comprehensive set of extension methods for `DateTime` and `TimeSpan` operations. These utilities simplify common time calculations, formatting, validation, and deadline management scenarios in distributed systems.
+The `SagaStepDefinition` class defines the configuration and behavior of a step in a saga workflow. It encapsulates all necessary parameters for executing a step, including service endpoints, timeout and retry configurations, compensation logic, and metadata for custom orchestration behaviors.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Utilities;
+
+// Create a basic step definition
+var step = new SagaStepDefinition(
+    "Process Payment",
+    "PaymentService",
+    "https://payments.example.com/api/process",
+    "https://payments.example.com/api/compensate"
+);
+
+step.Description = "Process customer payment transaction";
+step.Order = 1;
+step.TimeoutSeconds = 60;
+step.MaxRetries = 5;
+step.RetryDelayMilliseconds = 2000;
+step.IsAsync = true;
+step.HttpMethod = "POST";
+
+// Configure compensation
+step.SetCompensable(true, "https://payments.example.com/api/compensate");
+
+// Set custom retry policy
+step.SetRetryPolicy(new RetryPolicy(
+    maxRetries: 3,
+    initialDelayMs: 1000,
+    maxDelayMs: 10000,
+    backoffMultiplier: 2.0,
+    jitterFactor: 0.1
+));
+
+// Add metadata
+step.Metadata.Add("circuitBreakerThreshold", "3");
+step.Metadata.Add("requiresTransaction", "true");
+
+// Validate configuration
+bool isValid = step.Validate();
+
+// Adjust timeout dynamically
+step.SetTimeout(30);
+```
 
 ### Usage Example
 
