@@ -124,3 +124,72 @@ Console.WriteLine($"Execution took: {executionTime.TotalMilliseconds}ms");
 Console.WriteLine(DateTime.UtcNow.AddMinutes(-2).ToRelativeTime()); // 2 minutes ago
 Console.WriteLine(DateTime.UtcNow.AddHours(-1).ToRelativeTime()); // 1 hours ago
 ```
+
+## ValidationExtensions
+
+The `ValidationExtensions` static class provides a comprehensive set of extension methods for parameter validation using a fluent API. These utilities simplify common validation patterns like null checks, range validation, string length constraints, email/URL validation, and collection validation in a clean, chainable way.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Extensions;
+
+// Validate method parameters with fluent syntax
+public void ProcessOrder(
+    string customerEmail,
+    int quantity,
+    DateTime deadline,
+    List<string> items,
+    decimal discountRate)
+{
+    // Null checks
+    customerEmail.NotNullOrEmpty(nameof(customerEmail))
+        .ValidateEmail(nameof(customerEmail));
+    
+    // Range validation
+    quantity.InRange(1, 100, nameof(quantity));
+    discountRate.InRange(0, 1, nameof(discountRate));
+    
+    // Time validation
+    deadline.GreaterThan(DateTime.UtcNow, nameof(deadline));
+    TimeSpan.FromHours(2).GreaterThanZero(nameof(deadline));
+    
+    // Collection validation
+    items.NotEmpty(nameof(items));
+    
+    // Guid validation
+    var orderId = Guid.NewGuid();
+    orderId.NotEmpty(nameof(orderId));
+    
+    // Array validation
+    var tags = new string[] { "urgent", "priority" };
+    tags.NotEmptyArray(nameof(tags));
+    
+    // Dictionary validation
+    var metadata = new Dictionary<string, string> { { "key", "value" } };
+    metadata.NotEmptyDictionary(nameof(metadata));
+    
+    // Conditional validation
+    var optionalValue = "test@example.com";
+    optionalValue.ValidateIf(
+        v => v.IsValidEmail(),
+        "Optional value must be a valid email if provided");
+    
+    // String length constraints
+    var username = "user123";
+    username.MinLength(5, nameof(username))
+        .MaxLength(20, nameof(username));
+    
+    // URL validation
+    var callbackUrl = "https://example.com/api/callback";
+    callbackUrl.ValidateUrl(nameof(callbackUrl));
+}
+
+// Example usage
+ProcessOrder(
+    "user@example.com",
+    5,
+    DateTime.UtcNow.AddHours(1),
+    new List<string> { "item1", "item2" },
+    0.15m);
+```
