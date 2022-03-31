@@ -185,6 +185,8 @@ public void ProcessOrder(
     callbackUrl.ValidateUrl(nameof(callbackUrl));
 }
 
+// ... existing ValidationExtensions usage example ...
+
 // Example usage
 ProcessOrder(
     "user@example.com",
@@ -193,3 +195,66 @@ ProcessOrder(
     new List<string> { "item1", "item2" },
     0.15m);
 ```
+
+## EnumExtensions
+
+The `EnumExtensions` static class provides a comprehensive set of extension methods for handling and manipulating enums. It simplifies tasks like retrieving descriptions and display names, parsing strings to enums, performing flag checks, and navigating enum values.
+
+### Usage Example
+
+```csharp
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using SagaOrchestrator.Core.Extensions;
+
+public enum Status
+{
+    [Description("Pending Approval")]
+    Pending,
+    [Display(Name = "In Progress")]
+    Processing,
+    Completed
+}
+
+[Flags]
+public enum Permissions
+{
+    Read = 1,
+    Write = 2,
+    Execute = 4
+}
+
+// Get descriptions and display names
+var status = Status.Pending;
+Console.WriteLine(status.GetDescription()); // Pending Approval
+Console.WriteLine(Status.Processing.GetDisplayName()); // In Progress
+
+// Parse strings
+var parsed = "Completed".ParseEnum<Status>(); // Status.Completed
+
+// Get all values and names
+var values = EnumExtensions.GetValues<Status>(); // [Pending, Processing, Completed]
+var names = EnumExtensions.GetNames<Status>(); // ["Pending", "Processing", "Completed"]
+
+// Get dictionary
+var dict = EnumExtensions.GetEnumDictionary<Status>();
+
+// Check definition and navigate
+Console.WriteLine(Status.Pending.IsDefined()); // True
+Console.WriteLine(status.GetNext()); // Processing
+Console.WriteLine(status.GetPrevious()); // Completed
+
+// Get numeric value
+Console.WriteLine(status.GetNumericValue()); // 0
+
+// Flags and range
+var perms = Permissions.Read | Permissions.Write;
+Console.WriteLine(perms.HasAnyFlag(Permissions.Read)); // True
+Console.WriteLine(EnumExtensions.IsFlagsEnum<Permissions>()); // True
+Console.WriteLine(perms.FormatFlags()); // "Read, Write"
+var range = EnumExtensions.GetRange<Status>(); // (Pending, Completed)
+
+// Get from numeric value
+var fromValue = EnumExtensions.GetEnumFromValue<Status>(1); // Status.Processing
+```
+
