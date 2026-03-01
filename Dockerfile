@@ -3,43 +3,37 @@
 # CTO & Software Architect
 # =============================================================================
 
+# --- Build stage ---
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 
-WORKDIR /app
+WORKDIR /src
 
-# Copy project files
+# Restore dependencies (layer caching)
 COPY dotnet-saga-orchestrator.csproj .
-COPY src/ src/
-
-# Build application
 RUN dotnet restore
-RUN dotnet build -c Release
 
-# Publish
-RUN dotnet publish -c Release -o /app/publish
+# Copy source and build
+COPY src/ src/
+COPY Program.cs .
+RUN dotnet publish -c Release -o /app/publish --no-restore
 
-# Runtime image
-FROM mcr.microsoft.com/dotnet/runtime:10.0
+# --- Runtime stage ---
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 
 WORKDIR /app
 
-# Copy published application
 COPY --from=builder /app/publish .
 
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Non-root user
+RUN groupadd -r appuser && useradd -r -g appuser -s /sbin/nologin appuser
 USER appuser
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:80/health || exit 1
+EXPOSE 8080
 
-# Expose port
-EXPOSE 80
-
-# Set environment
-ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_URLS=http://+:8080
 ENV SAGA_LOG_LEVEL=Information
 
-# Run application
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -sf http://localhost:8080/health || exit 1
+
 ENTRYPOINT ["dotnet", "SagaOrchestrator.dll"]
