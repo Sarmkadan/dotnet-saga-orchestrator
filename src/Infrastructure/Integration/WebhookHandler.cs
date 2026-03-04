@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -144,7 +145,7 @@ public class WebhookSubscription
 {
     public string Id { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
-    public string[] EventTypes { get; set; } = Array.Empty<string>();
+    public string[] EventTypes { get; set; } = [];
     public DateTime CreatedAt { get; set; }
     public DateTime LastUpdated { get; set; }
     public bool IsActive { get; set; }
