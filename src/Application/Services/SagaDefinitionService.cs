@@ -1,3 +1,4 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -237,5 +238,5 @@ public class SagaDefinitionService
 public class ValidationResult
 {
     public bool IsValid { get; set; }
-    public string[] Errors { get; set; } = Array.Empty<string>();
+    public string[] Errors { get; set; } = [];
 }
