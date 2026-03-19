@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using SagaOrchestrator.Core.Domain.Enums;
+using SagaOrchestrator.Core.Utilities;
 
 namespace SagaOrchestrator.Core.Domain.Models;
 
@@ -64,6 +65,13 @@ public class SagaStep
 
     [JsonPropertyName("timeoutSeconds")]
     public int TimeoutSeconds { get; set; } = 30;
+
+    /// <summary>
+    /// Per-step retry policy. When set, overrides MaxRetries for delay calculation
+    /// and enables exponential backoff with optional jitter.
+    /// </summary>
+    [JsonIgnore]
+    public RetryPolicy? RetryPolicy { get; set; }
 
     // Constructor
     public SagaStep()
