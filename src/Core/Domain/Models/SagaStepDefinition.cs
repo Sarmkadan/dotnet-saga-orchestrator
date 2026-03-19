@@ -6,6 +6,7 @@
 
 using System;
 using System.Text.Json.Serialization;
+using SagaOrchestrator.Core.Utilities;
 
 namespace SagaOrchestrator.Core.Domain.Models;
 
@@ -52,6 +53,13 @@ public class SagaStepDefinition
 
     [JsonPropertyName("httpMethod")]
     public string HttpMethod { get; set; } = "POST";
+
+    /// <summary>
+    /// Optional per-step retry policy. When set, overrides the global MaxRetries and
+    /// RetryDelayMilliseconds values and enables exponential backoff with optional jitter.
+    /// </summary>
+    [JsonIgnore]
+    public RetryPolicy? RetryPolicy { get; set; }
 
     // Constructor
     public SagaStepDefinition()
@@ -115,6 +123,17 @@ public class SagaStepDefinition
     }
 
     /// <summary>
+    /// Configures retry policy using a RetryPolicy instance.
+    /// This overrides MaxRetries and RetryDelayMilliseconds.
+    /// </summary>
+    public void SetRetryPolicy(RetryPolicy policy)
+    {
+        RetryPolicy = policy ?? throw new ArgumentNullException(nameof(policy));
+        MaxRetries = policy.MaxRetries;
+        RetryDelayMilliseconds = policy.InitialDelayMs;
+    }
+
+    /// <summary>
     /// Configures retry policy
     /// </summary>
     public void SetRetryPolicy(int maxRetries, int delayMilliseconds)
@@ -166,7 +185,8 @@ public class SagaStepDefinition
             RetryDelayMilliseconds = RetryDelayMilliseconds,
             IsCompensable = IsCompensable,
             IsAsync = IsAsync,
-            HttpMethod = HttpMethod
+            HttpMethod = HttpMethod,
+            RetryPolicy = RetryPolicy
         };
     }
 }
