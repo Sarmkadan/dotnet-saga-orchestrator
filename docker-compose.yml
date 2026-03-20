@@ -1,0 +1,136 @@
+# =============================================================================
+# Author: Vladyslav Zaiets | https://sarmkadan.com
+# CTO & Software Architect
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # Main Saga Orchestrator service
+  saga-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: saga-orchestrator
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - SAGA_TIMEOUT_SECONDS=300
+      - SAGA_STEP_TIMEOUT_SECONDS=30
+      - SAGA_MAX_RETRIES=3
+      - SAGA_LOG_LEVEL=Information
+      - SAGA_ENABLE_CACHING=true
+      - SAGA_ENABLE_WEBHOOKS=true
+      - SAGA_ENABLE_TIMEOUT_WORKER=true
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - saga-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  # Redis cache for distributed scenarios
+  redis:
+    image: redis:7-alpine
+    container_name: saga-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - saga-network
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  # Mock inventory service for examples
+  inventory-service:
+    image: mockserver/mockserver:latest
+    container_name: inventory-service
+    ports:
+      - "5001:1080"
+    environment:
+      - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/inventory-mock.json
+    volumes:
+      - ./mocks/inventory-mock.json:/config/inventory-mock.json
+    networks:
+      - saga-network
+    restart: unless-stopped
+
+  # Mock payment service for examples
+  payment-service:
+    image: mockserver/mockserver:latest
+    container_name: payment-service
+    ports:
+      - "5002:1080"
+    environment:
+      - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/payment-mock.json
+    volumes:
+      - ./mocks/payment-mock.json:/config/payment-mock.json
+    networks:
+      - saga-network
+    restart: unless-stopped
+
+  # Mock shipping service for examples
+  shipping-service:
+    image: mockserver/mockserver:latest
+    container_name: shipping-service
+    ports:
+      - "5003:1080"
+    environment:
+      - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/shipping-mock.json
+    volumes:
+      - ./mocks/shipping-mock.json:/config/shipping-mock.json
+    networks:
+      - saga-network
+    restart: unless-stopped
+
+  # Prometheus for metrics (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: saga-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - saga-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  # Grafana for dashboards (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: saga-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+    networks:
+      - saga-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  saga-network:
+    driver: bridge
