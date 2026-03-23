@@ -15,6 +15,7 @@ using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Exceptions;
 using SagaOrchestrator.Core.Utilities;
 using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Infrastructure.Logging;
 using SagaOrchestrator.Infrastructure.Telemetry;
 
 namespace SagaOrchestrator.Application.Services;
@@ -28,15 +29,18 @@ public class SagaOrchestrationService
     private readonly ISagaRepository _sagaRepository;
     private readonly ISagaStepRepository _stepRepository;
     private readonly CompensationService _compensationService;
+    private readonly ISagaLogger? _sagaLogger;
 
     public SagaOrchestrationService(
         ISagaRepository sagaRepository,
         ISagaStepRepository stepRepository,
-        CompensationService compensationService)
+        CompensationService compensationService,
+        ISagaLogger? sagaLogger = null)
     {
         _sagaRepository = sagaRepository ?? throw new ArgumentNullException(nameof(sagaRepository));
         _stepRepository = stepRepository ?? throw new ArgumentNullException(nameof(stepRepository));
         _compensationService = compensationService ?? throw new ArgumentNullException(nameof(compensationService));
+        _sagaLogger = sagaLogger;
     }
 
     /// <summary>
@@ -133,6 +137,7 @@ public class SagaOrchestrationService
                 saga.Complete();
                 using var completeActivity = SagaActivitySource.RecordSagaComplete(
                     saga.Id, saga.Status.ToString(), saga.Steps.Count);
+                _sagaLogger?.LogExecutionTimeline(saga);
             }
 
             await _sagaRepository.UpdateAsync(saga);
@@ -159,6 +164,7 @@ public class SagaOrchestrationService
             {
                 // Step failed permanently, begin compensation
                 saga.Fail($"Step '{nextStep.Name}' failed after {nextStep.RetryCount} retries: {ex.Message}");
+                _sagaLogger?.LogExecutionTimeline(saga);
             }
 
             await _stepRepository.UpdateAsync(nextStep);
