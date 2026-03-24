@@ -144,3 +144,135 @@ Rationale:
 | Compensation endpoint returns error | Retry compensation up to `MaxRetries`; leave in `Failed` state for manual intervention |
 | Host restarts during compensation | Background `CompensationWorker` resumes from last persisted `Pending` transaction |
 | All compensation steps complete | Saga status transitions to `Compensated` |
+
+---
+
+## Configuration Guide
+
+### Setting the Compensation Strategy
+
+Configure the strategy on your `SagaDefinition` before starting the saga:
+
+```csharp
+var definition = new SagaDefinition("OrderProcessing", "Place an order across services");
+definition.CompensationStrategy = CompensationStrategy.ReverseOrder; // default LIFO
+
+// Add steps with compensation endpoints
+definition.AddStep(new SagaStepDefinition(
+    name:             "ReserveInventory",
+    serviceName:      "inventory-service",
+    serviceUrl:       "https://inventory/api/reserve",
+    compensationUrl:  "https://inventory/api/cancel-reservation"
+));
+definition.AddStep(new SagaStepDefinition(
+    name:             "ChargePayment",
+    serviceName:      "payment-service",
+    serviceUrl:       "https://payment/api/charge",
+    compensationUrl:  "https://payment/api/refund"
+));
+```
+
+### Configuring Compensation Retries per Step
+
+Each `SagaStepDefinition` exposes `MaxRetries` and `TimeoutSeconds` that apply to both the
+forward execution and the compensation attempt:
+
+```csharp
+definition.AddStep(new SagaStepDefinition(
+    name:             "SendShipment",
+    serviceName:      "shipping-service",
+    serviceUrl:       "https://shipping/api/ship",
+    compensationUrl:  "https://shipping/api/cancel-shipment"
+)
+{
+    MaxRetries     = 5,
+    TimeoutSeconds = 60
+});
+```
+
+### Registering Services
+
+```csharp
+// Program.cs / Startup.cs
+services.AddSagaOrchestrator();      // includes CompensationService
+services.AddSagaVisualization();     // optional — adds ASCII state renderer
+```
+
+---
+
+## Compensation Transaction Patterns
+
+### Pattern 1 — Idempotent Compensation Endpoint
+
+Compensation endpoints **must** handle duplicate calls safely. Use the `CompensationTransaction.Id`
+passed in the request payload as an idempotency key:
+
+```csharp
+// Example ASP.NET Core compensation endpoint
+[HttpPost("api/cancel-reservation")]
+public async Task<IActionResult> CancelReservation(
+    [FromBody] CompensationRequest request)
+{
+    // Idempotency: skip if already processed
+    if (await _db.Compensations.AnyAsync(c => c.TransactionId == request.TransactionId))
+        return Ok(new { compensated = true, skipped = true });
+
+    await _reservationService.CancelAsync(request.ReservationId);
+    await _db.Compensations.AddAsync(new CompensationRecord
+    {
+        TransactionId = request.TransactionId,
+        ProcessedAt   = DateTime.UtcNow
+    });
+    await _db.SaveChangesAsync();
+
+    return Ok(new { compensated = true });
+}
+```
+
+### Pattern 2 — Parallel Compensation
+
+Use `CompensationStrategy.Parallel` when compensating steps have no mutual dependencies:
+
+```csharp
+definition.CompensationStrategy = CompensationStrategy.Parallel;
+```
+
+Under `Parallel`, the `CompensationWorker` dispatches all `Pending` transactions at once
+rather than waiting for each to complete before starting the next.  Ensure each downstream
+service can handle concurrent rollback requests.
+
+### Pattern 3 — Manual Compensation with Operator Intervention
+
+For high-value or irreversible operations, set `CompensationStrategy.Manual` to pause
+rollback and alert an operator:
+
+```csharp
+definition.CompensationStrategy = CompensationStrategy.Manual;
+```
+
+After inspecting the state, an operator re-triggers compensation via the service:
+
+```csharp
+// Re-trigger a specific failed compensation transaction
+await compensationService.RetryCompensationAsync(compensationTransactionId);
+```
+
+### Pattern 4 — Monitoring Compensation State
+
+Query in-flight compensation transactions through the repository:
+
+```csharp
+var compensations = await compensationService.GetCompensationsAsync(sagaId);
+foreach (var c in compensations)
+{
+    Console.WriteLine($"  [{c.Status}] {c.StepName} (attempt {c.RetryCount}/{c.MaxRetries})");
+}
+```
+
+Check for stalled compensations that exceeded their timeout:
+
+```csharp
+var timedOut = await compensationService.CheckTimeoutsAsync(sagaId);
+// timedOut contains CompensationTransaction objects that were marked Failed
+// and queued for retry (or left in Failed if retries exhausted).
+```
