@@ -122,7 +122,7 @@ public class SagaOrchestrationService
             nextStep.Fail(ex.Message);
 
             // Check if we can retry
-            if (nextStep.CanRetry())
+            if (nextStep.CanRetry() && nextStep.RetryCount < nextStep.MaxRetries)
             {
                 nextStep.PrepareForRetry();
             }
