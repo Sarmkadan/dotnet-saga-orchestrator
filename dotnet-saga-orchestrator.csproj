@@ -10,7 +10,7 @@
     <LangVersion>latest</LangVersion>
     
     <PackageId>Zaiets.dotnet.saga.orchestrator</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.2</Version>
     <Authors>Vladyslav Zaiets</Authors>
     <Description>Distributed saga orchestrator for .NET microservices - compensating transactions, timeout handling, persistence</Description>
     <PackageTags>saga orchestrator dotnet microservices compensation distributed</PackageTags>
