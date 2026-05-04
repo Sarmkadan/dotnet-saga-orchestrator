@@ -163,6 +163,69 @@ bool isValid = step.Validate();
 step.SetTimeout(30);
 ```
 
+## SagaStepDebugState
+
+The `SagaStepDebugState` record captures an immutable snapshot of a single saga step's execution state at a specific point in time. It is used by the distributed debugger to represent individual steps within a `SagaDebugSnapshot`, enabling time-travel inspection and analysis of saga execution history.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a SagaStepDebugState representing a completed step
+var completedStepState = new SagaStepDebugState
+{
+    StepId = "step-001",
+    StepName = "Process Payment",
+    StepOrder = 1,
+    Status = SagaStepStatus.Completed,
+    RetryCount = 0,
+    MaxRetries = 3,
+    StartedAt = DateTime.UtcNow.AddSeconds(-10),
+    CompletedAt = DateTime.UtcNow,
+    CompensatedAt = null,
+    ErrorMessage = null,
+    ServiceUrl = "https://payments.example.com/api/process",
+    OutputData = new Dictionary<string, object>
+    {
+        { "paymentId", "pay-12345" },
+        { "amount", 99.99 },
+        { "status", "completed" }
+    }
+};
+
+// Create a SagaStepDebugState representing a failed step
+var failedStepState = new SagaStepDebugState
+{
+    StepId = "step-002",
+    StepName = "Send Notification",
+    StepOrder = 2,
+    Status = SagaStepStatus.Failed,
+    RetryCount = 1,
+    MaxRetries = 3,
+    StartedAt = DateTime.UtcNow.AddSeconds(-5),
+    CompletedAt = null,
+    CompensatedAt = null,
+    ErrorMessage = "Notification service unavailable",
+    ServiceUrl = "https://notifications.example.com/api/send",
+    OutputData = new Dictionary<string, object>
+    {
+        { "recipient", "user@example.com" },
+        { "message", "Order confirmation" }
+    }
+};
+
+// Use FromStep factory method to create from a live step
+var liveStep = new SagaStep(
+    id: "step-003",
+    name: "Inventory Check",
+    order: 3,
+    serviceUrl: "https://inventory.example.com/api/check"
+);
+var stepState = SagaStepDebugState.FromStep(liveStep);
+```
+
 ### Usage Example
 
 ```csharp
