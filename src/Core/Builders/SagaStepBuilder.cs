@@ -27,6 +27,13 @@ public class SagaStepBuilder
         };
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="SagaStepBuilder"/>.
+    /// </summary>
+    /// <param name="name">The name of the step.</param>
+    /// <param name="serviceName">The name of the service.</param>
+    /// <param name="action">The action URL.</param>
+    /// <returns>A new <see cref="SagaStepBuilder"/> instance.</returns>
     public static SagaStepBuilder Create(string name, string serviceName, string action)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -39,6 +46,11 @@ public class SagaStepBuilder
         return new SagaStepBuilder(name, serviceName, action);
     }
 
+    /// <summary>
+    /// Sets the order of the step.
+    /// </summary>
+    /// <param name="order">The order index.</param>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithOrder(int order)
     {
         if (order <= 0)
@@ -47,6 +59,11 @@ public class SagaStepBuilder
         return this;
     }
 
+    /// <summary>
+    /// Sets the compensation URL for the step.
+    /// </summary>
+    /// <param name="compensationUrl">The compensation URL.</param>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithCompensation(string compensationUrl)
     {
         if (!string.IsNullOrWhiteSpace(compensationUrl))
@@ -58,6 +75,11 @@ public class SagaStepBuilder
         return this;
     }
 
+    /// <summary>
+    /// Sets the timeout for the step in seconds.
+    /// </summary>
+    /// <param name="seconds">Timeout in seconds.</param>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithTimeout(int seconds)
     {
         if (seconds <= 0 || seconds > 3600)
@@ -66,6 +88,12 @@ public class SagaStepBuilder
         return this;
     }
 
+    /// <summary>
+    /// Sets the retry policy for the step.
+    /// </summary>
+    /// <param name="maxRetries">Maximum number of retries.</param>
+    /// <param name="delayMs">Delay between retries in milliseconds.</param>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithRetryPolicy(int maxRetries, int delayMs)
     {
         if (maxRetries < 0 || maxRetries > 10)
@@ -81,6 +109,8 @@ public class SagaStepBuilder
     /// <summary>
     /// Configures per-step retry policy with exponential backoff and optional jitter.
     /// </summary>
+    /// <param name="policy">The retry policy to apply.</param>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithRetryPolicy(RetryPolicy policy)
     {
         ArgumentNullException.ThrowIfNull(policy, nameof(policy));
@@ -90,6 +120,12 @@ public class SagaStepBuilder
         return this;
     }
 
+    /// <summary>
+    /// Adds metadata to the step.
+    /// </summary>
+    /// <param name="key">The metadata key.</param>
+    /// <param name="value">The metadata value.</param>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithMetadata(string key, string value)
     {
         if (string.IsNullOrWhiteSpace(key))
@@ -99,6 +135,11 @@ public class SagaStepBuilder
         return this;
     }
 
+    /// <summary>
+    /// Adds multiple metadata entries to the step.
+    /// </summary>
+    /// <param name="metadata">The metadata dictionary.</param>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithMetadata(Dictionary<string, string> metadata)
     {
         if (metadata != null)
@@ -111,6 +152,11 @@ public class SagaStepBuilder
         return this;
     }
 
+    /// <summary>
+    /// Sets the circuit breaker failure threshold for the step.
+    /// </summary>
+    /// <param name="failureThreshold">The number of failures before the circuit opens.</param>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithCircuitBreakerThreshold(int failureThreshold)
     {
         if (failureThreshold <= 0)
@@ -119,23 +165,36 @@ public class SagaStepBuilder
         return this;
     }
 
+    /// <summary>
+    /// Sets the step to be executed asynchronously.
+    /// </summary>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder Async()
     {
         _step.Metadata["async"] = "true";
         return this;
     }
 
+    /// <summary>
+    /// Sets the step to be executed synchronously.
+    /// </summary>
+    /// <returns>The builder instance.</returns>
     public SagaStepBuilder Synchronous()
     {
         _step.Metadata["async"] = "false";
         return this;
     }
 
+    /// <summary>
+    /// Builds and returns the configured <see cref="SagaStepDefinition"/>.
+    /// </summary>
+    /// <returns>A configured <see cref="SagaStepDefinition"/>.</returns>
     public SagaStepDefinition Build()
     {
         ValidateStep();
         return _step;
     }
+...
 
     private void ValidateStep()
     {

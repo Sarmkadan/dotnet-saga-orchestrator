@@ -16,27 +16,35 @@ namespace SagaOrchestrator.Core.Domain.Models;
 /// </summary>
 public class SagaDefinition
 {
+    /// <summary>Gets or sets the unique identifier of the saga definition.</summary>
     [JsonPropertyName("id")]
     public string Id { get; set; }
 
+    /// <summary>Gets or sets the name of the saga definition.</summary>
     [JsonPropertyName("name")]
     public string Name { get; set; }
 
+    /// <summary>Gets or sets the description of the saga definition.</summary>
     [JsonPropertyName("description")]
     public string Description { get; set; }
 
+    /// <summary>Gets or sets the version of the saga definition.</summary>
     [JsonPropertyName("version")]
     public int Version { get; set; }
 
+    /// <summary>Gets or sets the list of steps in the saga definition.</summary>
     [JsonPropertyName("steps")]
     public List<SagaStepDefinition> Steps { get; set; } = new();
 
+    /// <summary>Gets or sets the time the saga definition was created.</summary>
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>Gets or sets a value indicating whether the saga definition is active.</summary>
     [JsonPropertyName("isActive")]
     public bool IsActive { get; set; }
 
+    /// <summary>Gets or sets the compensation strategy used when a saga fails.</summary>
     [JsonPropertyName("compensationStrategy")]
     public CompensationStrategy CompensationStrategy { get; set; }
 
@@ -53,8 +61,10 @@ public class SagaDefinition
     }
 
     /// <summary>
-    /// Creates a named saga definition
+    /// Creates a named saga definition.
     /// </summary>
+    /// <param name="name">The name of the saga definition.</param>
+    /// <param name="description">The description of the saga definition.</param>
     public SagaDefinition(string name, string description)
     {
         Id = Guid.NewGuid().ToString();
@@ -67,8 +77,9 @@ public class SagaDefinition
     }
 
     /// <summary>
-    /// Adds a step to the saga definition
+    /// Adds a step to the saga definition.
     /// </summary>
+    /// <param name="stepDefinition">The step definition to add.</param>
     public void AddStep(SagaStepDefinition stepDefinition)
     {
         if (stepDefinition == null)
@@ -79,8 +90,9 @@ public class SagaDefinition
     }
 
     /// <summary>
-    /// Validates the saga definition structure
+    /// Validates the saga definition structure.
     /// </summary>
+    /// <returns>True if the definition is valid, false otherwise.</returns>
     public bool Validate()
     {
         if (string.IsNullOrWhiteSpace(Name))
@@ -99,16 +111,20 @@ public class SagaDefinition
     }
 
     /// <summary>
-    /// Gets step definition by name
+    /// Gets step definition by name.
     /// </summary>
+    /// <param name="stepName">The name of the step.</param>
+    /// <returns>The step definition if found, null otherwise.</returns>
     public SagaStepDefinition? GetStepByName(string stepName)
     {
         return Steps.Find(s => s.Name == stepName);
     }
 
     /// <summary>
-    /// Gets step definition by order
+    /// Gets step definition by order.
     /// </summary>
+    /// <param name="order">The order index of the step.</param>
+    /// <returns>The step definition if found, null otherwise.</returns>
     public SagaStepDefinition? GetStepByOrder(int order)
     {
         return Steps.Find(s => s.Order == order);
