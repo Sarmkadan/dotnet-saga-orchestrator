@@ -61,6 +61,16 @@ services.AddSagaOrchestrator()
     .Build();
 ```
 
+## Examples
+
+For practical implementations of the saga orchestrator, check out the [examples/](examples/) directory:
+
+- [BasicUsage.cs](examples/BasicUsage.cs): A minimal setup showing the core flow.
+- [AdvancedUsage.cs](examples/AdvancedUsage.cs): Demonstrates configuration, retry policies, and error handling.
+- [IntegrationExample.cs](examples/IntegrationExample.cs): Shows how to register the orchestrator in a Dependency Injection container.
+- Other advanced scenarios include [MoneyTransfer.cs](examples/MoneyTransfer.cs) and [OrderProcessing.cs](examples/OrderProcessing.cs).
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
