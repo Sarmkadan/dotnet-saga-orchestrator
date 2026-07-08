@@ -149,7 +149,7 @@ public class SagaIntegrationTests
         var sagas = await Task.WhenAll(tasks);
 
         sagas.Should().HaveCount(10);
-        sagas.Select(s => s.Id).Should().AllBeDifferent();
+        sagas.Select(s => s.Id).Should().OnlyHaveUniqueItems();
         sagas.Should().AllSatisfy(s => s.Status.Should().Be(SagaStatus.Initialized));
     }
 
@@ -366,8 +366,8 @@ public class SagaIntegrationTests
 
         await orchestrationService.StartSagaAsync(saga1.Id);
 
-        var initializedSagas = await orchestrationService.GetSagasByStatusAsync(SagaStatus.Initialized);
-        var runningSagas = await orchestrationService.GetSagasByStatusAsync(SagaStatus.Running);
+        var initializedSagas = await orchestrationService.ListSagasAsync(SagaStatus.Initialized);
+        var runningSagas = await orchestrationService.ListSagasAsync(SagaStatus.Running);
 
         initializedSagas.Should().HaveCountGreaterThanOrEqualTo(1);
         runningSagas.Should().HaveCountGreaterThanOrEqualTo(1);

@@ -23,8 +23,8 @@ public static class ExceptionMapper
             InvalidSagaDefinitionException => (HttpStatusCode.BadRequest, "The saga definition is invalid"),
             SagaStepExecutionException => (HttpStatusCode.InternalServerError, "A saga step failed during execution"),
             ArgumentNullException => (HttpStatusCode.BadRequest, "A required parameter is missing"),
-            ArgumentException => (HttpStatusCode.BadRequest, "Invalid argument provided"),
             ArgumentOutOfRangeException => (HttpStatusCode.BadRequest, "Argument out of range"),
+            ArgumentException => (HttpStatusCode.BadRequest, "Invalid argument provided"),
             InvalidOperationException => (HttpStatusCode.BadRequest, "Invalid operation"),
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred")
         };
@@ -49,8 +49,8 @@ public static class ExceptionMapper
         InvalidSagaDefinitionException => "INVALID_DEFINITION",
         SagaStepExecutionException => "STEP_EXECUTION_FAILED",
         ArgumentNullException => "ARGUMENT_NULL",
-        ArgumentException => "INVALID_ARGUMENT",
         ArgumentOutOfRangeException => "ARGUMENT_OUT_OF_RANGE",
+        ArgumentException => "INVALID_ARGUMENT",
         InvalidOperationException => "INVALID_OPERATION",
         _ => "INTERNAL_ERROR"
     };

@@ -48,7 +48,7 @@ public class MetricsService : IMetricsService
 
             var completedSagas = allSagas.Where(s => s.Status.ToString() == "Completed").ToList();
             var avgDuration = completedSagas.Any()
-                ? completedSagas.Average(s => (s.CompletedAt ?? DateTime.UtcNow - s.CreatedAt).TotalSeconds)
+                ? completedSagas.Average(s => ((s.CompletedAt ?? DateTime.UtcNow) - s.CreatedAt).TotalSeconds)
                 : 0;
 
             return new SagaMetrics
@@ -82,7 +82,7 @@ public class MetricsService : IMetricsService
             var failed = allSteps.Count(s => s.Status.ToString() == "Failed");
             var avgDuration = allSteps.Where(s => s.Status.ToString() == "Completed").Any()
                 ? allSteps.Where(s => s.Status.ToString() == "Completed")
-                    .Average(s => (s.CompletedAt ?? DateTime.UtcNow - s.StartedAt).TotalMilliseconds)
+                    .Average(s => ((s.CompletedAt ?? DateTime.UtcNow) - (s.StartedAt ?? DateTime.UtcNow)).TotalMilliseconds)
                 : 0;
 
             return new StepMetrics
@@ -112,10 +112,10 @@ public class MetricsService : IMetricsService
 
             var completedSagas = allSagas.Where(s => s.Status.ToString() == "Completed").ToList();
             var minDuration = completedSagas.Any()
-                ? completedSagas.Min(s => (s.CompletedAt ?? DateTime.UtcNow - s.CreatedAt).TotalSeconds)
+                ? completedSagas.Min(s => ((s.CompletedAt ?? DateTime.UtcNow) - s.CreatedAt).TotalSeconds)
                 : 0;
             var maxDuration = completedSagas.Any()
-                ? completedSagas.Max(s => (s.CompletedAt ?? DateTime.UtcNow - s.CreatedAt).TotalSeconds)
+                ? completedSagas.Max(s => ((s.CompletedAt ?? DateTime.UtcNow) - s.CreatedAt).TotalSeconds)
                 : 0;
 
             return new PerformanceStats
@@ -124,11 +124,11 @@ public class MetricsService : IMetricsService
                 MinDurationSeconds = minDuration,
                 MaxDurationSeconds = maxDuration,
                 MedianDurationSeconds = GetMedian(completedSagas.Select(s =>
-                    (s.CompletedAt ?? DateTime.UtcNow - s.CreatedAt).TotalSeconds).ToList()),
+                    ((s.CompletedAt ?? DateTime.UtcNow) - s.CreatedAt).TotalSeconds).ToList()),
                 P95DurationSeconds = GetPercentile(completedSagas.Select(s =>
-                    (s.CompletedAt ?? DateTime.UtcNow - s.CreatedAt).TotalSeconds).ToList(), 95),
+                    ((s.CompletedAt ?? DateTime.UtcNow) - s.CreatedAt).TotalSeconds).ToList(), 95),
                 P99DurationSeconds = GetPercentile(completedSagas.Select(s =>
-                    (s.CompletedAt ?? DateTime.UtcNow - s.CreatedAt).TotalSeconds).ToList(), 99),
+                    ((s.CompletedAt ?? DateTime.UtcNow) - s.CreatedAt).TotalSeconds).ToList(), 99),
                 Timestamp = DateTime.UtcNow
             };
         }

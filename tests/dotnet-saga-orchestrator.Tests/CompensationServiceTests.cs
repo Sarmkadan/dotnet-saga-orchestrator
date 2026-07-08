@@ -96,8 +96,8 @@ public class CompensationServiceTests
 
         var saga = CreateAndInitializeSaga();
         var step = new SagaStep();
-        step.Initialize("step1", "PaymentStep", 1, "http://pay/action", "http://pay/comp");
-        step.MarkCompleted("response data");
+        step.Initialize("PaymentStep", 1, "http://pay/action", "http://pay/comp");
+        step.Complete(new Dictionary<string, object> { ["data"] = "response data" });
         saga.Steps.Add(step);
         saga.Fail("Test failure");
 
@@ -124,7 +124,7 @@ public class CompensationServiceTests
 
         var saga = CreateAndInitializeSaga();
         var step = new SagaStep();
-        step.Initialize("step1", "PaymentStep", 1, "http://pay/action", "http://pay/comp");
+        step.Initialize("PaymentStep", 1, "http://pay/action", "http://pay/comp");
         // Don't mark as completed
         saga.Steps.Add(step);
         saga.Fail("Test failure");
@@ -239,7 +239,7 @@ public class CompensationServiceTests
 
         var comp1 = new CompensationTransaction();
         comp1.Initialize(saga.Id, "step1", "PaymentStep", 1, "http://pay/comp");
-        comp1.MarkExecuted("result");
+        comp1.Complete(new Dictionary<string, object> { ["result"] = "result" });
 
         var comp2 = new CompensationTransaction();
         comp2.Initialize(saga.Id, "step2", "NotificationStep", 2, "http://notify/comp");
@@ -283,7 +283,8 @@ public class CompensationServiceTests
         var service = new CompensationService(compRepoMock.Object, sagaRepoMock.Object, stepRepoMock.Object);
 
         var result = await service.ExecuteNextCompensationAsync(saga.Id);
-        await service.CompleteCompensationAsync(saga.Id, result!.Id);
+        result.Should().NotBeNull();
+        await service.ExecuteNextCompensationAsync(saga.Id);
 
         sagaRepoMock.Verify(r => r.UpdateAsync(It.IsAny<Saga>()), Times.AtLeastOnce);
         compRepoMock.Verify(r => r.UpdateAsync(It.IsAny<CompensationTransaction>()), Times.Once);

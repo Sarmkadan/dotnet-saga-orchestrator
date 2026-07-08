@@ -61,6 +61,13 @@ public class SagaStepDefinition
     [JsonIgnore]
     public RetryPolicy? RetryPolicy { get; set; }
 
+    /// <summary>
+    /// Arbitrary key/value metadata attached to the step (e.g. circuit breaker
+    /// thresholds, async flags) for use by builders and orchestration logic.
+    /// </summary>
+    [JsonPropertyName("metadata")]
+    public Dictionary<string, string> Metadata { get; set; } = new();
+
     // Constructor
     public SagaStepDefinition()
     {
@@ -186,7 +193,8 @@ public class SagaStepDefinition
             IsCompensable = IsCompensable,
             IsAsync = IsAsync,
             HttpMethod = HttpMethod,
-            RetryPolicy = RetryPolicy
+            RetryPolicy = RetryPolicy,
+            Metadata = new Dictionary<string, string>(Metadata)
         };
     }
 }

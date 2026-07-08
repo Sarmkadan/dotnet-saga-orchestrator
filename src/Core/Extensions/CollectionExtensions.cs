@@ -54,7 +54,7 @@ public static class CollectionExtensions
 
     // First or default with fallback
     public static T FirstOrDefault<T>(this IEnumerable<T> items, T defaultValue) =>
-        items?.FirstOrDefault() ?? defaultValue;
+        items.FirstOrDefault() ?? defaultValue;
 
     // Single or default without exception
     public static T? SingleOrDefaultSafe<T>(this IEnumerable<T> items) where T : class

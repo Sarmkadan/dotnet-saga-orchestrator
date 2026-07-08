@@ -73,6 +73,22 @@ public class Saga
     [JsonPropertyName("metadata")]
     public Dictionary<string, object> Metadata { get; set; } = new();
 
+    /// <summary>Convenience accessor for the underlying saga definition's name.</summary>
+    [JsonIgnore]
+    public string Name => Definition.Name;
+
+    /// <summary>Convenience accessor for the underlying saga definition's identifier.</summary>
+    [JsonIgnore]
+    public string DefinitionId => Definition.Id;
+
+    /// <summary>Convenience accessor for when the saga was created (alias of <see cref="StartedAt"/>).</summary>
+    [JsonIgnore]
+    public DateTime CreatedAt => StartedAt;
+
+    /// <summary>Convenience accessor for the compensation strategy configured on the saga definition.</summary>
+    [JsonIgnore]
+    public CompensationStrategy CompensationStrategy => Definition.CompensationStrategy;
+
     // Constructor
     public Saga()
     {

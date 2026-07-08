@@ -5,6 +5,7 @@
 // =============================================================================
 
 using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Infrastructure.Serialization;
 
 namespace SagaOrchestrator.Infrastructure.Formatting;
 
@@ -49,14 +50,14 @@ public class OutputFormatter : IOutputFormatter
 
         var lines = new List<string>();
         lines.Add(new string('-', maxIdLength + maxNameLength + 30));
-        lines.Add($"{"ID",-maxIdLength} | {"Name",-maxNameLength} | {"Status",-15} | {"Steps",-5}");
+        lines.Add($"{"ID".PadRight(maxIdLength)} | {"Name".PadRight(maxNameLength)} | {"Status",-15} | {"Steps",-5}");
         lines.Add(new string('-', maxIdLength + maxNameLength + 30));
 
         foreach (var saga in sagas)
         {
             var completedSteps = saga.Steps.Count(s => s.Status.ToString() == "Completed");
             var totalSteps = saga.Steps.Count;
-            lines.Add($"{saga.Id,-maxIdLength} | {saga.Name,-maxNameLength} | {saga.Status,-15} | {completedSteps}/{totalSteps,-3}");
+            lines.Add($"{saga.Id.PadRight(maxIdLength)} | {saga.Name.PadRight(maxNameLength)} | {saga.Status,-15} | {completedSteps}/{totalSteps,-3}");
         }
 
         lines.Add(new string('-', maxIdLength + maxNameLength + 30));
@@ -81,11 +82,4 @@ public class OutputFormatter : IOutputFormatter
 
         return string.Join("\n", lines);
     }
-}
-
-public interface ISagaSerializer
-{
-    string Serialize<T>(T obj);
-    T? Deserialize<T>(string json);
-    string SerializeIndented<T>(T obj);
 }

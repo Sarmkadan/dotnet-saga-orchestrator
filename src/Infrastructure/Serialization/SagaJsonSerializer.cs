@@ -48,9 +48,12 @@ public class SagaJsonSerializer : ISagaSerializer
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-            Converters = _options.Converters
+            WriteIndented = true
         };
+        foreach (var converter in _options.Converters)
+        {
+            _indentedOptions.Converters.Add(converter);
+        }
     }
 
     public string Serialize<T>(T obj) =>
@@ -179,8 +182,8 @@ public class CompensationStrategyConverter : JsonConverter<CompensationStrategy>
         var value = reader.GetString();
         return value switch
         {
-            "reverse" => CompensationStrategy.Reverse,
-            "forward" => CompensationStrategy.Forward,
+            "reverse" => CompensationStrategy.ReverseOrder,
+            "forward" => CompensationStrategy.ForwardOrder,
             "parallel" => CompensationStrategy.Parallel,
             "manual" => CompensationStrategy.Manual,
             _ => throw new JsonException($"Unknown CompensationStrategy: {value}")
@@ -191,8 +194,8 @@ public class CompensationStrategyConverter : JsonConverter<CompensationStrategy>
     {
         var stringValue = value switch
         {
-            CompensationStrategy.Reverse => "reverse",
-            CompensationStrategy.Forward => "forward",
+            CompensationStrategy.ReverseOrder => "reverse",
+            CompensationStrategy.ForwardOrder => "forward",
             CompensationStrategy.Parallel => "parallel",
             CompensationStrategy.Manual => "manual",
             _ => throw new JsonException($"Unknown CompensationStrategy: {value}")

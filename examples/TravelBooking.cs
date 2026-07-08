@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SagaOrchestrator.Application.Services;
 using SagaOrchestrator.Configuration;
+using SagaOrchestrator.Core.Domain.Enums;
 using SagaOrchestrator.Core.Domain.Models;
 
 /// Travel booking saga example (hotel, flight, car)

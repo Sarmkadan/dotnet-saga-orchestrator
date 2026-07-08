@@ -5,8 +5,10 @@
 // =============================================================================
 
 using Microsoft.Extensions.Logging;
+using SagaOrchestrator.Core.Extensions;
 using SagaOrchestrator.Infrastructure.Events;
 using SagaOrchestrator.Infrastructure.Http;
+using IHttpClientFactory = SagaOrchestrator.Infrastructure.Http.IHttpClientFactory;
 
 namespace SagaOrchestrator.Infrastructure.Integration;
 

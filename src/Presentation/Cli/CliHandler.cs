@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SagaOrchestrator.Application.Services;
 using SagaOrchestrator.Infrastructure.Formatting;
+using SagaOrchestrator.Infrastructure.Logging;
 using SagaOrchestrator.Presentation.Cli.Commands;
 
 namespace SagaOrchestrator.Presentation.Cli;
@@ -84,7 +85,7 @@ public class CliHandler : ICliHandler
 
         try
         {
-            var definitions = await _definitionService.GetAllDefinitionsAsync();
+            var definitions = await _definitionService.ListDefinitionsAsync();
             var definition = definitions.FirstOrDefault(d => d.Name.Equals(definitionName, StringComparison.OrdinalIgnoreCase));
 
             if (definition == null)
@@ -93,7 +94,7 @@ public class CliHandler : ICliHandler
                 return 1;
             }
 
-            var saga = await _orchestrationService.CreateSagaAsync(definition.Id, definitionName);
+            var saga = await _orchestrationService.CreateSagaAsync(definition);
             Console.WriteLine($"✓ Created saga: {saga.Id}");
             Console.WriteLine($"  Status: {saga.Status}");
 
@@ -136,8 +137,7 @@ public class CliHandler : ICliHandler
             }
             else
             {
-                var updatedSaga = await _orchestrationService.ExecuteNextStepAsync(sagaId);
-                var currentStep = updatedSaga.Steps.LastOrDefault();
+                var currentStep = await _orchestrationService.ExecuteNextStepAsync(sagaId);
                 if (currentStep != null)
                 {
                     Console.WriteLine($"✓ Step executed: {currentStep.Name}");
@@ -197,7 +197,7 @@ public class CliHandler : ICliHandler
     {
         try
         {
-            var sagas = await _orchestrationService.GetAllSagasAsync();
+            var sagas = await _orchestrationService.ListSagasAsync();
             var limit = 50;
 
             if (command.Arguments.TryGetValue("limit", out var limitStr) && int.TryParse(limitStr, out var parsedLimit))

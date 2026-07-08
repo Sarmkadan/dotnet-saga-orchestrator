@@ -5,6 +5,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using SagaOrchestrator.Application.Services;
+using SagaOrchestrator.Configuration;
 using SagaOrchestrator.Core.Domain.Models;
 
 /// <summary>

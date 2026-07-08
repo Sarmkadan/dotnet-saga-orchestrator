@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using SagaOrchestrator.Core.Extensions;
+
 namespace SagaOrchestrator.Infrastructure.RateLimiting;
 
 /// <summary>

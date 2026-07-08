@@ -9,6 +9,7 @@ using Microsoft.Extensions.Http;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
+using SagaOrchestrator.Core.Extensions;
 
 namespace SagaOrchestrator.Infrastructure.Http;
 
@@ -100,6 +101,10 @@ public class HttpClientFactory : IHttpClientFactory
                 onBreak: (outcome, timespan) =>
                 {
                     System.Diagnostics.Debug.WriteLine($"Circuit breaker opened for {timespan.TotalSeconds}s");
+                },
+                onReset: () =>
+                {
+                    System.Diagnostics.Debug.WriteLine("Circuit breaker reset");
                 });
 
         // Combine policies: retry first, then circuit breaker

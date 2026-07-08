@@ -5,6 +5,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using SagaOrchestrator.Application.Services;
+using SagaOrchestrator.Configuration;
 using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Domain.Enums;
 
@@ -18,8 +19,8 @@ public class AdvancedUsage
         var services = new ServiceCollection();
         // Configure with custom options
         services.AddSagaOrchestrator(options => {
-            options.DefaultMaxRetries = 3;
-            options.DefaultStepTimeoutSeconds = 30;
+            options.RetryPolicies.DefaultMaxRetries = 3;
+            options.TimeoutPolicies.DefaultStepTimeoutSeconds = 30;
         });
         var provider = services.BuildServiceProvider();
 

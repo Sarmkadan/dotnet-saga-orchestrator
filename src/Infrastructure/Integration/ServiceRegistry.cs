@@ -5,6 +5,7 @@
 // =============================================================================
 
 using Microsoft.Extensions.Logging;
+using SagaOrchestrator.Core.Extensions;
 
 namespace SagaOrchestrator.Infrastructure.Integration;
 

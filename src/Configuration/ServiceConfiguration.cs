@@ -41,6 +41,24 @@ public static class ServiceConfiguration
     }
 
     /// <summary>
+    /// Registers all saga orchestrator services with the dependency injection container,
+    /// applying custom configuration to the resulting <see cref="SagaOptions"/> instance.
+    /// </summary>
+    public static IServiceCollection AddSagaOrchestrator(this IServiceCollection services, Action<SagaOptions> configureOptions)
+    {
+        if (services == null)
+            throw new ArgumentNullException(nameof(services));
+        if (configureOptions == null)
+            throw new ArgumentNullException(nameof(configureOptions));
+
+        var options = new SagaOptions();
+        configureOptions(options);
+        services.AddSingleton(options);
+
+        return services.AddSagaOrchestrator();
+    }
+
+    /// <summary>
     /// Registers only the repository layer for dependency injection.
     /// Useful for advanced scenarios with custom service configuration.
     /// </summary>
