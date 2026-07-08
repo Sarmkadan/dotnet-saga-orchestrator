@@ -34,17 +34,22 @@ public class SagaDefinitionService
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Name is required", nameof(name));
-
         if (string.IsNullOrWhiteSpace(description))
             throw new ArgumentException("Description is required", nameof(description));
 
         var definition = new SagaDefinition(name, description);
 
-        var created = await _repository.CreateAsync(definition);
-        if (created == null)
-            throw new SagaException("Failed to create saga definition");
-
-        return created;
+        try
+        {
+            var created = await _repository.CreateAsync(definition);
+            if (created == null)
+                throw new SagaException("Failed to create saga definition");
+            return created;
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error creating saga definition", ex);
+        }
     }
 
     /// <summary>
@@ -52,22 +57,38 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<SagaDefinition> AddStepAsync(string definitionId, SagaStepDefinition stepDefinition)
     {
-        var definition = await _repository.GetByIdAsync(definitionId)
-            ?? throw new SagaException($"Definition '{definitionId}' not found");
-
+        if (string.IsNullOrWhiteSpace(definitionId))
+            throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
         if (stepDefinition == null)
             throw new ArgumentNullException(nameof(stepDefinition));
+
+        SagaDefinition definition;
+        try
+        {
+            definition = await _repository.GetByIdAsync(definitionId)
+                ?? throw new SagaException($"Definition '{definitionId}' not found");
+        }
+        catch (Exception ex) when (!(ex is SagaException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga definition for adding step", ex);
+        }
 
         if (!stepDefinition.Validate())
             throw new InvalidSagaDefinitionException(definitionId, $"Step '{stepDefinition.Name}' validation failed");
 
         definition.AddStep(stepDefinition);
 
-        var updated = await _repository.UpdateAsync(definition);
-        if (updated == null)
-            throw new SagaException("Failed to update saga definition");
-
-        return updated;
+        try
+        {
+            var updated = await _repository.UpdateAsync(definition);
+            if (updated == null)
+                throw new SagaException("Failed to update saga definition");
+            return updated;
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error updating saga definition after adding step", ex);
+        }
     }
 
     /// <summary>
@@ -75,8 +96,21 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<SagaDefinition> RemoveStepAsync(string definitionId, string stepName)
     {
-        var definition = await _repository.GetByIdAsync(definitionId)
-            ?? throw new SagaException($"Definition '{definitionId}' not found");
+        if (string.IsNullOrWhiteSpace(definitionId))
+            throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
+        if (string.IsNullOrWhiteSpace(stepName))
+            throw new ArgumentException("Step name must be provided", nameof(stepName));
+
+        SagaDefinition definition;
+        try
+        {
+            definition = await _repository.GetByIdAsync(definitionId)
+                ?? throw new SagaException($"Definition '{definitionId}' not found");
+        }
+        catch (Exception ex) when (!(ex is SagaException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga definition for removing step", ex);
+        }
 
         var step = definition.Steps.FirstOrDefault(s => s.Name == stepName);
         if (step == null)
@@ -90,11 +124,17 @@ public class SagaDefinitionService
             definition.Steps[i].Order = i + 1;
         }
 
-        var updated = await _repository.UpdateAsync(definition);
-        if (updated == null)
-            throw new SagaException("Failed to update saga definition");
-
-        return updated;
+        try
+        {
+            var updated = await _repository.UpdateAsync(definition);
+            if (updated == null)
+                throw new SagaException("Failed to update saga definition");
+            return updated;
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error updating saga definition after removing step", ex);
+        }
     }
 
     /// <summary>
@@ -146,8 +186,18 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<SagaDefinition> GetDefinitionAsync(string definitionId)
     {
-        return await _repository.GetByIdAsync(definitionId)
-            ?? throw new SagaException($"Definition '{definitionId}' not found");
+        if (string.IsNullOrWhiteSpace(definitionId))
+            throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
+
+        try
+        {
+            return await _repository.GetByIdAsync(definitionId)
+                ?? throw new SagaException($"Definition '{definitionId}' not found");
+        }
+        catch (Exception ex) when (!(ex is SagaException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga definition", ex);
+        }
     }
 
     /// <summary>
@@ -155,7 +205,17 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<SagaDefinition?> GetDefinitionByNameAsync(string name)
     {
-        return await _repository.GetByNameAsync(name);
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name must be provided", nameof(name));
+
+        try
+        {
+            return await _repository.GetByNameAsync(name);
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga definition by name", ex);
+        }
     }
 
     /// <summary>
@@ -163,12 +223,19 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<List<SagaDefinition>> ListDefinitionsAsync(bool activeOnly = false)
     {
-        var definitions = await _repository.GetAllAsync();
+        try
+        {
+            var definitions = await _repository.GetAllAsync();
 
-        if (activeOnly)
-            definitions = definitions.Where(d => d.IsActive).ToList();
+            if (activeOnly)
+                definitions = definitions.Where(d => d.IsActive).ToList();
 
-        return definitions.OrderByDescending(d => d.CreatedAt).ToList();
+            return definitions.OrderByDescending(d => d.CreatedAt).ToList();
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error listing saga definitions", ex);
+        }
     }
 
     /// <summary>
@@ -176,16 +243,33 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<SagaDefinition> ActivateDefinitionAsync(string definitionId)
     {
-        var definition = await _repository.GetByIdAsync(definitionId)
-            ?? throw new SagaException($"Definition '{definitionId}' not found");
+        if (string.IsNullOrWhiteSpace(definitionId))
+            throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
+
+        SagaDefinition definition;
+        try
+        {
+            definition = await _repository.GetByIdAsync(definitionId)
+                ?? throw new SagaException($"Definition '{definitionId}' not found");
+        }
+        catch (Exception ex) when (!(ex is SagaException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga definition for activation", ex);
+        }
 
         definition.IsActive = true;
 
-        var updated = await _repository.UpdateAsync(definition);
-        if (updated == null)
-            throw new SagaException("Failed to activate definition");
-
-        return updated;
+        try
+        {
+            var updated = await _repository.UpdateAsync(definition);
+            if (updated == null)
+                throw new SagaException("Failed to activate definition");
+            return updated;
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error activating saga definition", ex);
+        }
     }
 
     /// <summary>
@@ -193,16 +277,33 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<SagaDefinition> DeactivateDefinitionAsync(string definitionId)
     {
-        var definition = await _repository.GetByIdAsync(definitionId)
-            ?? throw new SagaException($"Definition '{definitionId}' not found");
+        if (string.IsNullOrWhiteSpace(definitionId))
+            throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
+
+        SagaDefinition definition;
+        try
+        {
+            definition = await _repository.GetByIdAsync(definitionId)
+                ?? throw new SagaException($"Definition '{definitionId}' not found");
+        }
+        catch (Exception ex) when (!(ex is SagaException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga definition for deactivation", ex);
+        }
 
         definition.IsActive = false;
 
-        var updated = await _repository.UpdateAsync(definition);
-        if (updated == null)
-            throw new SagaException("Failed to deactivate definition");
-
-        return updated;
+        try
+        {
+            var updated = await _repository.UpdateAsync(definition);
+            if (updated == null)
+                throw new SagaException("Failed to deactivate definition");
+            return updated;
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error deactivating saga definition", ex);
+        }
     }
 
     /// <summary>
@@ -210,8 +311,19 @@ public class SagaDefinitionService
     /// </summary>
     public async Task<SagaDefinition> CloneDefinitionAsync(string sourceDefinitionId)
     {
-        var source = await _repository.GetByIdAsync(sourceDefinitionId)
-            ?? throw new SagaException($"Definition '{sourceDefinitionId}' not found");
+        if (string.IsNullOrWhiteSpace(sourceDefinitionId))
+            throw new ArgumentException("Source definition ID must be provided", nameof(sourceDefinitionId));
+
+        SagaDefinition source;
+        try
+        {
+            source = await _repository.GetByIdAsync(sourceDefinitionId)
+                ?? throw new SagaException($"Definition '{sourceDefinitionId}' not found");
+        }
+        catch (Exception ex) when (!(ex is SagaException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving source saga definition for cloning", ex);
+        }
 
         var clone = new SagaDefinition(source.Name, source.Description)
         {
@@ -224,11 +336,17 @@ public class SagaDefinitionService
             clone.AddStep(step.Clone());
         }
 
-        var created = await _repository.CreateAsync(clone);
-        if (created == null)
-            throw new SagaException("Failed to clone saga definition");
-
-        return created;
+        try
+        {
+            var created = await _repository.CreateAsync(clone);
+            if (created == null)
+                throw new SagaException("Failed to clone saga definition");
+            return created;
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error cloning saga definition", ex);
+        }
     }
 }
 
