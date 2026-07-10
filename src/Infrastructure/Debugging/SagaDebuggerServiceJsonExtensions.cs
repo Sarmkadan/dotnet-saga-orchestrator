@@ -16,6 +16,10 @@ namespace SagaOrchestrator.Infrastructure.Debugging;
 /// Enables easy JSON serialization and deserialization of saga debugger state for
 /// debugging, logging, and transport scenarios.
 /// </summary>
+/// <remarks>
+/// This class is designed to be used with <see cref="SagaDebuggerService"/> instances
+/// that contain saga debugging state including snapshots, breakpoints, and timeline data.
+/// </remarks>
 public static class SagaDebuggerServiceJsonExtensions
 {
     private static readonly JsonSerializerOptions _jsonOptions = CreateJsonSerializerOptions();
@@ -38,12 +42,10 @@ public static class SagaDebuggerServiceJsonExtensions
     /// <param name="value">The debugger service instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON representation of the debugger service.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this SagaDebuggerService value, bool indented = false)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var options = new JsonSerializerOptions(_jsonOptions)
         {
@@ -57,20 +59,18 @@ public static class SagaDebuggerServiceJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized debugger service instance, or null if deserialization fails.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or whitespace.</exception>
     public static SagaDebuggerService? FromJson(string json)
     {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            throw new ArgumentException("JSON string cannot be null or whitespace.", nameof(json));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(json, nameof(json));
 
         try
         {
             return JsonSerializer.Deserialize<SagaDebuggerService>(json, _jsonOptions);
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            return null;
+            throw new FormatException("Failed to deserialize JSON string into SagaDebuggerService.", ex);
         }
     }
 
@@ -80,6 +80,7 @@ public static class SagaDebuggerServiceJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized debugger service instance if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or whitespace.</exception>
     public static bool TryFromJson(string json, out SagaDebuggerService? value)
     {
         value = null;
