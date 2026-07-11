@@ -15,7 +15,7 @@ using SagaOrchestrator.Core.Domain.Models;
 namespace SagaOrchestrator.Data.Repositories;
 
 /// <summary>
-/// Extension methods for InMemoryCompensationTransactionRepository providing additional functionality.
+/// Extension methods for <see cref="ICompensationTransactionRepository"/> providing additional compensation transaction query functionality.
 /// </summary>
 public static class InMemoryCompensationTransactionRepositoryExtensions
 {
@@ -26,16 +26,13 @@ public static class InMemoryCompensationTransactionRepositoryExtensions
     /// <param name="sagaId">The saga ID to filter by.</param>
     /// <param name="status">The compensation status to filter by.</param>
     /// <returns>The first matching compensation transaction or null if not found.</returns>
+/// <exception cref="ArgumentNullException"><paramref name="repository"/> is null.</exception>
     public static async Task<CompensationTransaction?> GetFirstBySagaIdAndStatusAsync(
         this ICompensationTransactionRepository repository,
         string sagaId,
         CompensationStatus status)
     {
-        if (repository == null)
-            throw new ArgumentNullException(nameof(repository));
-
-        if (string.IsNullOrEmpty(sagaId))
-            return null;
+    ArgumentNullException.ThrowIfNull(repository);
 
         var transactions = await repository.GetBySagaIdAsync(sagaId);
         return transactions.FirstOrDefault(t => t.Status == status);
@@ -48,16 +45,17 @@ public static class InMemoryCompensationTransactionRepositoryExtensions
     /// <param name="sagaId">The saga ID to filter by.</param>
     /// <param name="status">The compensation status to filter by.</param>
     /// <returns>List of matching compensation transactions.</returns>
+
+/// <exception cref="ArgumentNullException"><paramref name="repository"/> is null.</exception>
+/// <exception cref="ArgumentException"><paramref name="sagaId"/> is null or empty.</exception>
     public static async Task<List<CompensationTransaction>> GetBySagaIdAndStatusAsync(
         this ICompensationTransactionRepository repository,
         string sagaId,
         CompensationStatus status)
     {
-        if (repository == null)
-            throw new ArgumentNullException(nameof(repository));
+    ArgumentNullException.ThrowIfNull(repository);
 
-        if (string.IsNullOrEmpty(sagaId))
-            return new List<CompensationTransaction>();
+    ArgumentNullException.ThrowIfNullOrEmpty(sagaId);
 
         var transactions = await repository.GetBySagaIdAsync(sagaId);
         return transactions.Where(t => t.Status == status).ToList();
@@ -69,12 +67,13 @@ public static class InMemoryCompensationTransactionRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="status">The compensation status to filter by.</param>
     /// <returns>List of matching compensation transactions.</returns>
+
+/// <exception cref="ArgumentNullException"><paramref name="repository"/> is null.</exception>
     public static async Task<List<CompensationTransaction>> GetByStatusAsync(
         this ICompensationTransactionRepository repository,
         CompensationStatus status)
     {
-        if (repository == null)
-            throw new ArgumentNullException(nameof(repository));
+    ArgumentNullException.ThrowIfNull(repository);
 
         return await repository.GetByStatusAsync(status);
     }
@@ -85,12 +84,13 @@ public static class InMemoryCompensationTransactionRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="status">The compensation status to filter by.</param>
     /// <returns>The count of matching compensation transactions.</returns>
+
+/// <exception cref="ArgumentNullException"><paramref name="repository"/> is null.</exception>
     public static async Task<int> CountByStatusAsync(
         this ICompensationTransactionRepository repository,
         CompensationStatus status)
     {
-        if (repository == null)
-            throw new ArgumentNullException(nameof(repository));
+    ArgumentNullException.ThrowIfNull(repository);
 
         var transactions = await repository.GetByStatusAsync(status);
         return transactions.Count;
@@ -101,11 +101,12 @@ public static class InMemoryCompensationTransactionRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>List of compensation transactions in terminal states.</returns>
+
+/// <exception cref="ArgumentNullException"><paramref name="repository"/> is null.</exception>
     public static async Task<List<CompensationTransaction>> GetTerminalTransactionsAsync(
         this ICompensationTransactionRepository repository)
     {
-        if (repository == null)
-            throw new ArgumentNullException(nameof(repository));
+    ArgumentNullException.ThrowIfNull(repository);
 
         var all = await repository.GetAllAsync();
         return all.Where(t => t.Status == CompensationStatus.Completed
@@ -118,11 +119,12 @@ public static class InMemoryCompensationTransactionRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>List of active compensation transactions.</returns>
+
+/// <exception cref="ArgumentNullException"><paramref name="repository"/> is null.</exception>
     public static async Task<List<CompensationTransaction>> GetActiveTransactionsAsync(
         this ICompensationTransactionRepository repository)
     {
-        if (repository == null)
-            throw new ArgumentNullException(nameof(repository));
+    ArgumentNullException.ThrowIfNull(repository);
 
         var all = await repository.GetAllAsync();
         return all.Where(t => t.Status == CompensationStatus.Pending
