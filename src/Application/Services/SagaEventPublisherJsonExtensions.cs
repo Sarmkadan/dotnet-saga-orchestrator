@@ -14,7 +14,7 @@ namespace SagaOrchestrator.Application.Services;
 /// </summary>
 public static class SagaEventPublisherJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
@@ -26,28 +26,16 @@ public static class SagaEventPublisherJsonExtensions
     /// <param name="value">The SagaEventPublisher instance to serialize</param>
     /// <param name="indented">Whether to format the JSON with indentation</param>
     /// <returns>A JSON string representation of the SagaEventPublisher</returns>
-    public static string ToJson(this SagaEventPublisher value, bool indented = false)
-    {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonSerializerOptions)
-            {
-                WriteIndented = true
-            }
-            : _jsonSerializerOptions;
-
-        return JsonSerializer.Serialize(value, options);
-    }
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
+    public static string ToJson(this SagaEventPublisher value, bool indented = false) =>
+        JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(JsonSerializerOptions) { WriteIndented = true } : JsonSerializerOptions);
 
     /// <summary>
     /// Deserializes a JSON string to a SagaEventPublisher instance
     /// </summary>
     /// <param name="json">The JSON string to deserialize</param>
-    /// <returns>A SagaEventPublisher instance, or null if the JSON is empty</returns>
+    /// <returns>A SagaEventPublisher instance, or null if the JSON is empty or deserialization fails</returns>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized</exception>
     public static SagaEventPublisher? FromJson(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -57,7 +45,7 @@ public static class SagaEventPublisherJsonExtensions
 
         try
         {
-            return JsonSerializer.Deserialize<SagaEventPublisher>(json, _jsonSerializerOptions);
+            return JsonSerializer.Deserialize<SagaEventPublisher>(json, JsonSerializerOptions);
         }
         catch (JsonException)
         {
@@ -71,6 +59,7 @@ public static class SagaEventPublisherJsonExtensions
     /// <param name="json">The JSON string to deserialize</param>
     /// <param name="value">The deserialized SagaEventPublisher instance, or null on failure</param>
     /// <returns>True if deserialization succeeded; otherwise, false</returns>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized</exception>
     public static bool TryFromJson(string json, out SagaEventPublisher? value)
     {
         value = null;
@@ -82,7 +71,7 @@ public static class SagaEventPublisherJsonExtensions
 
         try
         {
-            value = JsonSerializer.Deserialize<SagaEventPublisher>(json, _jsonSerializerOptions);
+            value = JsonSerializer.Deserialize<SagaEventPublisher>(json, JsonSerializerOptions);
             return true;
         }
         catch (JsonException)
