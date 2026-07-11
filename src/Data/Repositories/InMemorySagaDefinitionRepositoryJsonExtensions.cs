@@ -26,16 +26,14 @@ public static class InMemorySagaDefinitionRepositoryJsonExtensions
     /// <param name="value">The repository instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the repository.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this InMemorySagaDefinitionRepository value, bool indented = false)
     {
-        if (value == null)
-            throw new ArgumentNullException(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
             ? new JsonSerializerOptions(_jsonSerializerOptions)
-            {
-                WriteIndented = true
-            }
+            { WriteIndented = true }
             : _jsonSerializerOptions;
 
         return JsonSerializer.Serialize(value, options);
@@ -45,9 +43,12 @@ public static class InMemorySagaDefinitionRepositoryJsonExtensions
     /// Deserializes a JSON string to an InMemorySagaDefinitionRepository instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized repository instance, or null if the JSON is invalid.</returns>
+    /// <returns>The deserialized repository instance, or null if the JSON is null, empty, or invalid.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static InMemorySagaDefinitionRepository? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrWhiteSpace(json))
             return null;
 
@@ -67,8 +68,10 @@ public static class InMemorySagaDefinitionRepositoryJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized repository instance, or null if deserialization fails.</param>
     /// <returns>True if deserialization succeeded; false otherwise.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out InMemorySagaDefinitionRepository? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
         value = null;
 
         if (string.IsNullOrWhiteSpace(json))
