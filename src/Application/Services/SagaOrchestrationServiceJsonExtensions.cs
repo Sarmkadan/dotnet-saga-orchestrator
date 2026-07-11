@@ -24,13 +24,11 @@ public static class SagaOrchestrationServiceJsonExtensions
     /// </summary>
     /// <param name="value">The service instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
     /// <returns>A JSON string representation of the service.</returns>
     public static string ToJson(this SagaOrchestrationService value, bool indented = false)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
             ? new JsonSerializerOptions(_jsonSerializerOptions)
@@ -46,13 +44,11 @@ public static class SagaOrchestrationServiceJsonExtensions
     /// Deserializes a JSON string to a <see cref="SagaOrchestrationService"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is null or whitespace.</exception>
     /// <returns>The deserialized service instance, or null if the JSON is invalid.</returns>
     public static SagaOrchestrationService? FromJson(string json)
     {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            throw new ArgumentException("JSON string must be provided", nameof(json));
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
         try
         {
@@ -69,15 +65,13 @@ public static class SagaOrchestrationServiceJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized service instance, or null if deserialization failed.</param>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is null or whitespace.</exception>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
     public static bool TryFromJson(string json, out SagaOrchestrationService? value)
     {
-        value = null;
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return false;
-        }
+        value = null;
 
         try
         {
