@@ -13,7 +13,7 @@ using SagaOrchestrator.Core.Domain.Enums;
 namespace SagaOrchestrator.Core.Domain.Models;
 
 /// <summary>
-/// Extension methods for CompensationTransaction providing additional functionality
+/// Extension methods for <see cref="CompensationTransaction"/> providing additional functionality
 /// for working with compensation transactions in saga orchestration scenarios.
 /// </summary>
 public static class CompensationTransactionExtensions
@@ -22,25 +22,24 @@ public static class CompensationTransactionExtensions
     /// Determines if the compensation transaction is still active and can be processed.
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>True if the transaction is active; otherwise false</returns>
     public static bool IsActive(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
-        return transaction.Status == CompensationStatus.Pending ||
-               transaction.Status == CompensationStatus.InProgress;
+        return transaction.Status is CompensationStatus.Pending or CompensationStatus.InProgress;
     }
 
     /// <summary>
     /// Determines if the compensation transaction has completed successfully.
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>True if the transaction completed successfully; otherwise false</returns>
     public static bool IsCompletedSuccessfully(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
         return transaction.Status == CompensationStatus.Completed &&
                transaction.CompletedAt.HasValue;
@@ -50,11 +49,11 @@ public static class CompensationTransactionExtensions
     /// Determines if the compensation transaction has failed.
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>True if the transaction failed; otherwise false</returns>
     public static bool IsFailed(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
         return transaction.Status == CompensationStatus.Failed &&
                transaction.FailedAt.HasValue;
@@ -65,11 +64,11 @@ public static class CompensationTransactionExtensions
     /// Returns null if the transaction hasn't completed or failed yet.
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>Duration in milliseconds or null if not completed</returns>
     public static long? GetDurationMs(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
         if (transaction.CompletedAt.HasValue)
             return (long)(transaction.CompletedAt.Value - transaction.InitiatedAt).TotalMilliseconds;
@@ -85,11 +84,11 @@ public static class CompensationTransactionExtensions
     /// Returns null if the transaction hasn't started yet.
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>Elapsed time in milliseconds or null if not started</returns>
     public static long? GetElapsedTimeMs(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
         if (transaction.Status == CompensationStatus.Pending)
             return null;
@@ -102,27 +101,27 @@ public static class CompensationTransactionExtensions
     /// Creates a deep copy of the compensation transaction.
     /// </summary>
     /// <param name="transaction">The compensation transaction to copy</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>A new CompensationTransaction instance with copied values</returns>
     public static CompensationTransaction DeepCopy(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
         var copy = new CompensationTransaction
         {
             Id = transaction.Id,
             SagaId = transaction.SagaId,
             StepId = transaction.StepId,
-            StepName = transaction.StepName,
+            StepName = transaction.StepName ?? string.Empty,
             Order = transaction.Order,
             Status = transaction.Status,
-            CompensationUrl = transaction.CompensationUrl,
+            CompensationUrl = transaction.CompensationUrl ?? string.Empty,
             RequestPayload = transaction.RequestPayload != null
-                ? new Dictionary<string, object>(transaction.RequestPayload)
-                : new Dictionary<string, object>(),
+                ? new Dictionary<string, object>(transaction.RequestPayload, StringComparer.Ordinal)
+                : new Dictionary<string, object>(StringComparer.Ordinal),
             ResponsePayload = transaction.ResponsePayload != null
-                ? new Dictionary<string, object>(transaction.ResponsePayload)
-                : new Dictionary<string, object>(),
+                ? new Dictionary<string, object>(transaction.ResponsePayload, StringComparer.Ordinal)
+                : new Dictionary<string, object>(StringComparer.Ordinal),
             InitiatedAt = transaction.InitiatedAt,
             CompletedAt = transaction.CompletedAt,
             FailedAt = transaction.FailedAt,
@@ -140,16 +139,17 @@ public static class CompensationTransactionExtensions
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
     /// <param name="payloadUpdates">Dictionary of key-value pairs to update or add</param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="transaction"/> is null
+    /// <para>-or-</para>
+    /// <paramref name="payloadUpdates"/> is null
+    /// </exception>
     public static void UpdateRequestPayload(this CompensationTransaction transaction, Dictionary<string, object> payloadUpdates)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
+        ArgumentNullException.ThrowIfNull(payloadUpdates);
 
-        if (payloadUpdates == null)
-            throw new ArgumentNullException(nameof(payloadUpdates));
-
-        if (transaction.RequestPayload == null)
-            transaction.RequestPayload = new Dictionary<string, object>();
+        transaction.RequestPayload ??= new Dictionary<string, object>(StringComparer.Ordinal);
 
         foreach (var kvp in payloadUpdates)
         {
@@ -161,11 +161,11 @@ public static class CompensationTransactionExtensions
     /// Checks if the compensation transaction has exceeded its maximum retry count.
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>True if max retries exceeded; otherwise false</returns>
     public static bool HasExceededMaxRetries(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
         return transaction.RetryCount >= transaction.MaxRetries;
     }
@@ -174,24 +174,24 @@ public static class CompensationTransactionExtensions
     /// Gets a summary string representation of the compensation transaction.
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>Formatted summary string</returns>
     public static string GetSummary(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
-        return $"CompensationTransaction [Id={transaction.Id}, SagaId={transaction.SagaId}, Step={transaction.StepName}, Status={transaction.Status}, Order={transaction.Order}]";
+        return $"CompensationTransaction [Id={transaction.Id}, SagaId={transaction.SagaId}, Step={transaction.StepName ?? "null"}, Status={transaction.Status}, Order={transaction.Order}]";
     }
 
     /// <summary>
     /// Determines if the compensation transaction can be safely retried based on its current state.
     /// </summary>
     /// <param name="transaction">The compensation transaction</param>
+    /// <exception cref="ArgumentNullException"><paramref name="transaction"/> is null</exception>
     /// <returns>True if retry is safe; otherwise false</returns>
     public static bool CanSafelyRetry(this CompensationTransaction transaction)
     {
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
+        ArgumentNullException.ThrowIfNull(transaction);
 
         return transaction.IsFailed() && !transaction.HasExceededMaxRetries();
     }
