@@ -17,28 +17,27 @@ using SagaOrchestrator.Core.Domain.Models;
 namespace SagaOrchestrator.Application.Services;
 
 /// <summary>
-/// Extension methods for CompensationService providing additional functionality
+/// Extension methods for <see cref="CompensationService"/> providing additional functionality
 /// for compensation transaction management and monitoring.
 /// </summary>
 public static class CompensationServiceExtensions
 {
     /// <summary>
-    /// Executes all pending compensation transactions for a saga sequentially
+    /// Executes all pending compensation transactions for a saga sequentially.
     /// </summary>
-    /// <param name="service">The CompensationService instance</param>
-    /// <param name="sagaId">The saga identifier</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>List of executed compensation transactions</returns>
+    /// <param name="service">The <see cref="CompensationService"/> instance.</param>
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="sagaId"/> is <see langword="null"/>, empty, or consists only of whitespace.</exception>
+    /// <returns>List of executed compensation transactions.</returns>
     public static async Task<List<CompensationTransaction>> ExecuteAllCompensationsAsync(
         this CompensationService service,
         string sagaId,
         CancellationToken cancellationToken = default)
     {
-        if (service == null)
-            throw new ArgumentNullException(nameof(service));
-
-        if (string.IsNullOrWhiteSpace(sagaId))
-            throw new ArgumentException("Saga ID cannot be null or empty", nameof(sagaId));
+        ArgumentNullException.ThrowIfNull(service);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
 
         var executedCompensations = new List<CompensationTransaction>();
         CompensationTransaction? currentCompensation;
@@ -58,62 +57,59 @@ public static class CompensationServiceExtensions
     }
 
     /// <summary>
-    /// Gets compensation transactions filtered by status
+    /// Gets compensation transactions filtered by status.
     /// </summary>
-    /// <param name="service">The CompensationService instance</param>
-    /// <param name="sagaId">The saga identifier</param>
-    /// <param name="status">Compensation status to filter by</param>
-    /// <returns>Filtered list of compensation transactions</returns>
+    /// <param name="service">The <see cref="CompensationService"/> instance.</param>
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="status">Compensation status to filter by.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="sagaId"/> is <see langword="null"/>, empty, or consists only of whitespace.</exception>
+    /// <returns>Filtered list of compensation transactions.</returns>
     public static async Task<List<CompensationTransaction>> GetCompensationsByStatusAsync(
         this CompensationService service,
         string sagaId,
         CompensationStatus status)
     {
-        if (service == null)
-            throw new ArgumentNullException(nameof(service));
-
-        if (string.IsNullOrWhiteSpace(sagaId))
-            throw new ArgumentException("Saga ID cannot be null or empty", nameof(sagaId));
+        ArgumentNullException.ThrowIfNull(service);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
 
         var allCompensations = await service.GetCompensationsAsync(sagaId);
         return allCompensations.Where(c => c.Status == status).ToList();
     }
 
     /// <summary>
-    /// Checks if a saga has any pending compensations
+    /// Checks if a saga has any pending compensations.
     /// </summary>
-    /// <param name="service">The CompensationService instance</param>
-    /// <param name="sagaId">The saga identifier</param>
-    /// <returns>True if saga has pending compensations, false otherwise</returns>
+    /// <param name="service">The <see cref="CompensationService"/> instance.</param>
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="sagaId"/> is <see langword="null"/>, empty, or consists only of whitespace.</exception>
+    /// <returns>True if saga has pending compensations; otherwise, false.</returns>
     public static async Task<bool> HasPendingCompensationsAsync(
         this CompensationService service,
         string sagaId)
     {
-        if (service == null)
-            throw new ArgumentNullException(nameof(service));
-
-        if (string.IsNullOrWhiteSpace(sagaId))
-            throw new ArgumentException("Saga ID cannot be null or empty", nameof(sagaId));
+        ArgumentNullException.ThrowIfNull(service);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
 
         var pendingCompensations = await service.GetCompensationsByStatusAsync(sagaId, CompensationStatus.Pending);
         return pendingCompensations.Count > 0;
     }
 
     /// <summary>
-    /// Gets the count of compensation transactions for a saga
+    /// Gets the count of compensation transactions for a saga.
     /// </summary>
-    /// <param name="service">The CompensationService instance</param>
-    /// <param name="sagaId">The saga identifier</param>
-    /// <returns>Count of compensation transactions</returns>
+    /// <param name="service">The <see cref="CompensationService"/> instance.</param>
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="sagaId"/> is <see langword="null"/>, empty, or consists only of whitespace.</exception>
+    /// <returns>Count of compensation transactions.</returns>
     public static async Task<int> GetCompensationCountAsync(
         this CompensationService service,
         string sagaId)
     {
-        if (service == null)
-            throw new ArgumentNullException(nameof(service));
-
-        if (string.IsNullOrWhiteSpace(sagaId))
-            throw new ArgumentException("Saga ID cannot be null or empty", nameof(sagaId));
+        ArgumentNullException.ThrowIfNull(service);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
 
         var compensations = await service.GetCompensationsAsync(sagaId);
         return compensations.Count;
