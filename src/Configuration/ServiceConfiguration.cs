@@ -25,6 +25,8 @@ public static class ServiceConfiguration
         if (services == null)
             throw new ArgumentNullException(nameof(services));
 
+        services.AddLogging();
+
         // Register repositories (in-memory; swap for database-backed implementations as needed)
         services.AddSingleton<ISagaRepository, InMemorySagaRepository>();
         services.AddSingleton<ISagaStepRepository, InMemorySagaStepRepository>();
@@ -84,6 +86,7 @@ public static class ServiceConfiguration
         if (services == null)
             throw new ArgumentNullException(nameof(services));
 
+        services.AddLogging();
         services.AddSingleton<ISagaLogger, SagaLogger>();
         services.AddSingleton<SagaDefinitionService>();
         services.AddSingleton<CompensationService>();
