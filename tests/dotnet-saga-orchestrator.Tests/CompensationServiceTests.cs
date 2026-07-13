@@ -287,6 +287,7 @@ public class CompensationServiceTests
         await service.ExecuteNextCompensationAsync(saga.Id);
 
         sagaRepoMock.Verify(r => r.UpdateAsync(It.IsAny<Saga>()), Times.AtLeastOnce);
-        compRepoMock.Verify(r => r.UpdateAsync(It.IsAny<CompensationTransaction>()), Times.Once);
+        // The single compensation transitions through Start() and Complete(), each persisted separately.
+        compRepoMock.Verify(r => r.UpdateAsync(It.IsAny<CompensationTransaction>()), Times.Exactly(2));
     }
 }
