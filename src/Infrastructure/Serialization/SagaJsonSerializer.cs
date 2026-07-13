@@ -208,7 +208,10 @@ public class DateTimeConverter : JsonConverter<DateTime>
 {
     public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        return DateTime.Parse(reader.GetString() ?? string.Empty, null, System.Globalization.DateTimeStyles.RoundtripKind);
+        return DateTime.Parse(
+            reader.GetString() ?? string.Empty,
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.RoundtripKind);
     }
 
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)

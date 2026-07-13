@@ -13,8 +13,6 @@ namespace SagaOrchestrator.Core.Utilities;
 /// </summary>
 public class RetryPolicy
 {
-    private static readonly Random _jitterRandom = new();
-
     public int MaxRetries { get; }
     public int InitialDelayMs { get; }
     public double BackoffMultiplier { get; }
@@ -67,7 +65,7 @@ public class RetryPolicy
         if (UseJitter)
         {
             // Apply ±25% random jitter
-            var jitterFactor = 0.75 + _jitterRandom.NextDouble() * 0.5;
+            var jitterFactor = 0.75 + Random.Shared.NextDouble() * 0.5;
             delay = (int)(delay * jitterFactor);
         }
 
