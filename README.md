@@ -154,6 +154,61 @@ Console.WriteLine($"Is valid saga ID: {isValidSaga}"); // True
 Console.WriteLine($"Is valid correlation ID: {isValidCorrelation}"); // True
 ```
 
+## SagaCommandResult
+
+The `SagaCommandResult` class is a standardized response DTO for all saga operations. It provides a consistent response format with success status, message, data payload, error collection, and metadata. This type is used throughout the application to return operation results from command handlers, services, and API endpoints.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.DTOs;
+
+// Create a successful command result with data
+var successResult = SagaCommandResult.SuccessResult(
+    "Order processed successfully",
+    new { OrderId = "ord_12345", Status = "Completed" }
+);
+
+Console.WriteLine($"Success: {successResult.Success}");
+Console.WriteLine($"Message: {successResult.Message}");
+Console.WriteLine($"Data: {successResult.Data}");
+Console.WriteLine($"Request ID: {successResult.RequestId}");
+Console.WriteLine($"Timestamp: {successResult.Timestamp}");
+Console.WriteLine($"Errors: {string.Join(", ", successResult.Errors)}");
+
+// Create a failed command result with multiple errors
+var failureResult = SagaCommandResult.FailureResult(
+    "Failed to process payment",
+    "Insufficient funds",
+    "Payment gateway unavailable"
+);
+
+Console.WriteLine($"Success: {failureResult.Success}");
+Console.WriteLine($"Message: {failureResult.Message}");
+Console.WriteLine($"Errors: {string.Join(", ", failureResult.Errors)}");
+
+// Create an exception command result
+try
+{
+    // Some operation that might throw
+}
+catch (Exception ex)
+{
+    var exceptionResult = SagaCommandResult.ExceptionResult(ex);
+    Console.WriteLine($"Exception captured: {exceptionResult.Message}");
+    Console.WriteLine($"Error details: {exceptionResult.Errors[0]}");
+}
+
+// Generic version example
+var genericSuccess = SagaCommandResult<string>.SuccessResult(
+    "payment_processing_complete",
+    "Payment processed successfully"
+);
+
+Console.WriteLine($"Generic Success: {genericSuccess.Success}");
+Console.WriteLine($"Generic Data: {genericSuccess.Data}");
+```
+
 ## CreateSagaRequest
 
 The `CreateSagaRequest` class is a request model for creating a new saga instance. It allows you to specify the saga definition, configure retry behavior, set timeout constraints, and attach metadata or initial payload data. The request can be validated using the `IsValid()` method to ensure required fields are present and values are within acceptable ranges.
