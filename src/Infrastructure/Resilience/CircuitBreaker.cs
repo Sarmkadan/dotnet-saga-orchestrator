@@ -15,19 +15,52 @@ namespace SagaOrchestrator.Infrastructure.Resilience;
 /// </summary>
 public interface ICircuitBreaker
 {
+    /// <summary>
+    /// Executes the action under the breaker for the given identifier.
+    /// </summary>
+    /// <param name="action">The action to guard.</param>
+    /// <param name="identifier">The logical target the breaker tracks (e.g. a service name).</param>
+    /// <returns><c>true</c> if the action ran; <c>false</c> if the breaker was open and rejected it.</returns>
     Task<bool> ExecuteAsync(Func<Task> action, string identifier);
+
+    /// <summary>
+    /// Executes the action under the breaker and returns its result.
+    /// </summary>
+    /// <typeparam name="T">The result type.</typeparam>
+    /// <param name="action">The action to guard.</param>
+    /// <param name="identifier">The logical target the breaker tracks.</param>
+    /// <returns>The action result.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the breaker is open.</exception>
     Task<T> ExecuteAsync<T>(Func<Task<T>> action, string identifier);
+
+    /// <summary>Gets the current state of the breaker for the given identifier.</summary>
+    /// <param name="identifier">The logical target the breaker tracks.</param>
+    /// <returns>The current <see cref="CircuitBreakerState"/>.</returns>
     CircuitBreakerState GetState(string identifier);
+
+    /// <summary>Clears all recorded state for the given identifier, returning it to closed.</summary>
+    /// <param name="identifier">The logical target to reset.</param>
     void Reset(string identifier);
 }
 
+/// <summary>
+/// The states of a circuit breaker.
+/// </summary>
 public enum CircuitBreakerState
 {
-    Closed,      // Normal operation
-    Open,        // Failing, block requests
-    HalfOpen     // Testing if service recovered
+    /// <summary>Normal operation; requests flow through and failures are counted.</summary>
+    Closed,
+
+    /// <summary>The breaker has tripped; requests are rejected immediately until the open window elapses.</summary>
+    Open,
+
+    /// <summary>A single trial request is allowed through to test whether the target has recovered.</summary>
+    HalfOpen
 }
 
+/// <summary>
+/// Default per-identifier circuit breaker implementation. See <see cref="ICircuitBreaker"/>.
+/// </summary>
 public class CircuitBreaker : ICircuitBreaker
 {
     private readonly ConcurrentDictionary<string, CircuitBreakerMetrics> _metrics;
@@ -35,6 +68,11 @@ public class CircuitBreaker : ICircuitBreaker
     private readonly TimeSpan _timeout;
     private readonly object _lock = new();
 
+    /// <summary>
+    /// Initializes a new circuit breaker.
+    /// </summary>
+    /// <param name="failureThreshold">Consecutive failures that trip the breaker open.</param>
+    /// <param name="timeoutSeconds">How long the breaker stays open before allowing a half-open probe.</param>
     public CircuitBreaker(int failureThreshold = 5, int timeoutSeconds = 60)
     {
         _failureThreshold = failureThreshold.GreaterThan(0, nameof(failureThreshold));
@@ -42,6 +80,7 @@ public class CircuitBreaker : ICircuitBreaker
         _metrics = new();
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExecuteAsync(Func<Task> action, string identifier)
     {
         try
@@ -61,6 +100,7 @@ public class CircuitBreaker : ICircuitBreaker
         }
     }
 
+    /// <inheritdoc />
     public async Task<T> ExecuteAsync<T>(Func<Task<T>> action, string identifier)
     {
         try
@@ -80,6 +120,7 @@ public class CircuitBreaker : ICircuitBreaker
         }
     }
 
+    /// <inheritdoc />
     public CircuitBreakerState GetState(string identifier)
     {
         lock (_lock)
@@ -98,6 +139,7 @@ public class CircuitBreaker : ICircuitBreaker
         }
     }
 
+    /// <inheritdoc />
     public void Reset(string identifier)
     {
         lock (_lock)

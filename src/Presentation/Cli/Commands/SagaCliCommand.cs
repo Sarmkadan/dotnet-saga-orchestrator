@@ -12,13 +12,26 @@ namespace SagaOrchestrator.Presentation.Cli.Commands;
 /// </summary>
 public class SagaCliCommand
 {
+    /// <summary>Gets or sets the verb of the command (create, execute, status, list, compensate, help).</summary>
     public string CommandType { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the parsed <c>--key=value</c> named arguments.</summary>
     public Dictionary<string, string> Arguments { get; set; } = new();
+
+    /// <summary>Gets or sets the parsed flag-style options (<c>--flag</c> or <c>-f</c>).</summary>
     public List<string> Options { get; set; } = new();
+
+    /// <summary>Gets a value indicating whether the command passed validation for its verb.</summary>
     public bool IsValid { get; private set; }
+
+    /// <summary>Gets or sets the validation errors accumulated while parsing the command.</summary>
     public List<string> ValidationErrors { get; set; } = new();
 
-    // Parse CLI arguments into a structured command
+    /// <summary>
+    /// Parses raw CLI arguments into a structured, validated command.
+    /// </summary>
+    /// <param name="args">The raw argument array, where <c>args[0]</c> is the command verb.</param>
+    /// <returns>A parsed command; inspect <see cref="IsValid"/> and <see cref="ValidationErrors"/> before use.</returns>
     public static SagaCliCommand Parse(string[] args)
     {
         var command = new SagaCliCommand();
@@ -113,6 +126,10 @@ public class SagaCliCommand
         return true;
     }
 
+    /// <summary>
+    /// Returns the human-readable usage/help text describing every supported command and option.
+    /// </summary>
+    /// <returns>The formatted help text.</returns>
     public string GetHelpText()
     {
         return @"

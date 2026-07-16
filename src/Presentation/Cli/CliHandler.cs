@@ -19,9 +19,18 @@ namespace SagaOrchestrator.Presentation.Cli;
 /// </summary>
 public interface ICliHandler
 {
+    /// <summary>
+    /// Parses and dispatches a single CLI invocation.
+    /// </summary>
+    /// <param name="args">The raw command-line arguments.</param>
+    /// <returns>A process exit code: <c>0</c> on success, non-zero on failure.</returns>
     Task<int> HandleCommandAsync(string[] args);
 }
 
+/// <summary>
+/// Default <see cref="ICliHandler"/> implementation that parses <see cref="Commands.SagaCliCommand"/>
+/// instances and routes them to the orchestration and definition services.
+/// </summary>
 public class CliHandler : ICliHandler
 {
     private readonly SagaOrchestrationService _orchestrationService;
@@ -30,6 +39,14 @@ public class CliHandler : ICliHandler
     private readonly IOutputFormatter _outputFormatter;
     private readonly ILogger<CliHandler> _logger;
 
+    /// <summary>
+    /// Initializes a new <see cref="CliHandler"/> with its required services.
+    /// </summary>
+    /// <param name="orchestrationService">The saga orchestration service.</param>
+    /// <param name="definitionService">The saga definition service.</param>
+    /// <param name="sagaLogger">The saga logger used to render timelines.</param>
+    /// <param name="outputFormatter">The formatter used to render command output.</param>
+    /// <param name="logger">The diagnostic logger.</param>
     public CliHandler(
         SagaOrchestrationService orchestrationService,
         SagaDefinitionService definitionService,
@@ -44,6 +61,7 @@ public class CliHandler : ICliHandler
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <inheritdoc />
     public async Task<int> HandleCommandAsync(string[] args)
     {
         try

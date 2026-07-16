@@ -18,51 +18,67 @@ namespace SagaOrchestrator.Core.Domain.Models;
 /// </summary>
 public class SagaStep
 {
+    /// <summary>Gets or sets the unique identifier of the step instance.</summary>
     [JsonPropertyName("id")]
     public string Id { get; set; }
 
+    /// <summary>Gets or sets the identifier of the saga this step belongs to.</summary>
     [JsonPropertyName("sagaId")]
     public string SagaId { get; set; }
 
+    /// <summary>Gets or sets the human-readable name of the step.</summary>
     [JsonPropertyName("name")]
     public string Name { get; set; }
 
+    /// <summary>Gets or sets the execution order of the step within the saga (1-based).</summary>
     [JsonPropertyName("order")]
     public int Order { get; set; }
 
+    /// <summary>Gets or sets the current status of the step.</summary>
     [JsonPropertyName("status")]
     public SagaStepStatus Status { get; set; }
 
+    /// <summary>Gets or sets the URL of the forward action endpoint for the step.</summary>
     [JsonPropertyName("serviceUrl")]
     public string ServiceUrl { get; set; }
 
+    /// <summary>Gets or sets the URL of the compensating action endpoint for the step.</summary>
     [JsonPropertyName("compensationUrl")]
     public string CompensationUrl { get; set; }
 
+    /// <summary>Gets or sets the request payload sent to the forward action.</summary>
     [JsonPropertyName("payload")]
     public Dictionary<string, object> Payload { get; set; } = new();
 
+    /// <summary>Gets or sets the response returned by the forward action.</summary>
     [JsonPropertyName("response")]
     public Dictionary<string, object> Response { get; set; } = new();
 
+    /// <summary>Gets or sets the time the step started executing, if applicable.</summary>
     [JsonPropertyName("startedAt")]
     public DateTime? StartedAt { get; set; }
 
+    /// <summary>Gets or sets the time the step completed, if applicable.</summary>
     [JsonPropertyName("completedAt")]
     public DateTime? CompletedAt { get; set; }
 
+    /// <summary>Gets or sets the time the step was compensated, if applicable.</summary>
     [JsonPropertyName("compensatedAt")]
     public DateTime? CompensatedAt { get; set; }
 
+    /// <summary>Gets or sets the error message recorded when the step failed.</summary>
     [JsonPropertyName("errorMessage")]
     public string? ErrorMessage { get; set; }
 
+    /// <summary>Gets or sets the number of retry attempts made for this step.</summary>
     [JsonPropertyName("retryCount")]
     public int RetryCount { get; set; }
 
+    /// <summary>Gets or sets the maximum number of retries allowed for this step.</summary>
     [JsonPropertyName("maxRetries")]
     public int MaxRetries { get; set; } = 3;
 
+    /// <summary>Gets or sets the per-step execution timeout in seconds.</summary>
     [JsonPropertyName("timeoutSeconds")]
     public int TimeoutSeconds { get; set; } = 30;
 
