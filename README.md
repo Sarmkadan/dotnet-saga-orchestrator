@@ -130,30 +130,6 @@ var failedResponse = new SagaResponse
 };
 ```
 
-### Usage Example
-
-```csharp
-using SagaOrchestrator.Core.Utilities;
-
-var sagaId = SagaIdGenerator.GenerateSagaId();
-var correlationId = SagaIdGenerator.GenerateCorrelationId();
-var stepId = SagaIdGenerator.GenerateStepId();
-var traceId = SagaIdGenerator.GenerateTraceId();
-var requestId = SagaIdGenerator.GenerateRequestId();
-
-Console.WriteLine($"Saga ID: {sagaId}"); // e.g. saga_xxxxxxxxxxxx
-Console.WriteLine($"Correlation ID: {correlationId}"); // e.g. corr_xxxxxxxxxxxx or xxxxxxxxxxxx
-Console.WriteLine($"Step ID: {stepId}"); // e.g. step_xxxxxxxxxxxx
-Console.WriteLine($"Trace ID: {traceId}"); // e.g. trace_xxxxxxxxxxxx
-Console.WriteLine($"Request ID: {requestId}"); // e.g. req_xxxxxxxx_xxxx
-
-bool isValidSaga = SagaIdGenerator.IsValidSagaId(sagaId);
-bool isValidCorrelation = SagaIdGenerator.IsValidCorrelationId(correlationId);
-
-Console.WriteLine($"Is valid saga ID: {isValidSaga}"); // True
-Console.WriteLine($"Is valid correlation ID: {isValidCorrelation}"); // True
-```
-
 ## SagaCommandResult
 
 The `SagaCommandResult` class is a standardized response DTO for all saga operations. It provides a consistent response format with success status, message, data payload, error collection, and metadata. This type is used throughout the application to return operation results from command handlers, services, and API endpoints.
@@ -377,4 +353,47 @@ foreach (var compensation in allCompensations)
 {
     Console.WriteLine($"Compensation {compensation.Id}: {compensation.StepName} - {compensation.Status}");
 }
+```
+
+## IMetricsService
+
+The `IMetricsService` interface provides methods for collecting and reporting metrics related to saga execution. It allows you to retrieve overall saga metrics, step-specific metrics, and performance statistics. The service can be used to monitor the health and efficiency of the saga system.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.Services;
+
+// Initialize the metrics service
+var metricsService = new MetricsService(
+    sagaRepository,
+    stepRepository,
+    logger
+);
+
+// Get overall saga metrics
+var sagaMetrics = await metricsService.GetMetricsAsync();
+Console.WriteLine($"Total Sagas: {sagaMetrics.TotalSagas}");
+Console.WriteLine($"Completed Sagas: {sagaMetrics.CompletedSagas}");
+Console.WriteLine($"Failed Sagas: {sagaMetrics.FailedSagas}");
+Console.WriteLine($"Success Rate: {sagaMetrics.SuccessRate}%");
+Console.WriteLine($"Average Duration: {sagaMetrics.AverageDurationSeconds} seconds");
+
+// Get step-specific metrics
+var stepMetrics = await metricsService.GetStepMetricsAsync("Validate Order");
+Console.WriteLine($"Step Name: {stepMetrics.StepName}");
+Console.WriteLine($"Total Executions: {stepMetrics.TotalExecutions}");
+Console.WriteLine($"Successful Executions: {stepMetrics.SuccessfulExecutions}");
+Console.WriteLine($"Failed Executions: {stepMetrics.FailedExecutions}");
+Console.WriteLine($"Success Rate: {stepMetrics.SuccessRate}%");
+Console.WriteLine($"Average Duration: {stepMetrics.AverageDurationMs} ms");
+
+// Get performance statistics
+var performanceStats = await metricsService.GetPerformanceStatsAsync();
+Console.WriteLine($"Average Duration: {performanceStats.AverageDurationSeconds} seconds");
+Console.WriteLine($"Min Duration: {performanceStats.MinDurationSeconds} seconds");
+Console.WriteLine($"Max Duration: {performanceStats.MaxDurationSeconds} seconds");
+Console.WriteLine($"Median Duration: {performanceStats.MedianDurationSeconds} seconds");
+Console.WriteLine($"P95 Duration: {performanceStats.P95DurationSeconds} seconds");
+Console.WriteLine($"P99 Duration: {performanceStats.P99DurationSeconds} seconds");
 ```
