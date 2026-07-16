@@ -288,6 +288,49 @@ double percentage = customTimeout.GetElapsedPercentage(startTime);
 Console.WriteLine($"Elapsed percentage: {percentage:F2}%");
 ```
 
+## SagaCliCommand
+
+The `SagaCliCommand` class represents a CLI command for saga operations with full argument parsing. It supports various commands including `create`, `execute`, `status`, `list`, `compensate`, and `help`. The class parses raw CLI arguments into structured command properties, validates them, and provides helpful error messages and usage text.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Presentation.Cli.Commands;
+
+// Parse CLI arguments into a structured command
+var args1 = new[] { "create", "--definition", "OrderProcessing", "--data", "{\"orderId\": 123}" };
+var command1 = SagaCliCommand.Parse(args1);
+
+if (command1.IsValid)
+{
+    Console.WriteLine($"Command: {command1.CommandType}");
+    Console.WriteLine($"Definition: {command1.Arguments["definition"]}");
+    Console.WriteLine($"Data: {command1.Arguments["data"]}");
+}
+else
+{
+    Console.WriteLine("Validation errors:");
+    foreach (var error in command1.ValidationErrors)
+    {
+        Console.WriteLine($"- {error}");
+    }
+}
+
+// Parse an execute command
+var args2 = new[] { "execute", "--saga-id", "ddf3c1ec-5b23-4905-b78c-ecc897d15443", "--async" };
+var command2 = SagaCliCommand.Parse(args2);
+
+if (command2.IsValid)
+{
+    Console.WriteLine($"Executing saga: {command2.Arguments["saga-id"]}");
+    Console.WriteLine($"Async mode: {command2.Options.Contains("async")}");
+}
+
+// Get help text
+var helpText = command1.GetHelpText();
+Console.WriteLine(helpText);
+```
+
 ## CompensationService
 
 The `CompensationService` handles the execution of compensating transactions when a saga fails. It manages the entire compensation workflow including initiating compensation, executing compensation steps in the appropriate order, retrying failed compensations, and checking for timeouts. The service supports different compensation strategies (reverse order, forward order, parallel) and automatically handles saga state transitions throughout the compensation process.
