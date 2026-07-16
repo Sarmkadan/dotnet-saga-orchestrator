@@ -154,6 +154,62 @@ Console.WriteLine($"Is valid saga ID: {isValidSaga}"); // True
 Console.WriteLine($"Is valid correlation ID: {isValidCorrelation}"); // True
 ```
 
+## CreateSagaRequest
+
+The `CreateSagaRequest` class is a request model for creating a new saga instance. It allows you to specify the saga definition, configure retry behavior, set timeout constraints, and attach metadata or initial payload data. The request can be validated using the `IsValid()` method to ensure required fields are present and values are within acceptable ranges.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.DTOs;
+
+// Create a request to start a new order processing saga
+var request = new CreateSagaRequest
+{
+    DefinitionId = "order_processing_v2",
+    DefinitionName = "Order Processing Saga",
+    MaxRetries = 3,
+    TimeoutSeconds = 300,
+    Metadata = new Dictionary<string, object>
+    {
+        { "customerId", "cust_12345" },
+        { "orderId", "ord_67890" },
+        { "priority", "high" }
+    },
+    Data = "{\"orderTotal\": 99.99, \"items\": [{\"sku\": \"WIDGET-001\", \"quantity\": 2}]}"
+};
+
+// Validate the request before sending
+if (request.IsValid())
+{
+    Console.WriteLine("Saga request is valid");
+    Console.WriteLine($"Definition: {request.DefinitionId}");
+    Console.WriteLine($"Max Retries: {request.MaxRetries ?? 0}");
+    Console.WriteLine($"Timeout: {request.TimeoutSeconds ?? 0} seconds");
+    Console.WriteLine($"Metadata Count: {request.Metadata?.Count ?? 0}");
+}
+
+// Create a minimal request using only DefinitionId
+var minimalRequest = new CreateSagaRequest
+{
+    DefinitionId = "simple_saga"
+};
+
+// Create a request with just DefinitionName (alternative to DefinitionId)
+var namedRequest = new CreateSagaRequest
+{
+    DefinitionName = "Payment Processing",
+    MaxRetries = 5,
+    TimeoutSeconds = 600
+};
+
+// Create a request without optional fields
+var basicRequest = new CreateSagaRequest
+{
+    DefinitionId = "inventory_update"
+};
+```
+
 ## TimeoutPolicy
 
 The `TimeoutPolicy` class encapsulates timeout configuration for sagas and saga steps. It provides methods for checking timeout conditions, calculating remaining time, and determining if sufficient time remains for operations. Timeout policies can be created using predefined factory methods (`CreateLenient`, `CreateStandard`, `CreateStrict`) or customized with a specific timeout duration.
