@@ -1392,6 +1392,51 @@ Console.WriteLine($"- Max Cache Size: {prodOptions.CachePolicies.MaxCacheSize} i
 // services.Configure<SagaOptions>(configuration.GetSection(SagaOptions.SectionName));
 ```
 
+## SagaIntegrationTests
+
+The `SagaIntegrationTests` class provides comprehensive integration tests for the Saga Orchestrator system, validating end-to-end workflows, concurrent operations, and various configuration scenarios. These tests exercise the complete saga lifecycle including definition creation, saga instantiation, step execution, timeout handling, retry policies, compensation workflows, and status-based queries. The test suite ensures thread safety, proper configuration application, and system reliability across different scenarios.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+using Xunit;
+
+public class ExampleIntegrationTests
+{
+    [Fact]
+    public async Task TestCompleteWorkflow()
+    {
+        // Create a test instance
+        var tests = new SagaIntegrationTests();
+        
+        // Test end-to-end saga workflow
+        await tests.EndToEnd_CreateDefinition_CreateSaga_ExecuteSteps_CompletesSuccessfully();
+        
+        // Test money transfer scenario with three steps
+        await tests.MoneyTransferScenario_DefinitionWithThreeSteps_ValidatesAndCreates();
+        
+        // Test concurrent operations
+        await tests.ConcurrentSagaCreation_MultipleThreads_AllSagasCreatedSuccessfully();
+        await tests.ConcurrentSagaExecution_MultipleThreads_AllProcessWithoutErrors();
+        
+        // Test different timeout and retry configurations
+        await tests.SagaWithDifferentTimeouts_CreatesCorrectPolicies();
+        await tests.SagaWithDifferentRetryPolicies_CreatesCorrectConfigs();
+        
+        // Test saga lifecycle and compensation
+        await tests.SagaLifecycle_Create_Start_Fail_BeginCompensation_Workflow();
+        
+        // Test status filtering
+        await tests.GetSagasByStatus_ReturnsOnlyMatchingStatus();
+        
+        // Test edge cases
+        await tests.SagaWithManySteps_Handles100Steps();
+        await tests.CreateMultipleDefinitions_TracksThemIndependently();
+    }
+}
+```
+
 ## InMemorySagaDefinitionRepository
 
 The `InMemorySagaDefinitionRepository` provides an in-memory implementation of `ISagaDefinitionRepository` for storing and retrieving saga workflow definitions. It maintains all saga definitions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
