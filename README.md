@@ -1650,6 +1650,62 @@ public class ExampleValidatorTests
 }
 ```
 
+## RetryPolicyTests
+
+The `RetryPolicyTests` class contains unit tests for the `RetryPolicy` class, validating retry behavior, delay calculations, and configuration validation. These tests verify that retry policies correctly handle exponential backoff, linear delays, maximum retry limits, and edge cases. The test suite ensures that retry configurations are properly validated and that delay calculations follow expected mathematical patterns.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+using Xunit;
+
+public class ExampleRetryPolicyTests
+{
+[Fact]
+public void TestRetryPolicyConfiguration()
+{
+// Create a test instance
+var tests = new RetryPolicyTests();
+
+// Test constructor validation - negative values should throw
+Assert.Throws<ArgumentException>(() => tests.Constructor_NegativeMaxRetries_ThrowsArgumentException(-1));
+Assert.Throws<ArgumentException>(() => tests.Constructor_NegativeInitialDelay_ThrowsArgumentException(-1));
+Assert.Throws<ArgumentException>(() => tests.Constructor_BackoffMultiplierBelowOne_ThrowsArgumentException(0.9));
+Assert.Throws<ArgumentException>(() => tests.Constructor_MaxDelayLessThanInitialDelay_ThrowsArgumentException(100, 200));
+
+// Test delay calculation - exponential backoff
+var delay1 = tests.CalculateDelay_FirstAttempt_ReturnsInitialDelay(1, 100, 2.0);
+Assert.Equal(100, delay1.TotalMilliseconds);
+
+var delay2 = tests.CalculateDelay_SecondAttempt_AppliesExponentialBackoff(2, 100, 2.0);
+Assert.Equal(200, delay2.TotalMilliseconds); // 100 * 2.0
+
+var delay3 = tests.CalculateDelay_ThirdAttempt_SquaresTheMultiplier(3, 100, 2.0);
+Assert.Equal(400, delay3.TotalMilliseconds); // 100 * 2.0 * 2.0
+
+// Test max delay capping
+var largeDelay = tests.CalculateDelay_LargeAttemptNumber_CapsAtMaxDelay(10, 100, 2.0, 500);
+Assert.Equal(500, largeDelay.TotalMilliseconds); // Capped at max delay
+
+// Test factory methods
+var linearPolicy = tests.CreateLinear_AllAttemptsReturnSameFixedDelay(100);
+Assert.Equal(100, linearPolicy.DelayMs);
+
+var noRetryPolicy = tests.CreateNoRetry_SetsZeroMaxRetriesAndDelay();
+Assert.Equal(0, noRetryPolicy.MaxRetries);
+Assert.Equal(0, noRetryPolicy.DelayMs);
+
+var exponentialPolicy = tests.CreateExponential_UsesDoubleBackoffMultiplier(100, 2.0);
+Assert.Equal(2.0, exponentialPolicy.BackoffMultiplier);
+
+// Test CanRetry method
+Assert.True(tests.CanRetry_WhenBelowMaxRetries_ReturnsTrue(3, 5));
+Assert.False(tests.CanRetry_WhenAtMaxRetries_ReturnsFalse(5, 5));
+}
+}
+```
+
 ## InMemorySagaDefinitionRepository
 
 The `InMemorySagaDefinitionRepository` provides an in-memory implementation of `ISagaDefinitionRepository` for storing and retrieving saga workflow definitions. It maintains all saga definitions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
