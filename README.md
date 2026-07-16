@@ -1491,6 +1491,46 @@ public class ExampleIntegrationTests
 }
 ```
 
+## CompensationServiceTests
+
+The `CompensationServiceTests` class contains unit tests for the `CompensationService` that validate compensation workflows, transaction creation, and error handling scenarios. These tests verify that the compensation service properly handles saga failures by creating compensation transactions for completed steps, executing them in the correct order, and managing state transitions throughout the compensation process. The test suite ensures thread safety and proper error handling across different compensation scenarios.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+using Xunit;
+
+public class ExampleCompensationTests
+{
+[Fact]
+public async Task TestCompensationWorkflow()
+{
+// Create a test instance
+var tests = new CompensationServiceTests();
+
+// Test constructor validation
+var act1 = () => new CompensationService(null!, sagaRepoMock.Object, stepRepoMock.Object);
+await act1.Should().Throw<ArgumentNullException>();
+
+// Test saga compensation workflows
+await tests.BeginCompensationAsync_WithFailedStatus_TransitionsToCompensating();
+await tests.BeginCompensationAsync_CreatesCompensationTransactionsForCompleted();
+await tests.BeginCompensationAsync_IgnoresPendingSteps();
+
+// Test compensation execution
+await tests.ExecuteNextCompensationAsync_WithPendingCompensation_ReturnsThat();
+await tests.ExecuteNextCompensationAsync_SkipsPreviouslyExecuted();
+await tests.CompleteCompensationAsync_WithValidTransaction_MarksSagaCompensated();
+
+// Test error scenarios
+await tests.BeginCompensationAsync_WithNullSaga_ThrowsArgumentNullException();
+await tests.BeginCompensationAsync_WithRunningStatus_ThrowsSagaException();
+await tests.ExecuteNextCompensationAsync_WithNonexistentSaga_ThrowsSagaNotFoundException();
+}
+}
+```
+
 ## SagaDefinitionValidatorTests
 
 The `SagaDefinitionValidatorTests` class contains unit tests for the `SagaDefinitionValidator` that validate saga definition structure, step configurations, and business rule compliance. These tests verify that saga definitions meet all structural requirements including name validation, step count limits, step ordering, service URL formats, timeout constraints, and retry policy validation. The test suite ensures that invalid definitions are properly rejected with appropriate error messages.
