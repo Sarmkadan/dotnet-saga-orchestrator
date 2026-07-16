@@ -643,6 +643,72 @@ var failedSagas = await sagaOrchestrationService.ListSagasAsync(SagaStatus.Faile
 Console.WriteLine($"Found {failedSagas.Count} failed sagas");
 ```
 
+## SagaEventPublisher
+
+The `SagaEventPublisher` class provides event publishing and management capabilities for saga domain events. It maintains an audit trail of saga events and supports event subscription for real-time monitoring and integration with external systems. The publisher allows filtering and querying events by saga ID, event type, or severity level, and provides export functionality for compliance and debugging purposes.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.Services;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Initialize the saga event publisher
+var eventPublisher = new SagaEventPublisher();
+
+// Subscribe to all saga events
+Func<SagaEvent, Task> eventHandler = async (sagaEvent) => {
+    Console.WriteLine($"Event received: {sagaEvent.EventType} for saga {sagaEvent.SagaId}");
+    Console.WriteLine($"  - Severity: {sagaEvent.Severity}");
+    Console.WriteLine($"  - Message: {sagaEvent.Message}");
+    Console.WriteLine($"  - Timestamp: {sagaEvent.Timestamp}");
+};
+
+eventPublisher.Subscribe(eventHandler);
+
+// Create and publish a saga event
+var sagaEvent = new SagaEvent(
+    sagaId: "saga_abc123",
+    eventType: "SagaStarted",
+    message: "Order processing saga has started",
+    severity: EventSeverity.Information
+);
+
+await eventPublisher.PublishAsync(sagaEvent);
+
+// Get all events for a specific saga
+var sagaEvents = eventPublisher.GetSagaEvents("saga_abc123");
+Console.WriteLine($"Found {sagaEvents.Count} events for saga saga_abc123");
+
+// Get events by type
+var startedEvents = eventPublisher.GetEventsByType("saga_abc123", "SagaStarted");
+Console.WriteLine($"Found {startedEvents.Count} 'SagaStarted' events");
+
+// Get all events with filtering
+var allEvents = eventPublisher.GetAllEvents(
+    sagaId: "saga_abc123",
+    eventType: "SagaStepCompleted",
+    severity: EventSeverity.Information
+);
+
+// Get event count
+var eventCount = eventPublisher.GetEventCount("saga_abc123");
+Console.WriteLine($"Total events for saga: {eventCount}");
+
+// Export events to file
+await eventPublisher.ExportEventsAsync("saga_events.json", "saga_abc123");
+Console.WriteLine("Events exported to saga_events.json");
+
+// Publish multiple events at once
+var eventsToPublish = new SagaEvent[] {
+    new SagaEvent("saga_abc123", "SagaStepStarted", "Validating order", EventSeverity.Debug),
+    new SagaEvent("saga_abc123", "SagaStepCompleted", "Order validated successfully", EventSeverity.Information)
+};
+
+await eventPublisher.PublishAsync(eventsToPublish);
+```
+
 ## IMetricsService
 
 The `IMetricsService` interface provides methods for collecting and reporting metrics related to saga execution. It allows you to retrieve overall saga metrics, step-specific metrics, and performance statistics. The service can be used to monitor the health and efficiency of the saga system.
