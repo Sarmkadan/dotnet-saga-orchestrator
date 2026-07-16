@@ -971,6 +971,71 @@ Console.WriteLine($"Update non-existent saga result: {updateResult?.Id ?? "null 
 
 The `InMemoryCompensationTransactionRepository` provides an in-memory implementation of `ICompensationTransactionRepository` for storing and retrieving compensation transactions during saga execution. It maintains all compensation transactions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
 
+## DebuggerOptions
+
+The `DebuggerOptions` class provides configuration for the distributed saga debugger, controlling snapshot capture behavior, breakpoint limits, and data inclusion policies. It can be loaded from `appsettings.json` under the `SagaDebugger` section or configured programmatically using the `DebuggerOptionsBuilder` fluent API. The debugger adds zero overhead when disabled, making it safe for production use.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Configuration;
+
+// Example 1: Configure via builder API
+var debuggerOptions = new DebuggerOptionsBuilder()
+    .Enable()
+    .WithMaxSnapshotsPerSaga(100)
+    .WithAutoCapture(
+        onStepTransition: true,
+        onCompensation: true,
+        onTerminalState: true
+    )
+    .WithMaxBreakpointsPerSaga(25)
+    .WithDataInclusion(
+        includePayloads: true,
+        includeMetadata: true
+    )
+    .WithTimeTravel(enabled: true)
+    .Build();
+
+Console.WriteLine($"Debugger enabled: {debuggerOptions.IsEnabled}");
+Console.WriteLine($"Max snapshots: {debuggerOptions.MaxSnapshotsPerSaga}");
+Console.WriteLine($"Auto capture on step transition: {debuggerOptions.AutoCaptureOnStepTransition}");
+Console.WriteLine($"Auto capture on compensation: {debuggerOptions.AutoCaptureOnCompensation}");
+Console.WriteLine($"Auto capture on terminal state: {debuggerOptions.AutoCaptureOnTerminalState}");
+Console.WriteLine($"Max breakpoints: {debuggerOptions.MaxBreakpointsPerSaga}");
+Console.WriteLine($"Include step payloads: {debuggerOptions.IncludeStepPayloads}");
+Console.WriteLine($"Include saga metadata: {debuggerOptions.IncludeSagaMetadata}");
+Console.WriteLine($"Time travel enabled: {debuggerOptions.EnableTimeTravel}");
+
+// Example 2: Load from appsettings.json
+// In appsettings.json:
+// {
+//   "SagaDebugger": {
+//     "IsEnabled": true,
+//     "MaxSnapshotsPerSaga": 100,
+//     "AutoCaptureOnStepTransition": true,
+//     "AutoCaptureOnCompensation": true,
+//     "AutoCaptureOnTerminalState": true,
+//     "MaxBreakpointsPerSaga": 25,
+//     "IncludeStepPayloads": true,
+//     "IncludeSagaMetadata": true,
+//     "EnableTimeTravel": true
+//   }
+// }
+
+// Then bind to configuration:
+// services.Configure<DebuggerOptions>(configuration.GetSection(DebuggerOptions.SectionName));
+
+// Example 3: Minimal configuration with defaults
+var minimalOptions = new DebuggerOptionsBuilder()
+    .Enable()
+    .Build();
+
+Console.WriteLine($"Minimal debugger enabled: {minimalOptions.IsEnabled}");
+Console.WriteLine($"Default max snapshots: {minimalOptions.MaxSnapshotsPerSaga}");
+Console.WriteLine($"Default max breakpoints: {minimalOptions.MaxBreakpointsPerSaga}");
+```
+
 ### Usage Example
 
 ```csharp
