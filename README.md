@@ -1547,6 +1547,77 @@ public class ExampleIntegrationTests
 }
 ```
 
+## CircuitBreakerTests
+
+The `CircuitBreakerTests` class contains unit tests for the `CircuitBreaker` class that verify circuit breaker pattern behavior. These tests cover circuit state transitions (closed, open, half-open), failure tracking, timeout handling, and state management for different service identifiers. The circuit breaker pattern prevents cascading failures by temporarily stopping calls to failing services and automatically attempting recovery after a timeout period.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Resilience;
+using SagaOrchestrator.Tests;
+
+// Initialize a circuit breaker with 3 failure threshold and 60 second timeout
+var breaker = new CircuitBreaker(failureThreshold: 3, timeoutSeconds: 60);
+
+// Example 1: Execute a successful action - circuit remains closed
+var success = await breaker.ExecuteAsync(async () => 
+{
+    // Call external service
+    await CallExternalService();
+    return true;
+}, "payment-service");
+
+Console.WriteLine($"Success: {success}, Circuit State: {breaker.GetState("payment-service")}");
+
+// Example 2: Execute a failing action - circuit transitions to open after threshold
+try
+{
+    await breaker.ExecuteAsync(async () => 
+    {
+        await Task.CompletedTask;
+        throw new InvalidOperationException("Service unavailable");
+    }, "failing-service").CatchAsync();
+}
+catch { /* handled */ }
+
+Console.WriteLine($"Circuit State after failure: {breaker.GetState("failing-service")}"); // Open
+
+// Example 3: Execute when circuit is open - returns false without calling action
+var result = await breaker.ExecuteAsync(async () => 
+{
+    await Task.CompletedTask;
+    return true;
+}, "failing-service");
+
+Console.WriteLine($"Result when open: {result}"); // false
+Console.WriteLine($"Circuit State: {breaker.GetState("failing-service")}"); // Still Open
+
+// Example 4: Wait for timeout, circuit enters half-open state
+await Task.Delay(61000); // Wait for timeout period
+Console.WriteLine($"Circuit State after timeout: {breaker.GetState("failing-service")}"); // HalfOpen
+
+// Example 5: Successful execution in half-open closes the circuit
+var recoverySuccess = await breaker.ExecuteAsync(async () => 
+{
+    await Task.CompletedTask;
+    return true;
+}, "failing-service");
+
+Console.WriteLine($"Recovery success: {recoverySuccess}, Circuit State: {breaker.GetState("failing-service")}"); // Closed
+
+// Example 6: Reset circuit breaker state for a specific service
+breaker.Reset("payment-service");
+Console.WriteLine($"After reset: {breaker.GetState("payment-service")}"); // Closed
+
+// Helper method to swallow exceptions in examples
+public static async Task CatchAsync(this Task task)
+{
+    try { await task; }
+    catch { /* swallow */ }
+}
+```
+
 ## CompensationServiceTests
 
 The `CompensationServiceTests` class contains unit tests for the `CompensationService` that validate compensation workflows, transaction creation, and error handling scenarios. These tests verify that the compensation service properly handles saga failures by creating compensation transactions for completed steps, executing them in the correct order, and managing state transitions throughout the compensation process. The test suite ensures thread safety and proper error handling across different compensation scenarios.
