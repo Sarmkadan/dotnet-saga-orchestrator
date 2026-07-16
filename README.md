@@ -14,71 +14,120 @@ The `SagaIdGenerator` class provides a set of utility methods for generating and
 
 The `ISagaResponseMapper` interface provides methods for converting saga domain models to response DTOs, enabling consistent API response formatting. It supports mapping individual sagas, collections of sagas, and individual saga steps to their corresponding response types.
 
+## SagaResponse
+
+The `SagaResponse` class is a response model that represents the state and metadata of a saga execution. It provides a structured view of saga operations including identification, timing, status tracking, and step-level details for API consumers. The response includes aggregated metrics like step counts, retry counts, and timing information to give a complete picture of saga progress and completion status.
+
 ### Usage Example
 
 ```csharp
-using SagaOrchestrator.Application.Mappers;
 using SagaOrchestrator.Application.DTOs;
-using SagaOrchestrator.Core.Domain.Models;
-using SagaOrchestrator.Core.Domain.Enums;
 
-// Create a mapper instance
-var mapper = new SagaResponseMapper();
-
-// Example saga domain model
-var saga = new Saga
+// Create a completed saga response
+var response = new SagaResponse
 {
     Id = "saga_abc123",
     CorrelationId = "corr_xyz789",
-    Status = SagaStatus.Completed,
-    Definition = new SagaDefinition { Id = "order_processing", Name = "Order Processing Saga" },
+    Status = "Completed",
+    DefinitionId = "order_processing",
+    DefinitionName = "Order Processing Saga",
     StartedAt = DateTime.UtcNow.AddMinutes(-5),
     CompletedAt = DateTime.UtcNow,
+    FailureReason = null,
+    StepCount = 3,
+    CompletedSteps = 3,
+    FailedSteps = 0,
     RetryCount = 0,
-    Steps = new List<SagaStep>
+    Steps = new List<SagaStepResponse>
     {
-        new SagaStep
+        new SagaStepResponse
         {
             Id = "step_001",
             Name = "Validate Order",
             Order = 1,
-            Status = SagaStepStatus.Completed,
-            ServiceUrl = "https://order-service/api/validate",
+            Status = "Completed",
+            ServiceName = "https://order-service/api/validate",
             StartedAt = DateTime.UtcNow.AddMinutes(-5),
             CompletedAt = DateTime.UtcNow.AddMinutes(-4),
-            RetryCount = 0,
-            ErrorMessage = null
+            ErrorMessage = null,
+            RetryCount = 0
         },
-        new SagaStep
+        new SagaStepResponse
         {
             Id = "step_002",
             Name = "Process Payment",
             Order = 2,
-            Status = SagaStepStatus.Completed,
-            ServiceUrl = "https://payment-service/api/charge",
+            Status = "Completed",
+            ServiceName = "https://payment-service/api/charge",
             StartedAt = DateTime.UtcNow.AddMinutes(-4),
             CompletedAt = DateTime.UtcNow.AddMinutes(-3),
-            RetryCount = 0,
-            ErrorMessage = null
+            ErrorMessage = null,
+            RetryCount = 0
+        },
+        new SagaStepResponse
+        {
+            Id = "step_003",
+            Name = "Ship Order",
+            Order = 3,
+            Status = "Completed",
+            ServiceName = "https://shipping-service/api/ship",
+            StartedAt = DateTime.UtcNow.AddMinutes(-3),
+            CompletedAt = DateTime.UtcNow.AddMinutes(-2),
+            ErrorMessage = null,
+            RetryCount = 0
         }
     }
 };
 
-// Map single saga to response
-SagaResponse response = mapper.MapToResponse(saga);
 Console.WriteLine($"Saga ID: {response.Id}");
 Console.WriteLine($"Status: {response.Status}");
-Console.WriteLine($"Steps: {response.Steps.Count}");
+Console.WriteLine($"Definition: {response.DefinitionName}");
+Console.WriteLine($"Progress: {response.CompletedSteps}/{response.StepCount} steps completed");
+Console.WriteLine($"Duration: {(response.CompletedAt - response.StartedAt)?.TotalSeconds ?? 0} seconds");
 
-// Map collection of sagas to responses
-var sagas = new List<Saga> { saga };
-List<SagaResponse> responses = mapper.MapToResponses(sagas);
-
-// Map individual saga step to response
-SagaStep step = saga.Steps[0];
-SagaStepResponse stepResponse = mapper.MapStepToResponse(step);
-Console.WriteLine($"Step Name: {stepResponse.Name}");
-Console.WriteLine($"Service: {stepResponse.ServiceName}");
+// Create a failed saga response with retry information
+var failedResponse = new SagaResponse
+{
+    Id = "saga_def456",
+    CorrelationId = "corr_uvw123",
+    Status = "Failed",
+    DefinitionId = "payment_processing",
+    DefinitionName = "Payment Processing Saga",
+    StartedAt = DateTime.UtcNow.AddMinutes(-10),
+    CompletedAt = DateTime.UtcNow,
+    FailureReason = "Payment gateway timeout",
+    StepCount = 2,
+    CompletedSteps = 1,
+    FailedSteps = 1,
+    RetryCount = 2,
+    Steps = new List<SagaStepResponse>
+    {
+        new SagaStepResponse
+        {
+            Id = "step_001",
+            Name = "Validate Payment Method",
+            Order = 1,
+            Status = "Completed",
+            ServiceName = "https://payment-service/api/validate",
+            StartedAt = DateTime.UtcNow.AddMinutes(-10),
+            CompletedAt = DateTime.UtcNow.AddMinutes(-9),
+            ErrorMessage = null,
+            RetryCount = 0
+        },
+        new SagaStepResponse
+        {
+            Id = "step_002",
+            Name = "Charge Payment",
+            Order = 2,
+            Status = "Failed",
+            ServiceName = "https://payment-service/api/charge",
+            StartedAt = DateTime.UtcNow.AddMinutes(-9),
+            CompletedAt = null,
+            ErrorMessage = "Payment gateway timeout after 30 seconds",
+            RetryCount = 2
+        }
+    }
+};
 ```
 
 ### Usage Example
