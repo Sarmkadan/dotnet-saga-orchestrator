@@ -459,7 +459,63 @@ public void TestTimeoutPolicy_LenientConfiguration()
 }
 ```
 
+## StringExtensionsTests
+
+The `StringExtensionsTests` class contains unit tests for the `StringExtensions` static class, which provides various string transformation and manipulation utility methods. These extensions enable consistent formatting of identifiers, URLs, and display text across the saga orchestrator system. The test suite validates that each extension method handles edge cases like empty strings, null values, and special characters correctly.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+using SagaOrchestrator.Core.Extensions;
+
+// Example 1: Test PascalCase to snake_case conversion
+var snakeCaseResult = "OrderProcessing".ToSnakeCase();
+Console.WriteLine(snake_caseResult); // Output: "order_processing"
+
+// Example 2: Test PascalCase to kebab-case conversion
+var kebabCaseResult = "SagaOrchestrator".ToKebabCase();
+Console.WriteLine(kebabCaseResult); // Output: "saga-orchestrator"
+
+// Example 3: Test PascalCase to camelCase conversion
+var camelCaseResult = "SagaOrchestrator".ToCamelCase();
+Console.WriteLine(camelCaseResult); // Output: "sagaOrchestrator"
+
+// Example 4: Test string truncation
+var truncated = "This is a very long description".Truncate(15);
+Console.WriteLine(truncated); // Output: "This is a ve..."
+
+// Example 5: Test substring counting
+var count = "saga:step:saga:comp:saga".CountOccurrences("saga");
+Console.WriteLine(count); // Output: 3
+
+// Example 6: Test URL-friendly slug generation
+var slug = "Order Processing! #123".ToSlug();
+Console.WriteLine(slug); // Output: "order-processing-123"
+
+// Example 7: Test prefix removal
+var withoutPrefix = "saga_abc123".RemovePrefix("saga_");
+Console.WriteLine(withoutPrefix); // Output: "abc123"
+
+// Example 8: Test suffix removal
+var withoutSuffix = "order-saga".RemoveSuffix("-saga");
+Console.WriteLine(withoutSuffix); // Output: "order"
+
+// Example 9: Test null handling for empty strings
+string? nullIfEmpty = string.Empty.NullIfEmpty();
+Console.WriteLine(nullIfEmpty == null ? "null" : nullIfEmpty); // Output: "null"
+
+// Example 10: Test string repetition
+var repeated = "ab".Repeat(3);
+Console.WriteLine(repeated); // Output: "ababab"
+
+// Example 11: Test string splitting and trimming
+var parts = " alpha , beta , gamma ".SplitAndTrim(',');
+Console.WriteLine(string.Join(", ", parts)); // Output: "alpha, beta, gamma"
+```
+
 ## SagaCliCommand
+
 
 The `SagaCliCommand` class represents a CLI command for saga operations with full argument parsing. It supports various commands including `create`, `execute`, `status`, `list`, `compensate`, and `help`. The class parses raw CLI arguments into structured command properties, validates them, and provides helpful error messages and usage text.
 
