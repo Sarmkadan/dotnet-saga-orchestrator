@@ -966,3 +966,86 @@ var nonExistentSaga = new Saga { Id = "saga_nonexistent", Definition = new SagaD
 var updateResult = await sagaRepository.UpdateAsync(nonExistentSaga);
 Console.WriteLine($"Update non-existent saga result: {updateResult?.Id ?? "null (saga not found)}");
 ```
+
+## InMemoryCompensationTransactionRepository
+
+The `InMemoryCompensationTransactionRepository` provides an in-memory implementation of `ICompensationTransactionRepository` for storing and retrieving compensation transactions during saga execution. It maintains all compensation transactions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Initialize the in-memory compensation transaction repository
+var compensationRepository = new InMemoryCompensationTransactionRepository();
+
+// Example 1: Create a new compensation transaction
+var compensation = new CompensationTransaction
+{
+  Id = "comp_001",
+  SagaId = "saga_order_123",
+  StepName = "Process Payment",
+  Order = 2,
+  Status = CompensationStatus.Pending,
+  ServiceName = "https://payment-service/api/refund",
+  HttpMethod = System.Net.Http.HttpMethod.Post,
+  RetryCount = 0,
+  MaxRetries = 3,
+  TimeoutSeconds = 30,
+  CreatedAt = DateTime.UtcNow,
+  UpdatedAt = DateTime.UtcNow
+};
+
+var createdCompensation = await compensationRepository.CreateAsync(compensation);
+Console.WriteLine($"Created compensation: {createdCompensation?.Id} - {createdCompensation?.StepName}");
+
+// Example 2: Retrieve a compensation transaction by ID
+var retrievedCompensation = await compensationRepository.GetByIdAsync("comp_001");
+if (retrievedCompensation != null)
+{
+  Console.WriteLine($"Retrieved compensation: {retrievedCompensation.StepName} (Status: {retrievedCompensation.Status}");
+}
+
+// Example 3: Update a compensation transaction's status
+retrievedCompensation.Status = CompensationStatus.InProgress;
+retrievedCompensation.UpdatedAt = DateTime.UtcNow;
+var updatedCompensation = await compensationRepository.UpdateAsync(retrievedCompensation);
+Console.WriteLine($"Updated compensation status to: {updatedCompensation?.Status}");
+
+// Example 4: Get all compensation transactions for a specific saga
+var sagaCompensations = await compensationRepository.GetBySagaIdAsync("saga_order_123");
+Console.WriteLine($"Found {sagaCompensations.Count} compensation transactions for saga saga_order_123");
+foreach (var comp in sagaCompensations)
+{
+  Console.WriteLine($"- Compensation {comp.Order}: {comp.StepName} ({comp.Status})");
+}
+
+// Example 5: Get all compensation transactions with a specific status
+var pendingCompensations = await compensationRepository.GetByStatusAsync(CompensationStatus.Pending);
+Console.WriteLine($"Found {pendingCompensations.Count} pending compensations across all sagas");
+
+// Example 6: Get all compensation transactions in the repository
+var allCompensations = await compensationRepository.GetAllAsync();
+Console.WriteLine($"Total compensations in repository: {allCompensations.Count}");
+
+// Example 7: Delete a compensation transaction
+var deleted = await compensationRepository.DeleteAsync("comp_001");
+Console.WriteLine($"Compensation deleted: {deleted}");
+
+// Example 8: Handle duplicate creation (throws exception)
+try
+{
+  await compensationRepository.CreateAsync(compensation);
+}
+catch (InvalidOperationException ex)
+{
+  Console.WriteLine($"Expected error: {ex.Message}");
+}
+
+// Example 9: Attempt to update non-existent compensation
+var nonExistentCompensation = new CompensationTransaction { Id = "comp_nonexistent", SagaId = "saga_test" };
+var updateResult = await compensationRepository.UpdateAsync(nonExistentCompensation);
+Console.WriteLine($"Update non-existent compensation result: {updateResult?.Id ?? "null (compensation not found)}");
+```
