@@ -1437,6 +1437,125 @@ public class ExampleIntegrationTests
 }
 ```
 
+## SagaDefinitionValidatorTests
+
+The `SagaDefinitionValidatorTests` class contains unit tests for the `SagaDefinitionValidator` that validate saga definition structure, step configurations, and business rule compliance. These tests verify that saga definitions meet all structural requirements including name validation, step count limits, step ordering, service URL formats, timeout constraints, and retry policy validation. The test suite ensures that invalid definitions are properly rejected with appropriate error messages.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+using Xunit;
+
+public class ExampleValidatorTests
+{
+    [Fact]
+    public async Task ValidateDefinition_WithValidDefinition_DoesNotThrow()
+    {
+        // Arrange
+        var tests = new SagaDefinitionValidatorTests();
+        var definition = new SagaDefinition(
+            "Order Processing Saga",
+            "Handles complete order processing workflow"
+        );
+        
+        definition.AddStep(new SagaStepDefinition(
+            "Validate Order",
+            "https://order-service/api/validate",
+            HttpMethod.Get,
+            "Validate customer order details"
+        ));
+        
+        definition.AddStep(new SagaStepDefinition(
+            "Process Payment",
+            "https://payment-service/api/charge",
+            HttpMethod.Post,
+            "Charge customer payment method"
+        ));
+        
+        // Act & Assert
+        await tests.ValidateAsync_WithValidDefinition_DoesNotThrow(definition);
+    }
+
+    [Fact]
+    public async Task ValidateDefinition_WithInvalidDefinition_Throws()
+    {
+        // Arrange
+        var tests = new SagaDefinitionValidatorTests();
+        var invalidDefinition = new SagaDefinition(
+            "", // Empty name
+            ""
+        );
+        
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => tests.ValidateAsync_WithInvalidDefinition_Throws(invalidDefinition)
+        );
+    }
+
+    [Fact]
+    public async Task ValidateDefinition_WithTooManySteps_Throws()
+    {
+        // Arrange
+        var tests = new SagaDefinitionValidatorTests();
+        var definition = new SagaDefinition("Test Saga", "Test");
+        
+        // Add 101 steps (exceeds maximum of 100)
+        for (int i = 0; i <= 100; i++)
+        {
+            definition.AddStep(new SagaStepDefinition(
+                $"Step {i}",
+                $"https://service-{i}.com/api",
+                HttpMethod.Get,
+                "Test step"
+            ));
+        }
+        
+        // Act & Assert
+        var errors = await tests.ValidateAndGetErrorsAsync_TooManySteps_ReturnsError(definition);
+        Assert.Contains(errors, e => e.Contains("Maximum 100 steps"));
+    }
+
+    [Fact]
+    public async Task ValidateDefinition_WithDuplicateStepOrder_Throws()
+    {
+        // Arrange
+        var tests = new SagaDefinitionValidatorTests();
+        var definition = new SagaDefinition("Test Saga", "Test");
+        
+        var step1 = new SagaStepDefinition(
+            "First Step",
+            "https://service1.com/api",
+            HttpMethod.Get,
+            "First step"
+        );
+        var step2 = new SagaStepDefinition(
+            "Second Step",
+            "https://service2.com/api",
+            HttpMethod.Post,
+            "Second step"
+        );
+        
+        definition.AddStep(step1);
+        definition.AddStep(step2);
+        
+        // Try to add another step with order 1 (duplicate)
+        var step3 = new SagaStepDefinition(
+            "Third Step",
+            "https://service3.com/api",
+            HttpMethod.Get,
+            "Third step"
+        );
+        step3.Order = 1;
+        definition.AddStep(step3);
+        
+        // Act & Assert
+        var errors = await tests.ValidateAndGetErrorsAsync_DuplicateStepOrder_ReturnsError(definition);
+        Assert.Contains(errors, e => e.Contains("Duplicate step order"));
+    }
+}
+```
+
 ## InMemorySagaDefinitionRepository
 
 The `InMemorySagaDefinitionRepository` provides an in-memory implementation of `ISagaDefinitionRepository` for storing and retrieving saga workflow definitions. It maintains all saga definitions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
