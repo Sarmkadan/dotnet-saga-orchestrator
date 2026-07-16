@@ -1049,3 +1049,102 @@ var nonExistentCompensation = new CompensationTransaction { Id = "comp_nonexiste
 var updateResult = await compensationRepository.UpdateAsync(nonExistentCompensation);
 Console.WriteLine($"Update non-existent compensation result: {updateResult?.Id ?? "null (compensation not found)}");
 ```
+
+## InMemorySagaDefinitionRepository
+
+The `InMemorySagaDefinitionRepository` provides an in-memory implementation of `ISagaDefinitionRepository` for storing and retrieving saga workflow definitions. It maintains all saga definitions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Initialize the in-memory saga definition repository
+var sagaDefinitionRepository = new InMemorySagaDefinitionRepository();
+
+// Example 1: Create a new saga definition
+var definition = new SagaDefinition(
+  "Order Processing Saga",
+  "Handles the complete order processing workflow from validation to shipping"
+);
+
+definition.AddStep(new SagaStepDefinition(
+  "Validate Order",
+  "https://order-service/api/validate",
+  HttpMethod.Get,
+  "Validate customer order details and inventory availability"
+));
+
+definition.AddStep(new SagaStepDefinition(
+  "Process Payment",
+  "https://payment-service/api/charge",
+  HttpMethod.Post,
+  "Charge customer payment method"
+));
+
+definition.AddStep(new SagaStepDefinition(
+  "Ship Order",
+  "https://shipping-service/api/ship",
+  HttpMethod.Post,
+  "Create shipping label and schedule delivery"
+));
+
+var createdDefinition = await sagaDefinitionRepository.CreateAsync(definition);
+Console.WriteLine($"Created definition: {createdDefinition?.Name} (ID: {createdDefinition?.Id})");
+
+// Example 2: Retrieve a definition by ID
+var retrievedDefinition = await sagaDefinitionRepository.GetByIdAsync(createdDefinition.Id);
+if (retrievedDefinition != null)
+{
+  Console.WriteLine($"Retrieved definition: {retrievedDefinition.Name} (Version: {retrievedDefinition.Version})");
+}
+
+// Example 3: Retrieve a definition by name
+var definitionByName = await sagaDefinitionRepository.GetByNameAsync("Order Processing Saga");
+Console.WriteLine($"Found definition by name: {definitionByName?.Id}");
+
+// Example 4: Update a definition's active status
+retrievedDefinition.IsActive = true;
+retrievedDefinition.UpdatedAt = DateTime.UtcNow;
+var updatedDefinition = await sagaDefinitionRepository.UpdateAsync(retrievedDefinition);
+Console.WriteLine($"Updated definition active status to: {updatedDefinition?.IsActive}");
+
+// Example 5: Get all saga definitions
+var allDefinitions = await sagaDefinitionRepository.GetAllAsync();
+Console.WriteLine($"Total definitions in repository: {allDefinitions.Count}");
+
+// Example 6: Get all active saga definitions
+var activeDefinitions = await sagaDefinitionRepository.GetActiveAsync();
+Console.WriteLine($"Active definitions: {activeDefinitions.Count}");
+
+// Example 7: Search definitions by criteria
+var searchCriteria = new Dictionary<string, object>
+{
+  { "name", "Order" },
+  { "activeOnly", true }
+};
+var searchResults = await sagaDefinitionRepository.SearchAsync(searchCriteria);
+Console.WriteLine($"Found {searchResults.Count} definitions matching criteria");
+
+// Example 8: Delete a definition
+var deleted = await sagaDefinitionRepository.DeleteAsync(createdDefinition.Id);
+Console.WriteLine($"Definition deleted: {deleted}");
+
+// Example 9: Handle duplicate creation (throws exception)
+try
+{
+  await sagaDefinitionRepository.CreateAsync(definition);
+}
+catch (InvalidOperationException ex)
+{
+  Console.WriteLine($"Expected error: {ex.Message}");
+}
+
+// Example 10: Attempt to update non-existent definition
+var nonExistentDefinition = new SagaDefinition("Non-existent", "Test");
+nonExistentDefinition.Id = "non_existent_id";
+var updateResult = await sagaDefinitionRepository.UpdateAsync(nonExistentDefinition);
+Console.WriteLine($"Update non-existent definition result: {updateResult?.Id ?? "null (definition not found)}");
+```
