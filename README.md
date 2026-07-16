@@ -794,3 +794,90 @@ Console.WriteLine($"Median Duration: {performanceStats.MedianDurationSeconds} se
 Console.WriteLine($"P95 Duration: {performanceStats.P95DurationSeconds} seconds");
 Console.WriteLine($"P99 Duration: {performanceStats.P99DurationSeconds} seconds");
 ```
+
+## InMemorySagaStepRepository
+
+The `InMemorySagaStepRepository` provides an in-memory implementation of `ISagaStepRepository` for storing and retrieving saga steps during execution. It maintains all saga steps in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Initialize the in-memory saga step repository
+var stepRepository = new InMemorySagaStepRepository();
+
+// Example 1: Create a new saga step
+var step1 = new SagaStep
+{
+    Id = "step_001",
+    SagaId = "saga_order_123",
+    Name = "Validate Order",
+    Order = 1,
+    Status = SagaStepStatus.Pending,
+    ServiceName = "https://order-service/api/validate",
+    HttpMethod = System.Net.Http.HttpMethod.Get,
+    RetryCount = 0,
+    MaxRetries = 3,
+    TimeoutSeconds = 30,
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+
+var createdStep = await stepRepository.CreateAsync(step1);
+Console.WriteLine($"Created step: {createdStep?.Id} - {createdStep?.Name}");
+
+// Example 2: Retrieve a step by ID
+var retrievedStep = await stepRepository.GetByIdAsync("step_001");
+if (retrievedStep != null)
+{
+    Console.WriteLine($"Retrieved step: {retrievedStep.Name} (Status: {retrievedStep.Status})");
+}
+
+// Example 3: Update a step's status
+retrievedStep.Status = SagaStepStatus.InProgress;
+retrievedStep.UpdatedAt = DateTime.UtcNow;
+var updatedStep = await stepRepository.UpdateAsync(retrievedStep);
+Console.WriteLine($"Updated step status to: {updatedStep?.Status}");
+
+// Example 4: Get all steps for a specific saga
+var sagaSteps = await stepRepository.GetBySagaIdAsync("saga_order_123");
+Console.WriteLine($"Found {sagaSteps.Count} steps for saga saga_order_123");
+foreach (var step in sagaSteps)
+{
+    Console.WriteLine($"- Step {step.Order}: {step.Name} ({step.Status})");
+}
+
+// Example 5: Get step by order within a saga
+var firstStep = await stepRepository.GetByOrderAsync("saga_order_123", 1);
+Console.WriteLine($"First step: {firstStep?.Name}");
+
+// Example 6: Get all steps with a specific status
+var pendingSteps = await stepRepository.GetByStatusAsync(SagaStepStatus.Pending);
+Console.WriteLine($"Found {pendingSteps.Count} pending steps across all sagas");
+
+// Example 7: Get all steps in the repository
+var allSteps = await stepRepository.GetAllAsync();
+Console.WriteLine($"Total steps in repository: {allSteps.Count}");
+
+// Example 8: Delete a step
+var deleted = await stepRepository.DeleteAsync("step_001");
+Console.WriteLine($"Step deleted: {deleted}");
+
+// Example 9: Handle duplicate creation (throws exception)
+try
+{
+    await stepRepository.CreateAsync(step1);
+}
+catch (InvalidOperationException ex)
+{
+    Console.WriteLine($"Expected error: {ex.Message}");
+}
+
+// Example 10: Attempt to update non-existent step
+var nonExistentStep = new SagaStep { Id = "step_nonexistent", Name = "Non-existent" };
+var updateResult = await stepRepository.UpdateAsync(nonExistentStep);
+Console.WriteLine($"Update non-existent step result: {updateResult?.Id ?? "null (step not found)}");
+```
