@@ -355,6 +355,101 @@ foreach (var compensation in allCompensations)
 }
 ```
 
+## ISagaVisualizationService
+
+The `ISagaVisualizationService` provides real-time visualization snapshots and streaming state updates for saga execution monitoring. It enables tracking saga progress, visualizing step execution graphs, and monitoring live state changes through polling-based streaming.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.Services;
+using System.Text.Json;
+
+// Initialize the visualization service with required dependencies
+var visualizationService = new SagaVisualizationService(
+    sagaRepository,
+    logger
+);
+
+// Example 1: Get a single saga snapshot
+var snapshot = await visualizationService.GetSnapshotAsync("saga_abc123");
+Console.WriteLine($"Saga: {snapshot.SagaName} ({snapshot.SagaId})");
+Console.WriteLine($"Status: {snapshot.Status} ({snapshot.ProgressPercent:F1}% complete)");
+Console.WriteLine($"Duration: {snapshot.ElapsedMs:F0}ms");
+Console.WriteLine($"Steps: {snapshot.CompletedSteps}/{snapshot.TotalSteps}");
+if (snapshot.FailureReason != null)
+{
+    Console.WriteLine($"Failed: {snapshot.FailureReason}");
+}
+
+// Example 2: Get all saga snapshots for dashboard display
+var allSnapshots = await visualizationService.GetAllSnapshotsAsync();
+Console.WriteLine($"Total sagas: {allSnapshots.Count}");
+foreach (var s in allSnapshots.OrderByDescending(s => s.ElapsedMs))
+{
+    Console.WriteLine($"- {s.SagaName}: {s.Status} ({s.ProgressPercent:F1}%)");
+}
+
+// Example 3: Stream live state updates with custom polling interval
+var cts = new CancellationTokenSource();
+_ = Task.Run(async () =>
+{
+    await visualizationService.StreamLiveStateAsync(
+        "saga_abc123",
+        async snapshot =>
+        {
+            var json = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
+            Console.WriteLine($"Live Update: {DateTime.UtcNow:HH:mm:ss.fff}");
+            Console.WriteLine(json);
+            Console.WriteLine(new string('-', 60));
+            
+            if (snapshot.IsTerminal)
+            {
+                Console.WriteLine("Saga reached terminal state!");
+                cts.Cancel();
+            }
+        },
+        TimeSpan.FromSeconds(1),
+        cts.Token
+    );
+});
+
+// Run for 10 seconds then stop
+await Task.Delay(TimeSpan.FromSeconds(10));
+cts.Cancel();
+
+// Example 4: Access step details from snapshot
+var stepSnapshot = await visualizationService.GetSnapshotAsync("saga_xyz789");
+foreach (var node in stepSnapshot.Nodes)
+{
+    Console.WriteLine($"Step {node.Index}: {node.Name} - {node.Status}");
+    if (node.DurationMs.HasValue)
+    {
+        Console.WriteLine($"  Duration: {node.DurationMs.Value:F0}ms");
+    }
+    if (node.ErrorMessage != null)
+    {
+        Console.WriteLine($"  Error: {node.ErrorMessage}");
+    }
+}
+
+// Example 5: Monitor progress over time
+var progressSnapshots = new List<SagaVisualizationSnapshot>();
+await visualizationService.StreamLiveStateAsync(
+    "saga_progress_test",
+    snapshot =>
+    {
+        progressSnapshots.Add(snapshot);
+        return Task.CompletedTask;
+    },
+    TimeSpan.FromSeconds(2)
+);
+
+Console.WriteLine($"Captured {progressSnapshots.Count} snapshots");
+Console.WriteLine($"Final status: {progressSnapshots.Last().Status}");
+Console.WriteLine($"Final progress: {progressSnapshots.Last().ProgressPercent:F1}%");
+```
+
 ## SagaDefinitionService
 
 The `SagaDefinitionService` manages saga workflow definitions, enabling creation, modification, validation, and versioning of saga processes. It handles the lifecycle of saga definitions from creation through activation, including adding/removing steps, cloning for versioning, and comprehensive validation. The service ensures saga definitions are properly structured before being used to execute sagas.
