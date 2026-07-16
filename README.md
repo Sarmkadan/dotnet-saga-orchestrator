@@ -104,3 +104,50 @@ bool isValidCorrelation = SagaIdGenerator.IsValidCorrelationId(correlationId);
 Console.WriteLine($"Is valid saga ID: {isValidSaga}"); // True
 Console.WriteLine($"Is valid correlation ID: {isValidCorrelation}"); // True
 ```
+
+## TimeoutPolicy
+
+The `TimeoutPolicy` class encapsulates timeout configuration for sagas and saga steps. It provides methods for checking timeout conditions, calculating remaining time, and determining if sufficient time remains for operations. Timeout policies can be created using predefined factory methods (`CreateLenient`, `CreateStandard`, `CreateStrict`) or customized with a specific timeout duration.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Utilities;
+
+// Create a standard timeout policy (1 minute)
+var standardTimeout = TimeoutPolicy.CreateStandard();
+Console.WriteLine($"Standard timeout: {standardTimeout.TimeoutSeconds} seconds"); // 60
+Console.WriteLine($"Is relaxed: {standardTimeout.IsRelaxed}"); // False
+
+// Create a lenient timeout policy (5 minutes)
+var lenientTimeout = TimeoutPolicy.CreateLenient();
+Console.WriteLine($"Lenient timeout: {lenientTimeout.TimeoutSeconds} seconds"); // 300
+Console.WriteLine($"Is relaxed: {lenientTimeout.IsRelaxed}"); // True
+
+// Create a strict timeout policy (10 seconds)
+var strictTimeout = TimeoutPolicy.CreateStrict();
+Console.WriteLine($"Strict timeout: {strictTimeout.TimeoutSeconds} seconds"); // 10
+
+// Create a custom timeout policy (2 minutes)
+var customTimeout = TimeoutPolicy.Create(120);
+Console.WriteLine($"Custom timeout: {customTimeout.TimeoutSeconds} seconds"); // 120
+
+// Check if elapsed time has exceeded timeout
+var startTime = DateTime.UtcNow;
+var elapsed = TimeSpan.FromSeconds(45);
+bool hasExceeded = customTimeout.HasExceeded(elapsed);
+Console.WriteLine($"Has exceeded: {hasExceeded}"); // False
+
+// Check if enough time remains with buffer
+var buffer = TimeSpan.FromSeconds(10);
+bool hasSufficientTime = customTimeout.HasSufficientTime(startTime, TimeSpan.FromSeconds(30));
+Console.WriteLine($"Has sufficient time: {hasSufficientTime}"); // True
+
+// Get remaining time
+TimeSpan remaining = customTimeout.GetRemainingTime(startTime);
+Console.WriteLine($"Remaining time: {remaining.TotalSeconds} seconds");
+
+// Get elapsed percentage
+double percentage = customTimeout.GetElapsedPercentage(startTime);
+Console.WriteLine($"Elapsed percentage: {percentage:F2}%");
+```
