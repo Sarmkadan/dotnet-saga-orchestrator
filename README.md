@@ -304,6 +304,70 @@ bool isValid = step.Validate();
 step.SetTimeout(30);
 ```
 
+## SagaStep
+
+The `SagaStep` class represents a single execution instance of a step within a saga workflow. It tracks the runtime state of an individual step, including its status, execution timing, retry attempts, payloads, and responses. Each `SagaStep` instance is created from a `SagaStepDefinition` when a saga is instantiated, and its lifecycle is managed by the `SagaOrchestrationService` as the saga executes.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a new saga step instance (typically done by the orchestrator)
+var step = new SagaStep();
+
+// Initialize with required parameters
+step.Initialize(
+    name: "Process Payment",
+    order: 1,
+    serviceUrl: "https://payments.example.com/api/charge",
+    compensationUrl: "https://payments.example.com/api/refund"
+);
+
+// Set additional properties
+step.SagaId = "saga-12345";
+step.SetPayload(new Dictionary<string, object>
+{
+    { "paymentId", "pay-789" },
+    { "amount", 150.00 },
+    { "customerId", "cust-456" }
+});
+step.MaxRetries = 5;
+step.TimeoutSeconds = 60;
+
+// Start execution
+step.Start();
+
+// Simulate successful completion
+var response = new Dictionary<string, object>
+{
+    { "transactionId", "txn-123" },
+    { "status", "completed" },
+    { "timestamp", DateTime.UtcNow }
+};
+step.Complete(response);
+
+// Check status and timing
+Console.WriteLine($"Step status: {step.Status}"); // Completed
+Console.WriteLine($"Started at: {step.StartedAt}");
+Console.WriteLine($"Completed at: {step.CompletedAt}");
+Console.WriteLine($"Execution took: {(step.CompletedAt - step.StartedAt)?.TotalSeconds} seconds");
+
+// If the saga fails later, the step can be compensated
+// step.Compensate();
+
+// Check if step can be retried
+if (step.CanRetry())
+{
+    step.PrepareForRetry();
+    Console.WriteLine($"Retry count: {step.RetryCount}"); // 1
+}
+
+// If step fails
+// step.Fail("Payment service unavailable", response);
+```
+
 ## SagaDefinition
 
 The `SagaDefinition` class defines the structure and configuration of a saga workflow. It serves as a blueprint for creating saga instances, containing metadata about the saga (name, description, version) and the ordered list of steps that make up the workflow. The definition supports validation, step lookup by name or order, and configurable compensation strategies for handling failures.
