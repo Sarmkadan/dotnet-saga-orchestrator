@@ -556,6 +556,63 @@ Console.WriteLine($"Completed at: {compensation.CompletedAt}");
 Console.WriteLine($"Retry count: {compensation.RetryCount}/{compensation.MaxRetries}");
 ```
 
+## SagaEvent
+
+The `SagaEvent` class represents domain events emitted during saga execution. It serves as an audit trail and monitoring mechanism that captures lifecycle events, step executions, and errors with associated metadata. Events can be filtered by severity and correlated to specific sagas or steps for debugging and observability purposes.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a lifecycle event for saga creation
+var sagaCreatedEvent = new SagaEvent
+{
+    SagaId = "saga-001",
+    EventType = "Lifecycle",
+    EventName = "SagaCreated",
+    Description = "Order processing saga initialized",
+    Severity = EventSeverity.Information,
+    Source = "SagaOrchestrator"
+};
+
+// Add custom data to the event
+sagaCreatedEvent.AddData("orderId", "ORD-12345");
+sagaCreatedEvent.AddData("customerId", "CUST-789");
+
+// Create a step execution event
+var stepExecutedEvent = SagaEvent.CreateStepEvent(
+    sagaId: "saga-001",
+    stepId: "step-payment-001",
+    stepName: "Process Payment",
+    eventName: "PaymentCompleted",
+    description: "Successfully charged customer credit card"
+);
+
+// Add step-specific data
+stepExecutedEvent.AddData("paymentId", "PAY-45678");
+stepExecutedEvent.AddData("amount", 99.99);
+stepExecutedEvent.AddData("transactionId", "TXN-999");
+
+// Create an error event
+var errorEvent = SagaEvent.CreateErrorEvent(
+    sagaId: "saga-001",
+    stepName: "ReserveInventory",
+    errorMessage: "Inventory service returned 404: Item not available"
+);
+
+// Add error-specific data
+errorEvent.AddData("itemId", "ITM-555");
+errorEvent.AddData("requestedQuantity", 10);
+
+// Access event properties
+Console.WriteLine($"Event: {errorEvent.EventName}"); // ExecutionError
+Console.WriteLine($"Severity: {errorEvent.Severity}"); // Error
+Console.WriteLine($"Timestamp: {errorEvent.Timestamp}");
+Console.WriteLine($"Data count: {errorEvent.Data.Count}"); // 2
+```
+
 ## ValidationExtensions
 
 The `ValidationExtensions` static class provides a comprehensive set of extension methods for parameter validation using a fluent API. These utilities simplify common validation patterns like null checks, range validation, string length constraints, email/URL validation, and collection validation in a clean, chainable way.
