@@ -1119,6 +1119,70 @@ Console.WriteLine($"Update non-existent compensation result: {updateResult?.Id ?
 
 The `SagaOptions` class provides centralized configuration for saga orchestrator behavior, including timeout policies, retry strategies, caching settings, worker configurations, and webhook policies. These options can be loaded from `appsettings.json` under the `SagaOrchestrator` section or configured programmatically using the `SagaOptionsBuilder` fluent API. The configuration controls saga execution characteristics like timeouts, retry behavior, caching duration, background worker intervals, and webhook delivery settings.
 
+## InfrastructureConfiguration
+
+The `InfrastructureConfiguration` record defines infrastructure-level configuration for the saga orchestrator, controlling which infrastructure services are registered in the dependency injection container. It enables or disables caching, HTTP clients, event bus, formatting, logging, integration services, rate limiting, and background workers. This configuration is typically loaded from `appsettings.json` under the `Infrastructure` section or configured programmatically using the `InfrastructureConfiguration` constructor.
+
+### Usage Example
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using SagaOrchestrator.Configuration;
+
+// Example 1: Configure infrastructure services via InfrastructureConfiguration
+var services = new ServiceCollection();
+
+var infrastructureConfig = new InfrastructureConfiguration(
+    EnableCaching: true,
+    EnableHttpClients: true,
+    EnableEventBus: true,
+    EnableFormatting: true,
+    EnableLogging: true,
+    EnableIntegration: true,
+    EnableRateLimiting: true,
+    EnableBackgroundWorkers: true
+);
+
+// Configure all enabled infrastructure services
+services = infrastructureConfig.ConfigureServices(services);
+
+// Example 2: Minimal configuration with defaults (all features enabled)
+var defaultConfig = InfrastructureConfiguration.Default;
+services = defaultConfig.ConfigureServices(services);
+
+// Example 3: Disable specific infrastructure features for testing
+var testConfig = new InfrastructureConfiguration(
+    EnableCaching: false,      // Disable caching for testing
+    EnableHttpClients: true,    // Keep HTTP clients enabled
+    EnableEventBus: false,      // Disable event bus
+    EnableFormatting: true,    // Keep formatting
+    EnableLogging: true,        // Keep logging
+    EnableIntegration: false,    // Disable integration services
+    EnableRateLimiting: false,  // Disable rate limiting
+    EnableBackgroundWorkers: false // Disable background workers
+);
+
+services = testConfig.ConfigureServices(services);
+
+// Example 4: Load from appsettings.json
+// In appsettings.json:
+// {
+//   "Infrastructure": {
+//     "EnableCaching": true,
+//     "EnableHttpClients": true,
+//     "EnableEventBus": true,
+//     "EnableFormatting": true,
+//     "EnableLogging": true,
+//     "EnableIntegration": true,
+//     "EnableRateLimiting": true,
+//     "EnableBackgroundWorkers": true
+//   }
+// }
+//
+// Then bind to configuration:
+// services.Configure<InfrastructureConfiguration>(configuration.GetSection("Infrastructure"));
+```
+
 ### Usage Example
 
 ```csharp
