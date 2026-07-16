@@ -443,6 +443,111 @@ var deactivatedDefinition = await sagaDefinitionService.DeactivateDefinitionAsyn
 Console.WriteLine($"Definition deactivated: {deactivatedDefinition.IsActive}");
 ```
 
+## SagaOrchestrationService
+
+The `SagaOrchestrationService` is the main service responsible for managing saga execution workflows. It handles creating sagas, executing saga steps in sequence, handling retries and timeouts, and managing compensation workflows when sagas fail. The service coordinates between the saga definition, individual steps, and the compensation service to ensure reliable distributed transaction execution.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrationService = SagaOrchestrator.Application.Services.SagaOrchestrationService;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Initialize the saga orchestration service with required dependencies
+var sagaOrchestrationService = new SagaOrchestrationService(
+    sagaRepository,
+    sagaStepRepository,
+    compensationService,
+    sagaLogger
+);
+
+// Example 1: Create a new saga instance
+var definition = new SagaDefinition(
+    "Order Processing Saga",
+    "Handles complete order processing workflow"
+);
+
+// Add steps to the definition
+var step1 = new SagaStepDefinition(
+    "Validate Order",
+    "https://order-service/api/validate",
+    HttpMethod.Get,
+    "Validate customer order details"
+);
+var step2 = new SagaStepDefinition(
+    "Process Payment",
+    "https://payment-service/api/charge",
+    HttpMethod.Post,
+    "Charge customer payment method"
+);
+var step3 = new SagaStepDefinition(
+    "Ship Order",
+    "https://shipping-service/api/ship",
+    HttpMethod.Post,
+    "Create shipping label and schedule delivery"
+);
+definition.AddStep(step1);
+definition.AddStep(step2);
+definition.AddStep(step3);
+
+// Create the saga
+var saga = await sagaOrchestrationService.CreateSagaAsync(
+    definition,
+    maxRetries: 3,
+    timeoutSeconds: 300
+);
+Console.WriteLine($"Created saga: {saga.Id} with {saga.Steps.Count} steps");
+
+// Example 2: Start the saga execution
+var startedSaga = await sagaOrchestrationService.StartSagaAsync(saga.Id);
+Console.WriteLine($"Saga started: {startedSaga.Status}");
+
+// Example 3: Execute the next step (typically called by a background worker)
+var executedStep = await sagaOrchestrationService.ExecuteNextStepAsync(saga.Id);
+if (executedStep != null)
+{
+    Console.WriteLine($"Executed step {executedStep.Name} (order {executedStep.Order})");
+    Console.WriteLine($"Step status: {executedStep.Status}");
+}
+else
+{
+    Console.WriteLine("All steps completed successfully");
+}
+
+// Example 4: Handle step timeout
+var timeoutHandled = await sagaOrchestrationService.HandleTimeoutAsync(saga.Id, stepId);
+if (timeoutHandled)
+{
+    Console.WriteLine("Timeout handled, step marked for retry or compensation");
+}
+
+// Example 5: Compensate a failed saga
+var compensatedSaga = await sagaOrchestrationService.CompensateSagaAsync(saga.Id);
+Console.WriteLine($"Compensation completed: {compensatedSaga.Status}");
+
+// Example 6: Compensate with explicit strategy
+var compensatedWithStrategy = await sagaOrchestrationService.CompensateSagaAsync(
+    saga.Id,
+    CompensationStrategy.ReverseOrder
+);
+
+// Example 7: Abort a running saga
+await sagaOrchestrationService.AbortSagaAsync(saga.Id, "User requested cancellation");
+
+// Example 8: Retrieve saga details
+var retrievedSaga = await sagaOrchestrationService.GetSagaAsync(saga.Id);
+Console.WriteLine($"Saga status: {retrievedSaga.Status}");
+Console.WriteLine($"Failed at: {retrievedSaga.FailedAt}");
+
+// Example 9: List sagas with filtering
+var runningSagas = await sagaOrchestrationService.ListSagasAsync(SagaStatus.Running);
+Console.WriteLine($"Found {runningSagas.Count} running sagas");
+
+var failedSagas = await sagaOrchestrationService.ListSagasAsync(SagaStatus.Failed);
+Console.WriteLine($"Found {failedSagas.Count} failed sagas");
+```
+
 ## IMetricsService
 
 The `IMetricsService` interface provides methods for collecting and reporting metrics related to saga execution. It allows you to retrieve overall saga metrics, step-specific metrics, and performance statistics. The service can be used to monitor the health and efficiency of the saga system.
