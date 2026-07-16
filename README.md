@@ -881,3 +881,88 @@ var nonExistentStep = new SagaStep { Id = "step_nonexistent", Name = "Non-existe
 var updateResult = await stepRepository.UpdateAsync(nonExistentStep);
 Console.WriteLine($"Update non-existent step result: {updateResult?.Id ?? "null (step not found)}");
 ```
+
+## InMemorySagaRepository
+
+The `InMemorySagaRepository` provides an in-memory implementation of `ISagaRepository` for storing and retrieving sagas during execution. It maintains all sagas in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Initialize the in-memory saga repository
+var sagaRepository = new InMemorySagaRepository();
+
+// Example 1: Create a new saga
+var saga = new Saga
+{
+    Id = "saga_order_123",
+    CorrelationId = "corr_order_123",
+    Definition = new SagaDefinition("Order Processing Saga", "Handles complete order processing workflow"),
+    Status = SagaStatus.Pending,
+    MaxRetries = 3,
+    TimeoutSeconds = 300,
+    StartedAt = DateTime.UtcNow,
+    CreatedAt = DateTime.UtcNow,
+    UpdatedAt = DateTime.UtcNow
+};
+
+var createdSaga = await sagaRepository.CreateAsync(saga);
+Console.WriteLine($"Created saga: {createdSaga?.Id} - {createdSaga?.Definition.Name}");
+
+// Example 2: Retrieve a saga by ID
+var retrievedSaga = await sagaRepository.GetByIdAsync("saga_order_123");
+if (retrievedSaga != null)
+{
+    Console.WriteLine($"Retrieved saga: {retrievedSaga.Definition.Name} (Status: {retrievedSaga.Status}");
+}
+
+// Example 3: Retrieve a saga by correlation ID
+var sagaByCorrelation = await sagaRepository.GetByCorrelationIdAsync("corr_order_123");
+Console.WriteLine($"Found saga by correlation ID: {sagaByCorrelation?.Id}");
+
+// Example 4: Update a saga's status
+retrievedSaga.Status = SagaStatus.Running;
+retrievedSaga.UpdatedAt = DateTime.UtcNow;
+var updatedSaga = await sagaRepository.UpdateAsync(retrievedSaga);
+Console.WriteLine($"Updated saga status to: {updatedSaga?.Status}");
+
+// Example 5: Get all sagas in the repository
+var allSagas = await sagaRepository.GetAllAsync();
+Console.WriteLine($"Total sagas in repository: {allSagas.Count}");
+
+// Example 6: Get all sagas with a specific status
+var pendingSagas = await sagaRepository.GetByStatusAsync(SagaStatus.Pending);
+Console.WriteLine($"Found {pendingSagas.Count} pending sagas");
+
+// Example 7: Search sagas by criteria
+var searchCriteria = new Dictionary<string, object>
+{
+    { "status", SagaStatus.Pending },
+    { "definitionId", "order_processing" }
+};
+var searchedSagas = await sagaRepository.SearchAsync(searchCriteria);
+Console.WriteLine($"Found {searchedSagas.Count} sagas matching criteria");
+
+// Example 8: Delete a saga
+var deleted = await sagaRepository.DeleteAsync("saga_order_123");
+Console.WriteLine($"Saga deleted: {deleted}");
+
+// Example 9: Handle duplicate creation (throws exception)
+try
+{
+    await sagaRepository.CreateAsync(saga);
+}
+catch (InvalidOperationException ex)
+{
+    Console.WriteLine($"Expected error: {ex.Message}");
+}
+
+// Example 10: Attempt to update non-existent saga
+var nonExistentSaga = new Saga { Id = "saga_nonexistent", Definition = new SagaDefinition("Test", "Test") };
+var updateResult = await sagaRepository.UpdateAsync(nonExistentSaga);
+Console.WriteLine($"Update non-existent saga result: {updateResult?.Id ?? "null (saga not found)}");
+```
