@@ -304,6 +304,73 @@ bool isValid = step.Validate();
 step.SetTimeout(30);
 ```
 
+## SagaDefinition
+
+The `SagaDefinition` class defines the structure and configuration of a saga workflow. It serves as a blueprint for creating saga instances, containing metadata about the saga (name, description, version) and the ordered list of steps that make up the workflow. The definition supports validation, step lookup by name or order, and configurable compensation strategies for handling failures.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a new saga definition
+var definition = new SagaDefinition(
+    "OrderProcessingSaga",
+    "Processes a customer order through payment, inventory, and shipping"
+);
+
+definition.Description = "Handles complete order lifecycle with compensation support";
+definition.Version = 2;
+definition.IsActive = true;
+definition.CompensationStrategy = CompensationStrategy.ReverseOrder;
+
+// Add steps to the definition
+var paymentStep = new SagaStepDefinition(
+    "ProcessPayment",
+    "PaymentService",
+    "https://payments.example.com/api/charge",
+    "https://payments.example.com/api/refund"
+);
+var inventoryStep = new SagaStepDefinition(
+    "ReserveInventory",
+    "InventoryService",
+    "https://inventory.example.com/api/reserve",
+    "https://inventory.example.com/api/release"
+);
+var shippingStep = new SagaStepDefinition(
+    "ScheduleShipping",
+    "ShippingService",
+    "https://shipping.example.com/api/schedule",
+    "https://shipping.example.com/api/cancel"
+);
+
+definition.AddStep(paymentStep);
+definition.AddStep(inventoryStep);
+definition.AddStep(shippingStep);
+
+// Validate the definition
+bool isValid = definition.Validate();
+Console.WriteLine($"Definition is valid: {isValid}");
+
+// Look up steps by name or order
+var paymentDefinition = definition.GetStepByName("ProcessPayment");
+var firstStep = definition.GetStepByOrder(1);
+
+// Create a new definition from an existing one (copy constructor pattern)
+var newDefinition = new SagaDefinition
+{
+    Id = definition.Id,
+    Name = definition.Name,
+    Description = definition.Description,
+    Version = definition.Version + 1,
+    Steps = new List<SagaStepDefinition>(definition.Steps),
+    CreatedAt = DateTime.UtcNow,
+    IsActive = definition.IsActive,
+    CompensationStrategy = definition.CompensationStrategy
+};
+```
+
 ## SagaStepDebugState
 
 The `SagaStepDebugState` record captures an immutable snapshot of a single saga step's execution state at a specific point in time. It is used by the distributed debugger to represent individual steps within a `SagaDebugSnapshot`, enabling time-travel inspection and analysis of saga execution history.
