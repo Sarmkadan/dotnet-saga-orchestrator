@@ -5,6 +5,7 @@
 // =============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SagaOrchestrator.Application.Services;
 using SagaOrchestrator.Data.Repositories;
 using SagaOrchestrator.Infrastructure.Logging;
@@ -33,11 +34,15 @@ public static class ServiceConfiguration
         services.AddSingleton<ICompensationTransactionRepository, InMemoryCompensationTransactionRepository>();
         services.AddSingleton<ISagaDefinitionRepository, InMemorySagaDefinitionRepository>();
 
+        // Default options unless the caller already configured them via the overload
+        services.TryAddSingleton(new SagaOptions());
+
         // Register services
         services.AddSingleton<ISagaLogger, SagaLogger>();
         services.AddSingleton<SagaDefinitionService>();
         services.AddSingleton<CompensationService>();
         services.AddSingleton<SagaOrchestrationService>();
+        services.AddSingleton<IMetricsService, MetricsService>();
 
         return services;
     }
