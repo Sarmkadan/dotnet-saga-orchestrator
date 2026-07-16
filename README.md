@@ -1115,6 +1115,102 @@ var updateResult = await compensationRepository.UpdateAsync(nonExistentCompensat
 Console.WriteLine($"Update non-existent compensation result: {updateResult?.Id ?? "null (compensation not found)}");
 ```
 
+## SagaOptions
+
+The `SagaOptions` class provides centralized configuration for saga orchestrator behavior, including timeout policies, retry strategies, caching settings, worker configurations, and webhook policies. These options can be loaded from `appsettings.json` under the `SagaOrchestrator` section or configured programmatically using the `SagaOptionsBuilder` fluent API. The configuration controls saga execution characteristics like timeouts, retry behavior, caching duration, background worker intervals, and webhook delivery settings.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Configuration;
+
+// Example 1: Configure via builder API for development environment
+var devOptions = new SagaOptionsBuilder()
+    .WithDefaultStepTimeout(60)  // 1 minute for local development
+    .WithDefaultSagaTimeout(600)  // 10 minutes
+    .WithDefaultMaxRetries(5)  // More retries for local testing
+    .WithCachingEnabled(false)  // Disable caching for easier debugging
+    .WithWebhooksEnabled(false)  // Disable webhooks locally
+    .WithTimeoutWorker(true, 10)  // Faster timeout checks
+    .WithCompensationWorker(true, 5)  // Faster compensation
+    .WithExponentialBackoff(true, 1.5)  // Custom backoff multiplier
+    .Build();
+
+Console.WriteLine($"Development Configuration:");
+Console.WriteLine($"- Default Step Timeout: {devOptions.TimeoutPolicies.DefaultStepTimeoutSeconds}s");
+Console.WriteLine($"- Default Saga Timeout: {devOptions.TimeoutPolicies.DefaultSagaTimeoutSeconds}s");
+Console.WriteLine($"- Default Max Retries: {devOptions.RetryPolicies.DefaultMaxRetries}");
+Console.WriteLine($"- Caching Enabled: {devOptions.CachePolicies.EnableCaching}");
+Console.WriteLine($"- Webhooks Enabled: {devOptions.WebhookPolicies.EnableWebhooks}");
+
+// Example 2: Configure for production environment
+var prodOptions = new SagaOptionsBuilder()
+    .WithDefaultStepTimeout(30)  // 30 seconds for production
+    .WithDefaultSagaTimeout(300)  // 5 minutes
+    .WithDefaultMaxRetries(3)  // Standard retry count
+    .WithCachingEnabled(true)  // Enable caching in production
+    .WithSagaCacheExpiration(5)  // 5 minute cache for sagas
+    .WithWebhooksEnabled(true)  // Enable webhooks in production
+    .WithTimeoutWorker(true, 30)  // Standard interval
+    .WithCompensationWorker(true, 15)
+    .WithExponentialBackoff(true)
+    .Build();
+
+Console.WriteLine($"\nProduction Configuration:");
+Console.WriteLine($"- Default Step Timeout: {prodOptions.TimeoutPolicies.DefaultStepTimeoutSeconds}s");
+Console.WriteLine($"- Default Saga Timeout: {prodOptions.TimeoutPolicies.DefaultSagaTimeoutSeconds}s");
+Console.WriteLine($"- Saga Cache Expiration: {prodOptions.CachePolicies.SagaCacheExpirationMinutes} minutes");
+Console.WriteLine($"- Max Cache Size: {prodOptions.CachePolicies.MaxCacheSize} items");
+
+// Example 3: Load from appsettings.json
+// In appsettings.json:
+// {
+//   "SagaOrchestrator": {
+//     "TimeoutPolicies": {
+//       "DefaultStepTimeoutSeconds": 30,
+//       "DefaultSagaTimeoutSeconds": 300,
+//       "MaxStepTimeoutSeconds": 3600,
+//       "MaxSagaTimeoutSeconds": 86400,
+//       "CompensationTimeoutSeconds": 120
+//     },
+//     "RetryPolicies": {
+//       "DefaultMaxRetries": 3,
+//       "DefaultRetryDelayMs": 1000,
+//       "MaxRetries": 10,
+//       "UseExponentialBackoff": true,
+//       "BackoffMultiplier": 2.0,
+//       "MaxBackoffDelayMs": 30000
+//     },
+//     "CachePolicies": {
+//       "EnableCaching": true,
+//       "SagaCacheExpirationMinutes": 15,
+//       "DefinitionCacheExpirationMinutes": 60,
+//       "HealthCheckCacheExpirationSeconds": 30,
+//       "MaxCacheSize": 10000
+//     },
+//     "WorkerPolicies": {
+//       "EnableTimeoutWorker": true,
+//       "TimeoutWorkerIntervalSeconds": 30,
+//       "EnableCompensationWorker": true,
+//       "CompensationWorkerIntervalSeconds": 15,
+//       "EnableEventProcessingWorker": true,
+//       "EventProcessingWorkerIntervalSeconds": 10,
+//       "MaxEventsToKeep": 10000
+//     },
+//     "WebhookPolicies": {
+//       "EnableWebhooks": true,
+//       "WebhookTimeoutSeconds": 10,
+//       "MaxWebhookRetries": 3,
+//       "WebhookRetryDelayMs": 1000,
+//       "MaxWebhookPayloadBytes": 1024000
+//     }
+//   }
+// }
+//
+// Then bind to configuration:
+// services.Configure<SagaOptions>(configuration.GetSection(SagaOptions.SectionName));
+```
+
 ## InMemorySagaDefinitionRepository
 
 The `InMemorySagaDefinitionRepository` provides an in-memory implementation of `ISagaDefinitionRepository` for storing and retrieving saga workflow definitions. It maintains all saga definitions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
