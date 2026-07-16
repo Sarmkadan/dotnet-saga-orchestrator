@@ -1,4 +1,10 @@
-// ... existing content ...
+# dotnet-saga-orchestrator
+
+A .NET library for managing distributed sagas with compensating transactions, retries and timeout handling.
+
+## Architecture
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the layer breakdown (Core / Application / Data / Infrastructure), the saga execution and compensation data flow, extension points, and the reasoning behind the bigger design decisions.
 
 ## SagaIdGenerator
 
