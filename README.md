@@ -853,3 +853,68 @@ var range = EnumExtensions.GetRange<Status>(); // (Pending, Completed)
 var fromValue = EnumExtensions.GetEnumFromValue<Status>(1); // Status.Processing
 ```
 
+
+## SagaStepBuilder
+
+The `SagaStepBuilder` class provides a fluent API for constructing and configuring saga steps with validation. It simplifies the creation of `SagaStepDefinition` instances by offering a chainable builder pattern that ensures all required properties are properly set and validated before building the final step definition.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Builders;
+using SagaOrchestrator.Core.Utilities;
+
+// Create a basic step using the builder
+var stepDefinition = SagaStepBuilder.Create(
+    "Process Payment",
+    "PaymentService",
+    "https://payments.example.com/api/charge"
+)
+.WithOrder(1)
+.WithCompensation("https://payments.example.com/api/refund")
+.WithTimeout(60)
+.WithRetryPolicy(5, 2000) // maxRetries, delayMs
+.WithMetadata("requiresTransaction", "true")
+.WithMetadata("paymentGateway", "stripe")
+.WithCircuitBreakerThreshold(3)
+.Async()
+.Build();
+
+// Alternative: Using RetryPolicy object for more control
+var customRetryPolicy = new RetryPolicy(
+    maxRetries: 3,
+    initialDelayMs: 1000,
+    maxDelayMs: 10000,
+    backoffMultiplier: 2.0,
+    jitterFactor: 0.1
+);
+
+var stepWithCustomRetry = SagaStepBuilder.Create(
+    "Send Notification",
+    "NotificationService",
+    "https://notifications.example.com/api/send"
+)
+.WithOrder(2)
+.WithCompensation("https://notifications.example.com/api/cancel")
+.WithTimeout(30)
+.WithRetryPolicy(customRetryPolicy)
+.WithMetadata("priority", "high")
+.WithMetadata("timeoutBehavior", "failFast")
+.Synchronous()
+.Build();
+
+// Create a step without compensation (fire-and-forget)
+var fireAndForgetStep = SagaStepBuilder.Create(
+    "Log Activity",
+    "LoggingService",
+    "https://logs.example.com/api/track"
+)
+.WithOrder(3)
+.WithTimeout(10)
+.WithRetryPolicy(2, 1000)
+.Build();
+
+// Validate the built step
+bool isValid = stepDefinition.Validate();
+Console.WriteLine($"Step is valid: {isValid}");
+```
