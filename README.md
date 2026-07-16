@@ -1,3 +1,144 @@
+# dotnet-saga-orchestrator
+
+A .NET library for coordinating distributed business transactions with the **saga** pattern. It runs a
+sequence of steps across multiple services and, when one step fails, automatically undoes the work already
+done by running the matching compensating transactions - in reverse. The result is eventual consistency
+without distributed locks or two-phase commit.
+
+## What is a saga (and an orchestrator)?
+
+A single business operation - "place an order", "book a trip", "transfer money" - often spans several
+independent services, each with its own database. There is no shared transaction that can commit or roll
+back all of them at once. A **saga** models that operation as an ordered list of local steps. Each step has
+two sides:
+
+- a **forward action** (charge the card, reserve inventory, book the flight), and
+- a **compensating action** that semantically undoes it (refund the card, release the inventory, cancel the
+  flight).
+
+If every step succeeds, the saga completes. If a step fails, the saga is marked failed and the compensations
+for the steps that already completed are executed, typically in **reverse order** (the last completed step is
+compensated first). Compensation is *semantic*, not a byte-for-byte rollback: you cannot un-send an email, but
+you can send a cancellation.
+
+There are two common ways to drive a saga:
+
+- **Choreography** - each service listens for events and decides what to do next. No central coordinator.
+- **Orchestration** - a single coordinator tells each service what to do and reacts to the result.
+
+This library implements the **orchestration** style. A `SagaOrchestrationService` owns the state machine,
+persists progress after every step, and delegates rollback to a `CompensationService`. That makes the flow
+easy to reason about, trace, and test - at the cost of a central component you must keep available.
+
+## Compensation flow
+
+```mermaid
+flowchart TD
+    Start([Saga started]) --> S1[Step 1: forward action]
+    S1 -->|ok| S2[Step 2: forward action]
+    S2 -->|ok| S3[Step 3: forward action]
+    S3 -->|ok| Done([Completed])
+
+    S1 -->|fail| F[Mark saga Failed]
+    S2 -->|fail| F
+    S3 -->|fail| F
+
+    F --> BC[BeginCompensation: enqueue one compensation per completed step]
+    BC --> C3[Compensate step 3]
+    C3 --> C2[Compensate step 2]
+    C2 --> C1[Compensate step 1]
+    C1 --> Comp([Compensated])
+
+    classDef ok fill:#1f7a3d,stroke:#0d3d1e,color:#fff;
+    classDef bad fill:#8a1f1f,stroke:#4d0d0d,color:#fff;
+    class Done ok;
+    class F,Comp bad;
+```
+
+Forward steps run top to bottom; the moment any of them fails the saga flips into the compensation phase and
+unwinds the completed steps bottom to top. The order is controlled by `CompensationStrategy`
+(default `ReverseOrder`).
+
+## Quickstart
+
+Register the services with dependency injection:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using SagaOrchestrator.Configuration;
+
+var services = new ServiceCollection();
+services.AddSagaOrchestrator(); // in-memory repositories by default
+var provider = services.BuildServiceProvider();
+```
+
+## Runnable example
+
+The snippet below defines a three-step order saga, creates an instance, and drives it to completion. It uses
+only public API and the in-memory repositories, so it runs as-is against the library.
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using SagaOrchestrator.Application.Services;
+using SagaOrchestrator.Configuration;
+using SagaOrchestrator.Core.Domain.Enums;
+using SagaOrchestrator.Core.Domain.Models;
+
+var provider = new ServiceCollection()
+    .AddSagaOrchestrator()
+    .BuildServiceProvider();
+
+var definitions = provider.GetRequiredService<SagaDefinitionService>();
+var orchestrator = provider.GetRequiredService<SagaOrchestrationService>();
+
+// 1. Describe the workflow: each step names its forward URL and its compensation URL.
+var definition = await definitions.CreateDefinitionAsync(
+    "OrderProcessing", "Charge, reserve, then ship an order");
+
+await definitions.AddStepAsync(definition.Id, new SagaStepDefinition(
+    "ProcessPayment", "payment-service",
+    "http://payment/charge", "http://payment/refund"));
+
+await definitions.AddStepAsync(definition.Id, new SagaStepDefinition(
+    "ReserveInventory", "inventory-service",
+    "http://inventory/reserve", "http://inventory/release"));
+
+await definitions.AddStepAsync(definition.Id, new SagaStepDefinition(
+    "ScheduleShipping", "shipping-service",
+    "http://shipping/schedule", "http://shipping/cancel"));
+
+var stored = await definitions.GetDefinitionAsync(definition.Id);
+
+// 2. Instantiate and start the saga.
+var saga = await orchestrator.CreateSagaAsync(stored, maxRetries: 3, timeoutSeconds: 120);
+await orchestrator.StartSagaAsync(saga.Id);
+
+// 3. Execute steps until none remain. On failure the orchestrator flips the saga
+//    into compensation and unwinds completed steps in reverse order.
+SagaStep? step;
+while ((step = await orchestrator.ExecuteNextStepAsync(saga.Id)) != null)
+{
+    Console.WriteLine($"{step.Name}: {step.Status}");
+}
+
+var final = await orchestrator.GetSagaAsync(saga.Id);
+Console.WriteLine($"Saga finished with status: {final.Status}");
+
+// If the saga had failed, drive compensation to completion:
+if (final.Status == SagaStatus.Failed)
+{
+    var compensated = await orchestrator.CompensateSagaAsync(saga.Id);
+    Console.WriteLine($"After compensation: {compensated.Status}"); // Compensated
+}
+```
+
+More end-to-end scenarios (money transfer, travel booking, advanced retries, metrics) live under
+[`examples/`](examples/), and design rationale is recorded in [`docs/adr/`](docs/adr/).
+
+---
+
+<!-- The sections below are auto-generated per-type reference documentation. -->
+
 ## EnumExtensions
 
 The `EnumExtensions` static class provides a comprehensive set of extension methods for handling and manipulating enums. It simplifies tasks like retrieving descriptions and display names, parsing strings to enums, performing flag checks, and navigating enum values.
