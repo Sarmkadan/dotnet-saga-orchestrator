@@ -10,6 +10,123 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the layer breakdown (Core /
 
 The `SagaIdGenerator` class provides a set of utility methods for generating and validating unique identifiers used in saga workflows. These identifiers are essential for tracking sagas, steps, correlations, and requests.
 
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Utilities;
+
+// Generate various ID types
+string sagaId = SagaIdGenerator.GenerateSagaId();
+Console.WriteLine($"Generated Saga ID: {sagaId}"); // Output: saga_<32-char-hex>
+
+string correlationId = SagaIdGenerator.GenerateCorrelationId();
+Console.WriteLine($"Generated Correlation ID: {correlationId}"); // Output: corr_<32-char-hex>
+
+string stepId = SagaIdGenerator.GenerateStepId();
+Console.WriteLine($"Generated Step ID: {stepId}"); // Output: step_<32-char-hex>
+
+string traceId = SagaIdGenerator.GenerateTraceId();
+Console.WriteLine($"Generated Trace ID: {traceId}"); // Output: trace_<32-char-hex>
+
+string requestId = SagaIdGenerator.GenerateRequestId();
+Console.WriteLine($"Generated Request ID: {requestId}"); // Output: req_<32-char-hex>
+
+// Validate IDs
+bool isValidSaga = SagaIdGenerator.IsValidSagaId("saga_1234567890abcdef1234567890abcdef");
+Console.WriteLine($"Is valid saga ID: {isValidSaga}"); // Output: True
+
+bool isValidCorrelation = SagaIdGenerator.IsValidCorrelationId("corr_1234567890abcdef1234567890abcdef");
+Console.WriteLine($"Is valid correlation ID: {isValidCorrelation}"); // Output: True
+```
+
+## SagaIdGeneratorTests
+
+The `SagaIdGeneratorTests` class contains unit tests for the `SagaIdGenerator` utility methods. These tests verify that ID generation methods produce correctly formatted identifiers with appropriate prefixes and that validation methods correctly identify valid and invalid IDs.
+
+### Usage Example
+
+```csharp
+using Xunit;
+using SagaOrchestrator.Core.Utilities;
+
+public class ExampleTests
+{
+    [Fact]
+    public void GenerateSagaId_ShouldHaveCorrectPrefix()
+    {
+        // Arrange & Act
+        var id = SagaIdGenerator.GenerateSagaId();
+        
+        // Assert
+        Assert.StartsWith("saga_", id);
+    }
+
+    [Fact]
+    public void GenerateCorrelationId_ShouldHaveCorrectPrefix()
+    {
+        // Arrange & Act
+        var id = SagaIdGenerator.GenerateCorrelationId();
+        
+        // Assert
+        Assert.StartsWith("corr_", id);
+    }
+
+    [Fact]
+    public void GenerateStepId_ShouldHaveCorrectPrefix()
+    {
+        // Arrange & Act
+        var id = SagaIdGenerator.GenerateStepId();
+        
+        // Assert
+        Assert.StartsWith("step_", id);
+    }
+
+    [Fact]
+    public void GenerateTraceId_ShouldHaveCorrectPrefix()
+    {
+        // Arrange & Act
+        var id = SagaIdGenerator.GenerateTraceId();
+        
+        // Assert
+        Assert.StartsWith("trace_", id);
+    }
+
+    [Fact]
+    public void GenerateRequestId_ShouldHaveCorrectPrefix()
+    {
+        // Arrange & Act
+        var id = SagaIdGenerator.GenerateRequestId();
+        
+        // Assert
+        Assert.StartsWith("req_", id);
+    }
+
+    [Fact]
+    public void IsValidSagaId_ShouldValidateCorrectly()
+    {
+        // Arrange & Act
+        bool isValid = SagaIdGenerator.IsValidSagaId("saga_1234567890abcdef1234567890abcdef");
+        bool isInvalid = SagaIdGenerator.IsValidSagaId("corr_12345");
+        
+        // Assert
+        Assert.True(isValid);
+        Assert.False(isInvalid);
+    }
+
+    [Fact]
+    public void IsValidCorrelationId_ShouldValidateCorrectly()
+    {
+        // Arrange & Act
+        bool isValid = SagaIdGenerator.IsValidCorrelationId("corr_1234567890abcdef1234567890abcdef");
+        bool isInvalid = SagaIdGenerator.IsValidCorrelationId("saga_123");
+        
+        // Assert
+        Assert.True(isValid);
+        Assert.False(isInvalid);
+    }
+}
+```
+
 ## ISagaResponseMapper
 
 The `ISagaResponseMapper` interface provides methods for converting saga domain models to response DTOs, enabling consistent API response formatting. It supports mapping individual sagas, collections of sagas, and individual saga steps to their corresponding response types.
