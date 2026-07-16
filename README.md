@@ -918,3 +918,64 @@ var fireAndForgetStep = SagaStepBuilder.Create(
 bool isValid = stepDefinition.Validate();
 Console.WriteLine($"Step is valid: {isValid}");
 ```
+
+## RetryPolicy
+
+The `RetryPolicy` class encapsulates retry policy configuration and delay calculation for handling transient failures in distributed systems. It supports exponential backoff, linear retries, and configurable jitter to prevent thundering herd problems. The policy calculates delays based on retry attempt number and provides factory methods for common retry patterns.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Utilities;
+
+// Create a default exponential retry policy (3 retries, 1s initial delay, 2x multiplier)
+var exponentialPolicy = RetryPolicy.CreateExponential(maxRetries: 5, initialDelayMs: 1000);
+
+Console.WriteLine($"MaxRetries: {exponentialPolicy.MaxRetries}"); // 5
+Console.WriteLine($"InitialDelayMs: {exponentialPolicy.InitialDelayMs}"); // 1000
+Console.WriteLine($"BackoffMultiplier: {exponentialPolicy.BackoffMultiplier}"); // 2.0
+Console.WriteLine($"MaxDelayMs: {exponentialPolicy.MaxDelayMs}"); // 60000
+Console.WriteLine($"UseJitter: {exponentialPolicy.UseJitter}"); // False
+
+// Calculate delays for each retry attempt
+for (int attempt = 1; attempt <= exponentialPolicy.MaxRetries + 1; attempt++)
+{
+    if (exponentialPolicy.CanRetry(attempt))
+    {
+        int delay = exponentialPolicy.CalculateDelay(attempt);
+        Console.WriteLine($"Retry {attempt}: {delay}ms delay");
+    }
+}
+// Output:
+// Retry 1: 1000ms delay
+// Retry 2: 2000ms delay
+// Retry 3: 4000ms delay
+// Retry 4: 8000ms delay
+// Retry 5: 16000ms delay
+
+// Create a linear retry policy (fixed 2 second delays between retries)
+var linearPolicy = RetryPolicy.CreateLinear(maxRetries: 3, delayMs: 2000);
+Console.WriteLine($"Linear - MaxRetries: {linearPolicy.MaxRetries}, InitialDelayMs: {linearPolicy.InitialDelayMs}, BackoffMultiplier: {linearPolicy.BackoffMultiplier}");
+// Output: Linear - MaxRetries: 3, InitialDelayMs: 2000, BackoffMultiplier: 1.0
+
+// Create an exponential retry policy with jitter to spread retries across instances
+var jitterPolicy = RetryPolicy.CreateExponentialWithJitter(maxRetries: 4, initialDelayMs: 500);
+Console.WriteLine($"Jitter policy - MaxRetries: {jitterPolicy.MaxRetries}, UseJitter: {jitterPolicy.UseJitter}");
+// Output: Jitter policy - MaxRetries: 4, UseJitter: True
+
+// Create a no-retry policy (fail immediately without retries)
+var noRetryPolicy = RetryPolicy.CreateNoRetry();
+Console.WriteLine($"No retry - MaxRetries: {noRetryPolicy.MaxRetries}, CanRetry(1): {noRetryPolicy.CanRetry(1)}");
+// Output: No retry - MaxRetries: 0, CanRetry(1): False
+
+// Custom retry policy with specific parameters
+var customPolicy = new RetryPolicy(
+    maxRetries: 10,
+    initialDelayMs: 500,
+    backoffMultiplier: 1.5,
+    maxDelayMs: 30000,
+    useJitter: true
+);
+Console.WriteLine($"Custom - MaxRetries: {customPolicy.MaxRetries}, MaxDelay: {customPolicy.MaxDelayMs}ms");
+// Output: Custom - MaxRetries: 10, MaxDelay: 30000ms
+```
