@@ -355,6 +355,94 @@ foreach (var compensation in allCompensations)
 }
 ```
 
+## SagaDefinitionService
+
+The `SagaDefinitionService` manages saga workflow definitions, enabling creation, modification, validation, and versioning of saga processes. It handles the lifecycle of saga definitions from creation through activation, including adding/removing steps, cloning for versioning, and comprehensive validation. The service ensures saga definitions are properly structured before being used to execute sagas.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.Services;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Initialize the saga definition service
+var sagaDefinitionService = new SagaDefinitionService(sagaDefinitionRepository);
+
+// Example 1: Create a new saga definition
+var definition = await sagaDefinitionService.CreateDefinitionAsync(
+    "Order Processing Saga",
+    "Handles the complete order processing workflow from validation to shipping"
+);
+Console.WriteLine($"Created definition: {definition.Name} (v{definition.Version})");
+
+// Example 2: Add steps to the definition
+var step1 = new SagaStepDefinition(
+    "Validate Order",
+    "https://order-service/api/validate",
+    HttpMethod.Get,
+    "Validate customer order details and inventory availability"
+);
+var step2 = new SagaStepDefinition(
+    "Process Payment",
+    "https://payment-service/api/charge",
+    HttpMethod.Post,
+    "Charge customer payment method"
+);
+var step3 = new SagaStepDefinition(
+    "Ship Order",
+    "https://shipping-service/api/ship",
+    HttpMethod.Post,
+    "Create shipping label and schedule delivery"
+);
+
+var updatedDefinition = await sagaDefinitionService.AddStepAsync(definition.Id, step1);
+updatedDefinition = await sagaDefinitionService.AddStepAsync(definition.Id, step2);
+updatedDefinition = await sagaDefinitionService.AddStepAsync(definition.Id, step3);
+
+// Example 3: Validate the definition
+var validationResult = sagaDefinitionService.ValidateDefinition(updatedDefinition);
+if (!validationResult.IsValid)
+{
+    Console.WriteLine("Validation errors:");
+    foreach (var error in validationResult.Errors)
+    {
+        Console.WriteLine($"- {error}");
+    }
+}
+else
+{
+    Console.WriteLine("Definition is valid and ready for activation");
+}
+
+// Example 4: Activate the definition for use
+var activatedDefinition = await sagaDefinitionService.ActivateDefinitionAsync(definition.Id);
+Console.WriteLine($"Definition activated: {activatedDefinition.IsActive}");
+
+// Example 5: List all active definitions
+var activeDefinitions = await sagaDefinitionService.ListDefinitionsAsync(activeOnly: true);
+Console.WriteLine($"Found {activeDefinitions.Count} active definitions");
+
+// Example 6: Get a definition by name
+var namedDefinition = await sagaDefinitionService.GetDefinitionByNameAsync("Order Processing Saga");
+if (namedDefinition != null)
+{
+    Console.WriteLine($"Found definition: {namedDefinition.Name} (ID: {namedDefinition.Id})");
+}
+
+// Example 7: Clone a definition for versioning
+var clonedDefinition = await sagaDefinitionService.CloneDefinitionAsync(definition.Id);
+Console.WriteLine($"Cloned definition: {clonedDefinition.Name} v{clonedDefinition.Version}");
+
+// Example 8: Remove a step
+var definitionWithoutStep = await sagaDefinitionService.RemoveStepAsync(definition.Id, "Process Payment");
+Console.WriteLine($"Removed step, definition now has {definitionWithoutStep.Steps.Count} steps");
+
+// Example 9: Deactivate a definition
+var deactivatedDefinition = await sagaDefinitionService.DeactivateDefinitionAsync(definition.Id);
+Console.WriteLine($"Definition deactivated: {deactivatedDefinition.IsActive}");
+```
+
 ## IMetricsService
 
 The `IMetricsService` interface provides methods for collecting and reporting metrics related to saga execution. It allows you to retrieve overall saga metrics, step-specific metrics, and performance statistics. The service can be used to monitor the health and efficiency of the saga system.
