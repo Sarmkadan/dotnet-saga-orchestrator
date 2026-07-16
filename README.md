@@ -368,6 +368,49 @@ if (step.CanRetry())
 // step.Fail("Payment service unavailable", response);
 ```
 
+## Saga
+
+The `Saga` class represents a distributed transaction instance that manages its own state and execution lifecycle across multiple microservices. It tracks the saga's progress, handles retries, and coordinates compensating transactions in the event of failure to ensure eventual consistency.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a new saga instance
+var saga = new Saga();
+
+// Access properties
+var id = saga.Id;
+var correlationId = saga.CorrelationId;
+
+// Initialize and Start
+var definition = new SagaDefinition("OrderProcessing", "Order processing workflow");
+saga.Initialize(definition, maxRetries: 3, timeoutSeconds: 300);
+saga.Start();
+
+// Set metadata
+saga.Metadata["key"] = "value";
+
+// ... saga execution logic ...
+
+// Example: Fail the saga and begin compensation
+if (saga.Status == SagaStatus.Running)
+{
+    saga.Fail("Business rule violation");
+    saga.BeginCompensation();
+    
+    // ... compensation logic ...
+    
+    saga.CompleteCompensation();
+}
+else
+{
+    saga.Complete();
+}
+```
+
 ## SagaDefinition
 
 The `SagaDefinition` class defines the structure and configuration of a saga workflow. It serves as a blueprint for creating saga instances, containing metadata about the saga (name, description, version) and the ordered list of steps that make up the workflow. The definition supports validation, step lookup by name or order, and configurable compensation strategies for handling failures.
