@@ -405,6 +405,60 @@ double percentage = customTimeout.GetElapsedPercentage(startTime);
 Console.WriteLine($"Elapsed percentage: {percentage:F2}%");
 ```
 
+## TimeoutPolicyTests
+
+The `TimeoutPolicyTests` record provides test data transfer objects for timeout policy testing scenarios. It encapsulates predefined timeout configurations with timeout duration in seconds and a relaxed flag, making it easy to create consistent test data for various timeout policy scenarios. This record is particularly useful for unit testing timeout-related functionality in saga orchestration.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+using SagaOrchestrator.Core.Utilities;
+
+// Create a standard timeout policy test configuration (60 seconds, not relaxed)
+var standardTest = TimeoutPolicyTests.Standard;
+Console.WriteLine($"Standard test timeout: {standardTest.TimeoutSeconds} seconds"); // 60
+Console.WriteLine($"Standard test is relaxed: {standardTest.IsRelaxed}"); // False
+
+// Convert test data to actual TimeoutPolicy
+TimeoutPolicy standardPolicy = standardTest.ToPolicy();
+Console.WriteLine($"Converted policy timeout: {standardPolicy.TimeoutSeconds} seconds"); // 60
+
+// Create a lenient timeout policy test configuration (300 seconds, relaxed)
+var lenientTest = TimeoutPolicyTests.Lenient;
+Console.WriteLine($"Lenient test timeout: {lenientTest.TimeoutSeconds} seconds"); // 300
+Console.WriteLine($"Lenient test is relaxed: {lenientTest.IsRelaxed}"); // True
+
+// Create a strict timeout policy test configuration (10 seconds, not relaxed)
+var strictTest = TimeoutPolicyTests.Strict;
+Console.WriteLine($"Strict test timeout: {strictTest.TimeoutSeconds} seconds"); // 10
+Console.WriteLine($"Strict test is relaxed: {strictTest.IsRelaxed}"); // False
+
+// Create a custom timeout policy test configuration
+var customTest = new TimeoutPolicyTests(120, false);
+Console.WriteLine($"Custom test timeout: {customTest.TimeoutSeconds} seconds"); // 120
+Console.WriteLine($"Custom test is relaxed: {customTest.IsRelaxed}"); // False
+
+// Use test data in unit tests
+public void TestTimeoutPolicy_StandardConfiguration()
+{
+    var test = TimeoutPolicyTests.Standard;
+    var policy = test.ToPolicy();
+    
+    Assert.Equal(60, policy.TimeoutSeconds);
+    Assert.False(policy.IsRelaxed);
+}
+
+public void TestTimeoutPolicy_LenientConfiguration()
+{
+    var test = TimeoutPolicyTests.Lenient;
+    var policy = test.ToPolicy();
+    
+    Assert.Equal(300, policy.TimeoutSeconds);
+    Assert.True(policy.IsRelaxed);
+}
+```
+
 ## SagaCliCommand
 
 The `SagaCliCommand` class represents a CLI command for saga operations with full argument parsing. It supports various commands including `create`, `execute`, `status`, `list`, `compensate`, and `help`. The class parses raw CLI arguments into structured command properties, validates them, and provides helpful error messages and usage text.
