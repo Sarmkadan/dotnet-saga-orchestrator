@@ -311,3 +311,70 @@ Console.WriteLine($"Remaining time: {remaining.TotalSeconds} seconds");
 double percentage = customTimeout.GetElapsedPercentage(startTime);
 Console.WriteLine($"Elapsed percentage: {percentage:F2}%");
 ```
+
+## CompensationService
+
+The `CompensationService` handles the execution of compensating transactions when a saga fails. It manages the entire compensation workflow including initiating compensation, executing compensation steps in the appropriate order, retrying failed compensations, and checking for timeouts. The service supports different compensation strategies (reverse order, forward order, parallel) and automatically handles saga state transitions throughout the compensation process.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.Services;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Initialize the compensation service with required dependencies
+var compensationService = new CompensationService(
+    compensationRepository,
+    sagaRepository,
+    stepRepository
+);
+
+// Example 1: Begin compensation for a failed saga
+var failedSaga = await sagaRepository.GetByIdAsync("saga_abc123");
+if (failedSaga.Status == SagaStatus.Failed)
+{
+    await compensationService.BeginCompensationAsync(failedSaga);
+    
+    // This creates compensation transactions for all completed steps
+    var compensations = await compensationService.GetCompensationsAsync("saga_abc123");
+    Console.WriteLine($"Created {compensations.Count} compensation transactions");
+}
+
+// Example 2: Execute the next compensation step
+var nextCompensation = await compensationService.ExecuteNextCompensationAsync("saga_abc123");
+if (nextCompensation != null)
+{
+    Console.WriteLine($"Executing compensation for step {nextCompensation.StepName} (order {nextCompensation.Order})");
+    Console.WriteLine($"Status: {nextCompensation.Status}");
+}
+else
+{
+    Console.WriteLine("All compensations completed successfully");
+}
+
+// Example 3: Retry a failed compensation
+var retrySuccess = await compensationService.RetryCompensationAsync("comp_789xyz");
+if (retrySuccess)
+{
+    Console.WriteLine("Compensation marked for retry");
+}
+
+// Example 4: Check for timed out compensations
+var timedOut = await compensationService.CheckTimeoutsAsync("saga_abc123");
+if (timedOut.Count > 0)
+{
+    Console.WriteLine($"Found {timedOut.Count} timed out compensations");
+    foreach (var timeout in timedOut)
+    {
+        Console.WriteLine($"- Compensation {timeout.Id} timed out: {timeout.ErrorMessage}");
+    }
+}
+
+// Example 5: Get all compensations for a saga
+var allCompensations = await compensationService.GetCompensationsAsync("saga_abc123");
+foreach (var compensation in allCompensations)
+{
+    Console.WriteLine($"Compensation {compensation.Id}: {compensation.StepName} - {compensation.Status}");
+}
+```
