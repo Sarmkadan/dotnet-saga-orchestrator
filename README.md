@@ -10,6 +10,77 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the layer breakdown (Core /
 
 The `SagaIdGenerator` class provides a set of utility methods for generating and validating unique identifiers used in saga workflows. These identifiers are essential for tracking sagas, steps, correlations, and requests.
 
+## ISagaResponseMapper
+
+The `ISagaResponseMapper` interface provides methods for converting saga domain models to response DTOs, enabling consistent API response formatting. It supports mapping individual sagas, collections of sagas, and individual saga steps to their corresponding response types.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.Mappers;
+using SagaOrchestrator.Application.DTOs;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a mapper instance
+var mapper = new SagaResponseMapper();
+
+// Example saga domain model
+var saga = new Saga
+{
+    Id = "saga_abc123",
+    CorrelationId = "corr_xyz789",
+    Status = SagaStatus.Completed,
+    Definition = new SagaDefinition { Id = "order_processing", Name = "Order Processing Saga" },
+    StartedAt = DateTime.UtcNow.AddMinutes(-5),
+    CompletedAt = DateTime.UtcNow,
+    RetryCount = 0,
+    Steps = new List<SagaStep>
+    {
+        new SagaStep
+        {
+            Id = "step_001",
+            Name = "Validate Order",
+            Order = 1,
+            Status = SagaStepStatus.Completed,
+            ServiceUrl = "https://order-service/api/validate",
+            StartedAt = DateTime.UtcNow.AddMinutes(-5),
+            CompletedAt = DateTime.UtcNow.AddMinutes(-4),
+            RetryCount = 0,
+            ErrorMessage = null
+        },
+        new SagaStep
+        {
+            Id = "step_002",
+            Name = "Process Payment",
+            Order = 2,
+            Status = SagaStepStatus.Completed,
+            ServiceUrl = "https://payment-service/api/charge",
+            StartedAt = DateTime.UtcNow.AddMinutes(-4),
+            CompletedAt = DateTime.UtcNow.AddMinutes(-3),
+            RetryCount = 0,
+            ErrorMessage = null
+        }
+    }
+};
+
+// Map single saga to response
+SagaResponse response = mapper.MapToResponse(saga);
+Console.WriteLine($"Saga ID: {response.Id}");
+Console.WriteLine($"Status: {response.Status}");
+Console.WriteLine($"Steps: {response.Steps.Count}");
+
+// Map collection of sagas to responses
+var sagas = new List<Saga> { saga };
+List<SagaResponse> responses = mapper.MapToResponses(sagas);
+
+// Map individual saga step to response
+SagaStep step = saga.Steps[0];
+SagaStepResponse stepResponse = mapper.MapStepToResponse(step);
+Console.WriteLine($"Step Name: {stepResponse.Name}");
+Console.WriteLine($"Service: {stepResponse.ServiceName}");
+```
+
 ### Usage Example
 
 ```csharp
