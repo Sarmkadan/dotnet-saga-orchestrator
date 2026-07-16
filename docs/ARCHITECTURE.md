@@ -64,7 +64,7 @@ Cross-cutting concerns, each in its own folder:
 
 ### Configuration (`src/Configuration`)
 
-`ServiceConfiguration.AddSagaOrchestrator()` is the front door: registers the four in-memory repositories, `ISagaLogger`, and the three core services as singletons (safe because the repositories are thread-safe and the services are stateless over them). Granular variants exist for partial wiring: `AddSagaRepositories()` (repos only) and `AddSagaServices()` (services only, bring your own repos). `SagaOptions` / `DebuggerOptions` / `InfrastructureConfiguration` hold tunables.
+`ServiceConfiguration.AddSagaOrchestrator()` is the front door: registers the four in-memory repositories, `ISagaLogger`, a default `SagaOptions` (via `TryAddSingleton`, so the configuring overload wins), `IMetricsService`, and the three core services as singletons (safe because the repositories are thread-safe and the services are stateless over them). Granular variants exist for partial wiring: `AddSagaRepositories()` (repos only) and `AddSagaServices()` (services only, bring your own repos). `SagaOptions` / `DebuggerOptions` / `InfrastructureConfiguration` hold tunables.
 
 ### Presentation (`src/Presentation/Cli`)
 
