@@ -1706,6 +1706,77 @@ Assert.False(tests.CanRetry_WhenAtMaxRetries_ReturnsFalse(5, 5));
 }
 ```
 
+## SagaLifecycleTests
+
+The `SagaLifecycleTests` class contains unit tests that verify the complete lifecycle behavior of sagas and their definitions. These tests cover saga initialization, state transitions (from Initialized to Running to Failed to Compensating to Compensated), retry logic, and step management within saga definitions. The test suite ensures proper saga state management and validates that all lifecycle constraints are enforced correctly.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+using SagaOrchestrator.Tests;
+
+// Example 1: Test saga initialization and state transitions
+var saga = new Saga();
+var definition = new SagaDefinition("Order Processing Saga", "Handles complete order processing workflow");
+
+// Initialize saga with configuration
+saga.Initialize(definition, maxRetries: 3, timeoutSeconds: 120);
+Console.WriteLine($"Saga initialized: {saga.Status} (Max Retries: {saga.MaxRetries}, Timeout: {saga.TimeoutSeconds}s");
+
+// Start the saga execution
+saga.Start();
+Console.WriteLine($"Saga started: {saga.Status}");
+
+// Test failure handling
+saga.Fail("Payment service unavailable");
+Console.WriteLine($"Saga failed: {saga.Status} (Reason: {saga.FailureReason})");
+
+// Test compensation workflow
+saga.BeginCompensation();
+Console.WriteLine($"Compensation started: {saga.Status} (Started at: {saga.CompensationStartedAt})");
+
+saga.CompleteCompensation();
+Console.WriteLine($"Compensation completed: {saga.Status} (Completed at: {saga.CompletedAt})");
+
+// Example 2: Test saga definition step management
+var definitionTests = new SagaLifecycleTests();
+var testDefinition = new SagaDefinition("Test Saga", "Test description");
+
+// Add steps and verify sequential ordering
+testDefinition.AddStep(new SagaStepDefinition("Validate Order", "order-service", "http://order/api/validate", "http://order/api/cancel"));
+testDefinition.AddStep(new SagaStepDefinition("Process Payment", "payment-service", "http://payment/api/charge", "http://payment/api/refund"));
+testDefinition.AddStep(new SagaStepDefinition("Ship Order", "shipping-service", "http://shipping/api/ship", "http://shipping/api/cancel"));
+
+Console.WriteLine($"Definition has {testDefinition.Steps.Count} steps with orders: {testDefinition.Steps[0].Order}, {testDefinition.Steps[1].Order}, {testDefinition.Steps[2].Order}");
+
+// Retrieve steps by name and order
+var validateStep = testDefinition.GetStepByName("Validate Order");
+var paymentStep = testDefinition.GetStepByOrder(2);
+Console.WriteLine($"Retrieved step by name: {validateStep?.Name}, by order: {paymentStep?.Name}");
+
+// Example 3: Test retry logic
+var retrySaga = new Saga();
+retrySaga.Initialize(definition, maxRetries: 5, timeoutSeconds: 60);
+retrySaga.Start();
+retrySaga.Fail("Transient network error");
+
+Console.WriteLine($"Can retry after 2 failures: {retrySaga.CanRetry()} (Retry count: {retrySaga.RetryCount})");
+retrySaga.RetryCount = 4;
+Console.WriteLine($"Can retry after 4 failures: {retrySaga.CanRetry()} (Retry count: {retrySaga.RetryCount})");
+retrySaga.RetryCount = 5;
+Console.WriteLine($"Can retry after 5 failures: {retrySaga.CanRetry()} (Retry count: {retrySaga.RetryCount})");
+
+// Example 4: Test step configuration validation
+var step = new SagaStepDefinition("Test Step", "test-service", "http://test/api/action", "http://test/api/compensate");
+step.SetTimeout(30);
+step.SetRetryPolicy(maxRetries: 2, delayMilliseconds: 1000);
+
+var clonedStep = step.Clone();
+Console.WriteLine($"Original step timeout: {step.TimeoutSeconds}s, cloned step timeout: {clonedStep.TimeoutSeconds}s");
+```
+
 ## InMemorySagaDefinitionRepository
 
 The `InMemorySagaDefinitionRepository` provides an in-memory implementation of `ISagaDefinitionRepository` for storing and retrieving saga workflow definitions. It maintains all saga definitions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
