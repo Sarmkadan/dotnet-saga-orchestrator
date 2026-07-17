@@ -7,7 +7,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Utilities;
 
 namespace SagaOrchestrator.Core.Domain.Models;
@@ -18,11 +18,11 @@ namespace SagaOrchestrator.Core.Domain.Models;
 public static class SagaStepDefinitionValidation
 {
     /// <summary>
-    /// Validates a SagaStepDefinition instance and returns a list of validation errors.
+    /// Validates a <see cref="SagaStepDefinition"/> instance and returns a list of validation errors.
     /// </summary>
-    /// <param name="value">The SagaStepDefinition to validate</param>
+    /// <param name="value">The <see cref="SagaStepDefinition"/> to validate</param>
     /// <returns>An empty list if valid; otherwise, a list of human-readable error messages</returns>
-    /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/></exception>
     public static IReadOnlyList<string> Validate(this SagaStepDefinition value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -198,22 +198,22 @@ public static class SagaStepDefinitionValidation
     }
 
     /// <summary>
-    /// Checks if a SagaStepDefinition instance is valid.
+    /// Checks if a <see cref="SagaStepDefinition"/> instance is valid.
     /// </summary>
-    /// <param name="value">The SagaStepDefinition to check</param>
+    /// <param name="value">The <see cref="SagaStepDefinition"/> to check</param>
     /// <returns>True if valid; otherwise, false</returns>
-    /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/></exception>
     public static bool IsValid(this SagaStepDefinition value)
     {
         return Validate(value).Count == 0;
     }
 
     /// <summary>
-    /// Ensures that a SagaStepDefinition instance is valid, throwing an exception if it is not.
+    /// Ensures that a <see cref="SagaStepDefinition"/> instance is valid, throwing an exception if it is not.
     /// </summary>
-    /// <param name="value">The SagaStepDefinition to validate</param>
-    /// <exception cref="ArgumentException">Thrown when value is not valid, containing all validation errors</exception>
-    /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+    /// <param name="value">The <see cref="SagaStepDefinition"/> to validate</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is not valid, containing all validation errors</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/></exception>
     public static void EnsureValid(this SagaStepDefinition value)
     {
         ArgumentNullException.ThrowIfNull(value);
