@@ -358,6 +358,89 @@ var basicRequest = new CreateSagaRequest
 };
 ```
 
+## SagaCommandResultExtensions
+
+The `SagaCommandResultExtensions` class provides extension methods for `SagaCommandResult` and `SagaCommandResult<T>` that offer common operations for converting between typed and untyped results, adding errors, checking for specific errors, combining multiple results, and creating failure results. These extensions simplify working with saga command results by providing fluent APIs for common patterns.
+
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.DTOs;
+
+// Example 1: Convert between typed and untyped results
+var untypedResult = SagaCommandResult.SuccessResult(
+    "Order retrieved successfully",
+    new { OrderId = "ord_12345", CustomerId = "cust_67890" }
+);
+
+// Convert to untyped result (extracting data as anonymous object)
+var extractedResult = untypedResult.ToUntypedResult();
+
+// Convert back to typed result with different type
+var typedResult = extractedResult.ToTypedResult<OrderDto>();
+
+// Example 2: Add errors to failed results
+var failedPaymentResult = SagaCommandResult.FailureResult(
+    "Payment processing failed",
+    "Insufficient funds"
+);
+
+// Add additional error to failed result
+failedPaymentResult.WithError("Payment gateway timeout");
+Console.WriteLine($"Errors after adding: {string.Join(", ", failedPaymentResult.Errors)}");
+
+// Example 3: Convert successful result to paginated result
+var orderListResult = SagaCommandResult.SuccessResult(
+    "Orders retrieved",
+    new List<OrderDto> {
+        new OrderDto { Id = "ord_1", Amount = 99.99 },
+        new OrderDto { Id = "ord_2", Amount = 149.99 },
+        new OrderDto { Id = "ord_3", Amount = 199.99 }
+    }
+);
+
+var paginated = orderListResult.ToPaginatedResult<OrderDto>(pageNumber: 1, pageSize: 2);
+Console.WriteLine($"Page 1 of orders: {paginated.Items.Count} items");
+Console.WriteLine($"Total count: {paginated.TotalCount}");
+
+// Example 4: Combine multiple results
+var result1 = SagaCommandResult.SuccessResult("Step 1 completed");
+var result2 = SagaCommandResult.SuccessResult("Step 2 completed");
+var result3 = SagaCommandResult.FailureResult("Step 3 failed", "Validation error");
+
+var combined = new[] { result1, result2, result3 }.Combine();
+Console.WriteLine($"Combined success: {combined.Success}");
+Console.WriteLine($"Combined errors: {string.Join(", ", combined.Errors)}");
+
+// Example 5: Convert successful result to failure
+var successResult = SagaCommandResult.SuccessResult("Operation completed");
+var failureFromSuccess = successResult.AsFailure("Operation failed due to business rule violation");
+Console.WriteLine($"Converted to failure: {failureFromSuccess.Success}");
+
+// Example 6: Check for specific errors
+var validationResult = SagaCommandResult.FailureResult(
+    "Validation failed",
+    "Invalid email format",
+    "Password too short"
+);
+
+bool hasEmailError = validationResult.HasError("Invalid email format");
+bool hasGenericError = validationResult.HasError("Generic error");
+
+Console.WriteLine($"Has email error: {hasEmailError}");
+Console.WriteLine($"Has generic error: {hasGenericError}");
+
+// Example 7: Chain operations fluently
+var finalResult = SagaCommandResult.SuccessResult("Initial operation")
+    .ToTypedResult<PaymentResult>()
+    .WithError("Additional validation failed")
+    .AsFailure("Final failure state");
+
+Console.WriteLine($"Final result success: {finalResult.Success}");
+Console.WriteLine($"Final result message: {finalResult.Message}");
+```
+
 ## TimeoutPolicy
 
 The `TimeoutPolicy` class encapsulates timeout configuration for sagas and saga steps. It provides methods for checking timeout conditions, calculating remaining time, and determining if sufficient time remains for operations. Timeout policies can be created using predefined factory methods (`CreateLenient`, `CreateStandard`, `CreateStrict`) or customized with a specific timeout duration.
