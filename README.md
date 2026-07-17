@@ -171,3 +171,39 @@ if (statusCommand.IsValid)
     Console.WriteLine($"Status command validation: {isStatusValid}");
 }
 ```
+
+## InMemorySagaStepRepositoryExtensions
+
+The `InMemorySagaStepRepositoryExtensions` class provides a set of extension methods for the `InMemorySagaStepRepository` that enable efficient querying, validation, and status tracking for saga steps directly from the repository. These methods simplify common operations such as retrieving steps by status, identifying retryable or timed-out steps, and checking the overall completion status of a saga.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Enums;
+using SagaOrchestrator.Data.Repositories;
+
+// Assuming repository is an instance of InMemorySagaStepRepository
+var repository = new InMemorySagaStepRepository(); 
+string sagaId = "saga_1234567890abcdef";
+
+// Get steps by status
+var failedSteps = await repository.GetBySagaIdAndStatusAsync(sagaId, SagaStepStatus.Failed);
+
+// Check for next pending step
+var nextStep = await repository.GetNextPendingStepAsync(sagaId);
+
+// Identify retryable failed steps
+var retryableSteps = await repository.GetRetryableFailedStepsAsync(sagaId);
+
+// Check for timed out steps
+var timedOutSteps = await repository.GetTimedOutStepsAsync(sagaId);
+
+// Get highest execution order
+int maxOrder = await repository.GetMaxOrderForSagaAsync(sagaId);
+
+// Check overall completion
+bool isCompleted = await repository.AreAllStepsCompletedAsync(sagaId);
+
+// Get active steps
+var activeSteps = await repository.GetActiveStepsAsync(sagaId);
+```
