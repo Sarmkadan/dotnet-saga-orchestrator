@@ -30,16 +30,10 @@ public static class CircuitBreakerTestsJsonExtensions
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the CircuitBreakerTests instance.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
-    public static string ToJson(this CircuitBreakerTests value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
+    public static string ToJson(this CircuitBreakerTests value, bool indented = false) =>
+        JsonSerializer.Serialize(value, indented
             ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
-            : _jsonSerializerOptions;
-
-        return JsonSerializer.Serialize(value, options);
-    }
+            : _jsonSerializerOptions);
 
     /// <summary>
     /// Deserializes a JSON string to a CircuitBreakerTests instance.
@@ -51,19 +45,9 @@ public static class CircuitBreakerTestsJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<CircuitBreakerTests>(json, _jsonSerializerOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<CircuitBreakerTests>(json, _jsonSerializerOptions);
     }
 
     /// <summary>
@@ -79,19 +63,7 @@ public static class CircuitBreakerTestsJsonExtensions
 
         value = null;
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return false;
-        }
-
-        try
-        {
-            value = JsonSerializer.Deserialize<CircuitBreakerTests>(json, _jsonSerializerOptions);
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
+        return !string.IsNullOrWhiteSpace(json)
+            && (value = JsonSerializer.Deserialize<CircuitBreakerTests>(json, _jsonSerializerOptions)) is not null;
     }
 }
