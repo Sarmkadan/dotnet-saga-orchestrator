@@ -12,7 +12,7 @@ public static class SagaDefinitionJsonExtensions
     /// <summary>
     /// Configured JSON serializer options with camelCase naming policy.
     /// </summary>
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
@@ -40,9 +40,10 @@ public static class SagaDefinitionJsonExtensions
     /// Deserializes a JSON string to a <see cref="SagaDefinition"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized <see cref="SagaDefinition"/> instance, or null if deserialization fails.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null or empty.</exception>
-    /// <exception cref="JsonException">Thrown when JSON deserialization fails.</exception>
+    /// <returns>The deserialized <see cref="SagaDefinition"/> instance, or null if deserialization fails or JSON is invalid.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
+    /// <exception cref="JsonException">Thrown when JSON deserialization fails due to malformed JSON.</exception>
     public static SagaDefinition? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
@@ -55,8 +56,9 @@ public static class SagaDefinitionJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized <see cref="SagaDefinition"/> instance, or null if deserialization fails.</param>
-    /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <returns>True if deserialization succeeded and produced a non-null value; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson(string json, out SagaDefinition? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
