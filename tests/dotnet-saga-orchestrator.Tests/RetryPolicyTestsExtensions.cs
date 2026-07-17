@@ -11,7 +11,7 @@ public static class RetryPolicyTestsExtensions
     /// Runs all constructor-related tests.
     /// </summary>
     /// <param name="instance">The test instance.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="instance"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="instance"/> is <see langword="null"/>.</exception>
     public static void RunConstructorTests(this RetryPolicyTests instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -26,7 +26,7 @@ public static class RetryPolicyTestsExtensions
     /// Runs all delay calculation-related tests.
     /// </summary>
     /// <param name="instance">The test instance.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="instance"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="instance"/> is <see langword="null"/>.</exception>
     public static void RunCalculateDelayTests(this RetryPolicyTests instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -43,7 +43,7 @@ public static class RetryPolicyTestsExtensions
     /// Runs all policy creation factory method tests.
     /// </summary>
     /// <param name="instance">The test instance.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="instance"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="instance"/> is <see langword="null"/>.</exception>
     public static void RunFactoryMethodTests(this RetryPolicyTests instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -57,7 +57,7 @@ public static class RetryPolicyTestsExtensions
     /// Runs all retry capability tests.
     /// </summary>
     /// <param name="instance">The test instance.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="instance"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="instance"/> is <see langword="null"/>.</exception>
     public static void RunCanRetryTests(this RetryPolicyTests instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
