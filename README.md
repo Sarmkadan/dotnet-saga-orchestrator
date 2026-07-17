@@ -1563,6 +1563,94 @@ var offsetProblems = dateOffsets.Validate();
 Console.WriteLine($"DateTimeOffset collection has {offsetProblems.Count} validation issues");
 ```
 
+## SagaDefinitionExtensions
+
+The `SagaDefinitionExtensions` class provides extension methods for the `SagaDefinition` class to simplify common operations like creating definitions, adding steps, and querying step information. These extensions make it easier to work with saga definitions by providing fluent, readable APIs for common patterns.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Example 1: Create a new saga definition using the extension method
+var definition = SagaDefinitionExtensions.Create(
+    "Order Processing Saga",
+    "Handles complete order processing workflow from validation to shipping",
+    CompensationStrategy.ReverseOrder
+);
+
+Console.WriteLine($"Created definition: {definition.Name} (v{definition.Version})");
+Console.WriteLine($"Compensation strategy: {definition.CompensationStrategy}");
+
+// Example 2: Add multiple steps at once using the extension method
+var step1 = new SagaStepDefinition(
+    "Validate Order",
+    "https://order-service/api/validate",
+    HttpMethod.Get,
+    "Validate customer order details and inventory availability"
+);
+
+var step2 = new SagaStepDefinition(
+    "Process Payment",
+    "https://payment-service/api/charge",
+    HttpMethod.Post,
+    "Charge customer payment method"
+);
+
+var step3 = new SagaStepDefinition(
+    "Ship Order",
+    "https://shipping-service/api/ship",
+    HttpMethod.Post,
+    "Create shipping label and schedule delivery"
+);
+
+// Add all steps at once using the extension method
+var steps = new[] { step1, step2, step3 };
+definition.AddSteps(steps);
+
+Console.WriteLine($"Definition now has {definition.GetStepCount()} steps");
+
+// Example 3: Query step information using extension methods
+var firstStep = definition.GetFirstStep();
+var lastStep = definition.GetLastStep();
+var stepCount = definition.GetStepCount();
+
+Console.WriteLine($"First step: {firstStep?.Name}");
+Console.WriteLine($"Last step: {lastStep?.Name}");
+Console.WriteLine($"Total steps: {stepCount}");
+
+// Example 4: Check if a step exists using the extension method
+bool hasValidateStep = definition.ContainsStep("Validate Order");
+bool hasUnknownStep = definition.ContainsStep("Unknown Step");
+
+Console.WriteLine($"Contains 'Validate Order': {hasValidateStep}");
+Console.WriteLine($"Contains 'Unknown Step': {hasUnknownStep}");
+
+// Example 5: Build a saga definition step by step using extension methods
+var orderDefinition = SagaDefinitionExtensions.Create(
+    "Order Management Saga",
+    "Complete order lifecycle management"
+);
+
+// Add steps individually
+orderDefinition.AddSteps(new[] { 
+    new SagaStepDefinition(
+        "Create Order",
+        "https://order-api/create",
+        HttpMethod.Post,
+        "Create new order record"
+    )
+});
+
+// Check if we have steps
+if (orderDefinition.GetStepCount() > 0)
+{
+    var first = orderDefinition.GetFirstStep();
+    Console.WriteLine($"First step added: {first?.Name}");
+}
+```
+
 ## CacheKeyBuilderJsonExtensions
 
 The `CacheKeyBuilderJsonExtensions` class provides extension methods for serializing and deserializing cache keys to/from JSON format. It enables consistent cache key representation for debugging, logging, and inter-service communication scenarios where cache keys need to be transmitted or persisted as structured data.
