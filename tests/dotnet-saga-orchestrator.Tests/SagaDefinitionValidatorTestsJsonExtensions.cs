@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace SagaOrchestrator.Tests;
 
 /// <summary>
-/// Provides JSON serialization extensions for <see cref="SagaDefinitionValidatorTests"/>.
+/// Provides JSON serialization extensions for <see cref="SagaDefinitionValidatorTests"/> instances.
 /// </summary>
 public static class SagaDefinitionValidatorTestsJsonExtensions
 {
@@ -15,8 +15,10 @@ public static class SagaDefinitionValidatorTestsJsonExtensions
         WriteIndented = false,
     };
 
+    private const string JsonNullValue = "null";
+
     /// <summary>
-    /// Serializes the <see cref="SagaDefinitionValidatorTests"/> instance to a JSON string.
+    /// Serializes the <see cref="SagaDefinitionValidatorTests"/> instance to a JSON string using camelCase property naming.
     /// </summary>
     /// <param name="value">The instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
