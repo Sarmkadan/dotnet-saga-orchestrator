@@ -11,8 +11,8 @@ using System.Globalization;
 namespace SagaOrchestrator.Core.Exceptions;
 
 /// <summary>
-/// Extension methods for <see cref="SagaStepExecutionException"/> that provide additional functionality
-/// for working with saga step execution failures.
+/// Provides extension methods for <see cref="SagaStepExecutionException"/> to enhance error handling and diagnostics
+/// for saga step execution failures with structured error information and retry analysis.
 /// </summary>
 public static class SagaStepExecutionExceptionExtensions
 {
@@ -48,7 +48,7 @@ public static class SagaStepExecutionExceptionExtensions
             Type type = current.GetType();
             string typeName = type.FullName ?? type.Name;
 
-            // Common retryable exceptions
+            // Common retryable exceptions - use pattern matching for better readability
             if (typeName.Contains("TimeoutException", StringComparison.OrdinalIgnoreCase) ||
                 typeName.Contains("TransientException", StringComparison.OrdinalIgnoreCase) ||
                 typeName.Contains("RetryableException", StringComparison.OrdinalIgnoreCase) ||
@@ -62,7 +62,7 @@ public static class SagaStepExecutionExceptionExtensions
         }
 
         // Check message for retry-related keywords
-        string message = exception.Message;
+        string message = exception.Message ?? string.Empty;
         return message.Contains("timeout", StringComparison.OrdinalIgnoreCase) ||
                message.Contains("retry", StringComparison.OrdinalIgnoreCase) ||
                message.Contains("transient", StringComparison.OrdinalIgnoreCase) ||
@@ -84,17 +84,17 @@ public static class SagaStepExecutionExceptionExtensions
         {
             ["stepName"] = exception.StepName ?? string.Empty,
             ["stepOrder"] = exception.StepOrder,
-            ["sagaId"] = exception.SagaId,
+            ["sagaId"] = exception.SagaId ?? string.Empty,
             ["errorType"] = "SagaStepExecutionFailed",
             ["errorCode"] = "STEP_EXECUTION_FAILED",
-            ["message"] = exception.Message,
+            ["message"] = exception.Message ?? string.Empty,
             ["timestamp"] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture)
         };
 
         if (exception.InnerException != null)
         {
             context["innerExceptionType"] = exception.InnerException.GetType().FullName ?? exception.InnerException.GetType().Name;
-            context["innerExceptionMessage"] = exception.InnerException.Message;
+            context["innerExceptionMessage"] = exception.InnerException.Message ?? string.Empty;
         }
 
         return context;
