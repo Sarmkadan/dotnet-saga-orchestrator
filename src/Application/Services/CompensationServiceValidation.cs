@@ -1,7 +1,13 @@
 #nullable enable
+// =============================================================================
+// Author: Vladyslav Zaiets | https://sarmkadan.com
+// CTO & Software Architect
+// =====================================================================
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace SagaOrchestrator.Application.Services;
 
@@ -10,6 +16,15 @@ namespace SagaOrchestrator.Application.Services;
 /// </summary>
 public static class CompensationServiceValidation
 {
+    private static readonly Lazy<FieldInfo> _compensationRepositoryField = new(() =>
+        typeof(CompensationService).GetField("_compensationRepository", BindingFlags.NonPublic | BindingFlags.Instance)!);
+
+    private static readonly Lazy<FieldInfo> _sagaRepositoryField = new(() =>
+        typeof(CompensationService).GetField("_sagaRepository", BindingFlags.NonPublic | BindingFlags.Instance)!);
+
+    private static readonly Lazy<FieldInfo> _stepRepositoryField = new(() =>
+        typeof(CompensationService).GetField("_stepRepository", BindingFlags.NonPublic | BindingFlags.Instance)!);
+
     /// <summary>
     /// Validates the <see cref="CompensationService"/> instance and returns a collection of human‑readable problems.
     /// </summary>
@@ -18,10 +33,34 @@ public static class CompensationServiceValidation
     /// An <see cref="IReadOnlyList{T}"/> of validation messages.
     /// If the instance is <c>null</c>, a single message describing the problem is returned.
     /// </returns>
-    public static IReadOnlyList<string> Validate(this CompensationService? value) =>
-        value is null
-            ? new[] { "CompensationService instance is null." }
-            : Array.Empty<string>();
+    public static IReadOnlyList<string> Validate(this CompensationService? value)
+    {
+        var problems = new List<string>();
+
+        if (value is null)
+        {
+            problems.Add("CompensationService instance is null.");
+            return problems;
+        }
+
+        // Validate required dependencies using cached reflection
+        if (_compensationRepositoryField.Value.GetValue(value) is null)
+        {
+            problems.Add("CompensationService._compensationRepository dependency is null.");
+        }
+
+        if (_sagaRepositoryField.Value.GetValue(value) is null)
+        {
+            problems.Add("CompensationService._sagaRepository dependency is null.");
+        }
+
+        if (_stepRepositoryField.Value.GetValue(value) is null)
+        {
+            problems.Add("CompensationService._stepRepository dependency is null.");
+        }
+
+        return problems.AsReadOnly();
+    }
 
     /// <summary>
     /// Determines whether the <see cref="CompensationService"/> instance is valid.
@@ -32,7 +71,7 @@ public static class CompensationServiceValidation
     public static bool IsValid(this CompensationService value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        return !value.Validate().Any();
+        return value.Validate().Count == 0;
     }
 
     /// <summary>
@@ -47,7 +86,7 @@ public static class CompensationServiceValidation
     {
         ArgumentNullException.ThrowIfNull(value);
         var problems = value.Validate();
-        if (problems.Any())
+        if (problems.Count > 0)
         {
             throw new ArgumentException(string.Join("; ", problems), nameof(value));
         }
