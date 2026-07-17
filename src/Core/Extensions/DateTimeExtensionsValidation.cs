@@ -31,82 +31,151 @@ public static class DateTimeExtensionsValidation
             return errors.AsReadOnly();
         }
 
-        // Validate RoundDownToSecond - should not be default(DateTime)
-        var roundDownToSecond = value.RoundDownToSecond();
-        if (roundDownToSecond == default)
+        // Validate RoundDownToSecond - should produce valid DateTime
+        try
         {
-            errors.Add("RoundDownToSecond result is default DateTime (uninitialized).");
+            var roundDownToSecond = value.RoundDownToSecond();
+            if (roundDownToSecond.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("RoundDownToSecond result has incorrect DateTimeKind (expected UTC).");
+            }
+        }
+        catch
+        {
+            errors.Add("RoundDownToSecond threw an exception.");
         }
 
-        // Validate RoundDownToMinute - should not be default(DateTime)
-        var roundDownToMinute = value.RoundDownToMinute();
-        if (roundDownToMinute == default)
+        // Validate RoundDownToMinute - should produce valid DateTime
+        try
         {
-            errors.Add("RoundDownToMinute result is default DateTime (uninitialized).");
+            var roundDownToMinute = value.RoundDownToMinute();
+            if (roundDownToMinute.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("RoundDownToMinute result has incorrect DateTimeKind (expected UTC).");
+            }
+        }
+        catch
+        {
+            errors.Add("RoundDownToMinute threw an exception.");
         }
 
-        // Validate RoundDownToHour - should not be default(DateTime)
-        var roundDownToHour = value.RoundDownToHour();
-        if (roundDownToHour == default)
+        // Validate RoundDownToHour - should produce valid DateTime
+        try
         {
-            errors.Add("RoundDownToHour result is default DateTime (uninitialized).");
+            var roundDownToHour = value.RoundDownToHour();
+            if (roundDownToHour.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("RoundDownToHour result has incorrect DateTimeKind (expected UTC).");
+            }
+        }
+        catch
+        {
+            errors.Add("RoundDownToHour threw an exception.");
         }
 
-        // Validate StartOfDay - should not be default(DateTime)
-        var startOfDay = value.StartOfDay();
-        if (startOfDay == default)
+        // Validate StartOfDay - should produce valid DateTime
+        try
         {
-            errors.Add("StartOfDay result is default DateTime (uninitialized).");
+            var startOfDay = value.StartOfDay();
+            if (startOfDay.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("StartOfDay result has incorrect DateTimeKind (expected UTC).");
+            }
+        }
+        catch
+        {
+            errors.Add("StartOfDay threw an exception.");
         }
 
-        // Validate EndOfDay - should not be default(DateTime) and should be after StartOfDay
-        var endOfDay = value.EndOfDay();
-        if (endOfDay == default)
+        // Validate EndOfDay - should produce valid DateTime and be after StartOfDay
+        try
         {
-            errors.Add("EndOfDay result is default DateTime (uninitialized).");
+            var startOfDay = value.StartOfDay();
+            var endOfDay = value.EndOfDay();
+
+            if (endOfDay.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("EndOfDay result has incorrect DateTimeKind (expected UTC).");
+            }
+            else if (endOfDay <= startOfDay)
+            {
+                errors.Add("EndOfDay result is not after StartOfDay.");
+            }
         }
-        else if (endOfDay <= startOfDay)
+        catch
         {
-            errors.Add("EndOfDay result is not after StartOfDay.");
+            errors.Add("EndOfDay threw an exception.");
         }
 
-        // Validate StartOfMonth - should not be default(DateTime)
-        var startOfMonth = value.StartOfMonth();
-        if (startOfMonth == default)
+        // Validate StartOfMonth - should produce valid DateTime
+        try
         {
-            errors.Add("StartOfMonth result is default DateTime (uninitialized).");
+            var startOfMonth = value.StartOfMonth();
+            if (startOfMonth.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("StartOfMonth result has incorrect DateTimeKind (expected UTC).");
+            }
+        }
+        catch
+        {
+            errors.Add("StartOfMonth threw an exception.");
         }
 
-        // Validate EndOfMonth - should not be default(DateTime) and should be after StartOfMonth
-        var endOfMonth = value.EndOfMonth();
-        if (endOfMonth == default)
+        // Validate EndOfMonth - should produce valid DateTime and be after StartOfMonth
+        try
         {
-            errors.Add("EndOfMonth result is default DateTime (uninitialized).");
+            var startOfMonth = value.StartOfMonth();
+            var endOfMonth = value.EndOfMonth();
+
+            if (endOfMonth.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("EndOfMonth result has incorrect DateTimeKind (expected UTC).");
+            }
+            else if (endOfMonth <= startOfMonth)
+            {
+                errors.Add("EndOfMonth result is not after StartOfMonth.");
+            }
         }
-        else if (endOfMonth <= startOfMonth)
+        catch
         {
-            errors.Add("EndOfMonth result is not after StartOfMonth.");
+            errors.Add("EndOfMonth threw an exception.");
         }
 
-        // Validate StartOfYear - should not be default(DateTime)
-        var startOfYear = value.StartOfYear();
-        if (startOfYear == default)
+        // Validate StartOfYear - should produce valid DateTime
+        try
         {
-            errors.Add("StartOfYear result is default DateTime (uninitialized).");
+            var startOfYear = value.StartOfYear();
+            if (startOfYear.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("StartOfYear result has incorrect DateTimeKind (expected UTC).");
+            }
+        }
+        catch
+        {
+            errors.Add("StartOfYear threw an exception.");
         }
 
-        // Validate EndOfYear - should not be default(DateTime) and should be after StartOfYear
-        var endOfYear = value.EndOfYear();
-        if (endOfYear == default)
+        // Validate EndOfYear - should produce valid DateTime and be after StartOfYear
+        try
         {
-            errors.Add("EndOfYear result is default DateTime (uninitialized).");
+            var startOfYear = value.StartOfYear();
+            var endOfYear = value.EndOfYear();
+
+            if (endOfYear.Kind != DateTimeKind.Utc)
+            {
+                errors.Add("EndOfYear result has incorrect DateTimeKind (expected UTC).");
+            }
+            else if (endOfYear <= startOfYear)
+            {
+                errors.Add("EndOfYear result is not after StartOfYear.");
+            }
         }
-        else if (endOfYear <= startOfYear)
+        catch
         {
-            errors.Add("EndOfYear result is not after StartOfYear.");
+            errors.Add("EndOfYear threw an exception.");
         }
 
-        // Validate ToUnixTimestamp - should be non-negative for dates after epoch
+        // Validate ToUnixTimestamp - should not throw and produce non-negative result for dates after epoch
         try
         {
             var unixTimestamp = value.ToUnixTimestamp();
@@ -117,21 +186,21 @@ public static class DateTimeExtensionsValidation
         }
         catch
         {
-            errors.Add("ToUnixTimestamp threw an exception (invalid date conversion).");
+            errors.Add("ToUnixTimestamp threw an exception.");
         }
 
         // Validate FromUnixTimestamp - should not throw and produce valid DateTime
         try
         {
-            var fromUnix = DateTimeExtensions.FromUnixTimestamp(0);
-            if (fromUnix == default)
+            var fromUnix = DateTimeExtensions.FromUnixTimestamp(value.ToUnixTimestamp());
+            if (fromUnix.Kind != DateTimeKind.Utc)
             {
-                errors.Add("FromUnixTimestamp(0) result is default DateTime (uninitialized).");
+                errors.Add("FromUnixTimestamp result has incorrect DateTimeKind (expected UTC).");
             }
         }
         catch
         {
-            errors.Add("FromUnixTimestamp threw an exception (invalid timestamp).");
+            errors.Add("FromUnixTimestamp threw an exception.");
         }
 
         return errors.AsReadOnly();
@@ -152,7 +221,7 @@ public static class DateTimeExtensionsValidation
     /// throwing an ArgumentException if not.
     /// </summary>
     /// <param name="value">The DateTime value to validate.</param>
-    /// <exception cref="ArgumentException">Thrown if the value is not valid, containing all validation errors.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is not valid.</exception>
     public static void EnsureValid(this DateTime value)
     {
         var errors = value.Validate();
