@@ -176,17 +176,14 @@ public static class SagaStepBuilderExtensions
     /// <param name="metadata">Dictionary of metadata key-value pairs.</param>
     /// <returns>The builder instance for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when builder is null.</exception>
+	/// <exception cref="ArgumentNullException">Thrown when metadata is null.</exception>
     public static SagaStepBuilder WithMetadata(this SagaStepBuilder builder, Dictionary<string, string> metadata)
     {
         ArgumentNullException.ThrowIfNull(builder, nameof(builder));
-
-        if (metadata != null)
-        {
-            foreach (var kvp in metadata)
-            {
-                builder.WithMetadata(kvp.Key, kvp.Value);
-            }
-        }
+	foreach (var kvp in metadata)
+	{
+		builder.WithMetadata(kvp.Key, kvp.Value);
+	}
 
         return builder;
     }
@@ -194,25 +191,34 @@ public static class SagaStepBuilderExtensions
     /// <summary>
     /// Validates that the string is a valid HTTP method.
     /// </summary>
-    private static bool IsValidHttpMethod(string method)
+private static bool IsValidHttpMethod(string method)
+{
+    ArgumentNullException.ThrowIfNull(method, nameof(method));
+    return method.ToUpperInvariant() switch
     {
-        return method.Equals("GET", StringComparison.OrdinalIgnoreCase) ||
-               method.Equals("POST", StringComparison.OrdinalIgnoreCase) ||
-               method.Equals("PUT", StringComparison.OrdinalIgnoreCase) ||
-               method.Equals("PATCH", StringComparison.OrdinalIgnoreCase) ||
-               method.Equals("DELETE", StringComparison.OrdinalIgnoreCase) ||
-               method.Equals("HEAD", StringComparison.OrdinalIgnoreCase) ||
-               method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase);
-    }
+        "GET" => true,
+        "POST" => true,
+        "PUT" => true,
+        "PATCH" => true,
+        "DELETE" => true,
+        "HEAD" => true,
+        "OPTIONS" => true,
+        _ => false
+    };
+}
 
     /// <summary>
-    /// Ensures a string ends with a trailing slash.
-    /// </summary>
-    private static string EnsureTrailingSlash(string url)
-    {
-        if (string.IsNullOrEmpty(url))
-            return url;
+/// Ensures a string ends with a trailing slash.
+/// </summary>
+/// <param name="url">The URL to process.</param>
+/// <returns>The URL with a trailing slash, or the original URL if it already ends with one or is null/empty.</returns>
+private static string EnsureTrailingSlash(string url)
+{
+    return string.IsNullOrEmpty(url)
+        ? url
+        : url.EndsWith('/')
+            ? url
+            : url + '/';
+}
 
-        return url.EndsWith('/') ? url : url + '/';
-    }
 }
