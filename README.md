@@ -1695,6 +1695,77 @@ Console.WriteLine(invalidResult == null ? "null" : invalidResult);
 // Output: null
 ```
 
+## SagaExtensions
+
+The `SagaExtensions` class provides extension methods for the `Saga` class to simplify common saga operations like checking status, retrieving step information, managing metadata, and handling retries.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Assuming we have a saga instance
+Saga saga = GetSagaFromSomewhere();
+
+// Check if saga is completed
+bool isCompleted = saga.IsCompleted();
+Console.WriteLine($"Saga completed: {isCompleted}");
+
+// Check if saga is in terminal state
+bool isTerminal = saga.IsTerminal();
+Console.WriteLine($"Saga terminal: {isTerminal}");
+
+// Get saga duration in seconds
+double? duration = saga.GetDurationSeconds();
+Console.WriteLine($"Saga duration: {duration?.ToString() ?? "Not started"} seconds");
+
+// Get current step index
+int currentStepIndex = saga.GetCurrentStepIndex();
+Console.WriteLine($"Current step index: {currentStepIndex}");
+
+// Get failed steps
+IReadOnlyList<SagaStep> failedSteps = saga.GetFailedSteps();
+Console.WriteLine($"Failed steps count: {failedSteps.Count}");
+
+// Get completed steps
+IReadOnlyList<SagaStep> completedSteps = saga.GetCompletedSteps();
+Console.WriteLine($"Completed steps count: {completedSteps.Count}");
+
+// Check if saga has pending steps
+bool hasPending = saga.HasPendingSteps();
+Console.WriteLine($"Has pending steps: {hasPending}");
+
+// Get retry delay seconds
+int retryDelay = saga.GetRetryDelaySeconds();
+Console.WriteLine($"Retry delay: {retryDelay} seconds");
+
+// Get completion percentage
+int completionPercentage = saga.GetCompletionPercentage();
+Console.WriteLine($"Completion percentage: {completionPercentage}%");
+
+// Add metadata
+saga.AddMetadata("customerId", "cust_123");
+saga.AddMetadata("orderTotal", 99.99);
+
+// Retrieve metadata
+string? customerId = saga.GetMetadata<string>("customerId");
+decimal? orderTotal = saga.GetMetadata<decimal>("orderTotal");
+Console.WriteLine($"Customer ID: {customerId}");
+Console.WriteLine($"Order Total: {orderTotal}");
+
+// Check if saga can retry
+bool canRetry = saga.CanRetry();
+Console.WriteLine($"Can retry: {canRetry}");
+
+// Increment retry count and get delay
+if (canRetry)
+{
+    int delayAfterRetry = saga.IncrementRetry();
+    Console.WriteLine($"Incremented retry, next delay: {delayAfterRetry} seconds");
+}
+```
+
 ## DebuggerOptions
 
 The `DebuggerOptions` class provides configuration for the distributed saga debugger, controlling snapshot capture behavior, breakpoint limits, and data inclusion policies. It can be loaded from `appsettings.json` under the `SagaDebugger` section or configured programmatically using the `DebuggerOptionsBuilder` fluent API. The debugger adds zero overhead when disabled, making it safe for production use.
