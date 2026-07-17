@@ -40,6 +40,8 @@ public static class InMemoryCompensationTransactionRepositoryJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>An <see cref="InMemoryCompensationTransactionRepository"/> instance deserialized from the JSON string, or null if deserialization fails.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     public static InMemoryCompensationTransactionRepository? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
@@ -60,6 +62,8 @@ public static class InMemoryCompensationTransactionRepositoryJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized <see cref="InMemoryCompensationTransactionRepository"/> instance, or null if deserialization fails.</param>
     /// <returns>true if deserialization succeeds; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson(string json, out InMemoryCompensationTransactionRepository? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
@@ -67,7 +71,7 @@ public static class InMemoryCompensationTransactionRepositoryJsonExtensions
         try
         {
             value = JsonSerializer.Deserialize<InMemoryCompensationTransactionRepository>(json, _jsonOptions);
-            return value != null;
+            return value is not null;
         }
         catch (JsonException)
         {
