@@ -28,8 +28,7 @@ public static class SagaEventJsonExtensions
     public static string ToJson(this SagaEvent value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-        var options = new JsonSerializerOptions(JsonOptions) { WriteIndented = indented };
-        return JsonSerializer.Serialize(value, options);
+        return JsonSerializer.Serialize(value, new JsonSerializerOptions(JsonOptions) { WriteIndented = indented });
     }
 
     /// <summary>
