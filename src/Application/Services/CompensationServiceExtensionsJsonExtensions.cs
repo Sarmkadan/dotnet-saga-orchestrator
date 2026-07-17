@@ -36,12 +36,12 @@ public static class CompensationServiceExtensionsJsonExtensions
     /// Deserializes a JSON string to a <see cref="CompensationService"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized <see cref="CompensationService"/> instance, or <see langword="null"/> if deserialization fails.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or empty.</exception>
+    /// <returns>The deserialized <see cref="CompensationService"/> instance if successful; otherwise, <see langword="null"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/>, empty, or consists only of whitespace.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static CompensationService? FromJson(string json)
     {
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
         try
         {
@@ -59,10 +59,10 @@ public static class CompensationServiceExtensionsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized <see cref="CompensationService"/> instance if successful.</param>
     /// <returns><see langword="true"/> if deserialization succeeded; otherwise <see langword="false"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or empty.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/>, empty, or consists only of whitespace.</exception>
     public static bool TryFromJson(string json, out CompensationService? value)
     {
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
         value = null;
 
