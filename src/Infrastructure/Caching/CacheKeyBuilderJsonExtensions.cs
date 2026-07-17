@@ -43,10 +43,13 @@ public static class CacheKeyBuilderJsonExtensions
     /// Deserializes a JSON string to a cache key.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>A deserialized cache key or null if the JSON is invalid.</returns>
+    /// <returns>A deserialized cache key or null if the JSON is invalid or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
     public static string? FromJson(string json)
     {
-        if (string.IsNullOrEmpty(json))
+        ArgumentNullException.ThrowIfNull(json);
+
+        if (string.IsNullOrWhiteSpace(json))
         {
             return null;
         }
@@ -69,27 +72,29 @@ public static class CacheKeyBuilderJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="key">The deserialized cache key or null if the JSON is invalid.</param>
     /// <returns>True if the JSON was successfully deserialized; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out string? key)
-    {
-        try
-        {
-            key = FromJson(json);
-            return key != null;
-        }
-        catch (JsonException)
-        {
-            key = null;
-            return false;
-        }
-    }
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
+    public static bool TryFromJson(string json, out string? key) =>
+        (key = FromJson(json)) is not null;
 }
 
-public class CacheKey
+/// <summary>
+/// Represents a cache key container for JSON serialization.
+/// </summary>
+public sealed class CacheKey
 {
+    /// <summary>
+    /// Gets or sets the cache key value.
+    /// </summary>
     public string Key { get; set; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CacheKey"/> class.
+    /// </summary>
+    /// <param name="key">The cache key value.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null.</exception>
     public CacheKey(string key)
     {
+        ArgumentNullException.ThrowIfNull(key);
         Key = key;
     }
 }
