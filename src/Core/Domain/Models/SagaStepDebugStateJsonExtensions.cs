@@ -5,14 +5,14 @@ using System.Text.Json.Serialization;
 namespace SagaOrchestrator.Core.Domain.Models;
 
 /// <summary>
-/// Provides JSON serialization and deserialization helpers for the <see cref="SagaStepDebugState"/> class.
+/// Provides JSON serialization and deserialization extensions for <see cref="SagaStepDebugState"/> instances.
 /// </summary>
 public static class SagaStepDebugStateJsonExtensions
 {
     /// <summary>
-    /// Configured JSON serializer options with camelCase naming policy.
+    /// Gets the configured JSON serializer options with camelCase naming policy and compact formatting.
     /// </summary>
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
