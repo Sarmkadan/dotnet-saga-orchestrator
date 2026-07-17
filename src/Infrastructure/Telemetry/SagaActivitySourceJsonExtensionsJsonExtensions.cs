@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 namespace SagaOrchestrator.Infrastructure.Telemetry;
 
 /// <summary>
-/// Provides System.Text.Json serialization extensions for SagaActivitySourceJsonExtensions.
+/// Provides System.Text.Json serialization extensions for <see cref="SagaActivitySourceJsonExtensions"/>.
 /// </summary>
 public static class SagaActivitySourceJsonExtensionsJsonExtensions
 {
