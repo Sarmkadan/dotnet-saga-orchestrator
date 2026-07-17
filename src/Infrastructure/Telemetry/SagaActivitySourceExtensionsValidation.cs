@@ -31,30 +31,8 @@ public static class SagaActivitySourceExtensionsValidation
     {
         var problems = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            problems.Add("Saga identifier cannot be null, empty, or whitespace.");
-        }
-
-        if (string.IsNullOrWhiteSpace(definitionId))
-        {
-            problems.Add("Saga definition identifier cannot be null, empty, or whitespace.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(correlationId) && string.IsNullOrWhiteSpace(correlationId))
-        {
-            problems.Add("Correlation identifier cannot be empty or whitespace when provided.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(sagaType) && string.IsNullOrWhiteSpace(sagaType))
-        {
-            problems.Add("Saga type cannot be empty or whitespace when provided.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(tenantId) && string.IsNullOrWhiteSpace(tenantId))
-        {
-            problems.Add("Tenant identifier cannot be empty or whitespace when provided.");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(definitionId);
 
         return problems.AsReadOnly();
     }
@@ -84,10 +62,7 @@ public static class SagaActivitySourceExtensionsValidation
             problems.Add("Saga identifier cannot be null, empty, or whitespace.");
         }
 
-        if (string.IsNullOrWhiteSpace(finalStatus))
-        {
-            problems.Add("Final status cannot be null, empty, or whitespace.");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(finalStatus);
 
         if (totalSteps < 0)
         {
@@ -134,20 +109,9 @@ public static class SagaActivitySourceExtensionsValidation
     {
         var problems = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            problems.Add("Saga identifier cannot be null, empty, or whitespace.");
-        }
-
-        if (string.IsNullOrWhiteSpace(stepId))
-        {
-            problems.Add("Step identifier cannot be null, empty, or whitespace.");
-        }
-
-        if (string.IsNullOrWhiteSpace(stepName))
-        {
-            problems.Add("Step name cannot be null, empty, or whitespace.");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(stepId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(stepName);
 
         if (order < 0)
         {
@@ -159,15 +123,6 @@ public static class SagaActivitySourceExtensionsValidation
             problems.Add("Retry attempt must be at least 1.");
         }
 
-        if (!string.IsNullOrWhiteSpace(stepType) && string.IsNullOrWhiteSpace(stepType))
-        {
-            problems.Add("Step type cannot be empty or whitespace when provided.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(serviceName) && string.IsNullOrWhiteSpace(serviceName))
-        {
-            problems.Add("Service name cannot be empty or whitespace when provided.");
-        }
 
         return problems.AsReadOnly();
     }
@@ -186,10 +141,7 @@ public static class SagaActivitySourceExtensionsValidation
     {
         var problems = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(errorMessage))
-        {
-            problems.Add("Error message cannot be null, empty, or whitespace.");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
 
         return problems.AsReadOnly();
     }
@@ -214,35 +166,15 @@ public static class SagaActivitySourceExtensionsValidation
     {
         var problems = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            problems.Add("Saga identifier cannot be null, empty, or whitespace.");
-        }
-
-        if (string.IsNullOrWhiteSpace(compensationId))
-        {
-            problems.Add("Compensation identifier cannot be null, empty, or whitespace.");
-        }
-
-        if (string.IsNullOrWhiteSpace(stepName))
-        {
-            problems.Add("Step name cannot be null, empty, or whitespace.");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(compensationId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(stepName);
 
         if (stepOrder < 0)
         {
             problems.Add("Step order cannot be negative.");
         }
 
-        if (!string.IsNullOrWhiteSpace(compensationType) && string.IsNullOrWhiteSpace(compensationType))
-        {
-            problems.Add("Compensation type cannot be empty or whitespace when provided.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(compensatingService) && string.IsNullOrWhiteSpace(compensatingService))
-        {
-            problems.Add("Compensating service cannot be empty or whitespace when provided.");
-        }
 
         return problems.AsReadOnly();
     }
@@ -261,10 +193,7 @@ public static class SagaActivitySourceExtensionsValidation
     {
         var problems = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(errorMessage))
-        {
-            problems.Add("Error message cannot be null, empty, or whitespace.");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
 
         return problems.AsReadOnly();
     }
@@ -278,6 +207,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="sagaType">Optional saga type/category for filtering and grouping.</param>
     /// <param name="tenantId">Optional tenant identifier for multi-tenancy scenarios.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> or <paramref name="definitionId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/>, <paramref name="definitionId"/>, <paramref name="correlationId"/>, <paramref name="sagaType"/>, or <paramref name="tenantId"/> is empty or whitespace.</exception>
     public static bool IsValidStartSaga(
         string sagaId,
         string definitionId,
@@ -296,6 +227,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="completedSteps">Number of successfully completed steps.</param>
     /// <param name="failedSteps">Number of failed steps.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> or <paramref name="finalStatus"/> is empty or whitespace.</exception>
     public static bool IsValidRecordSagaComplete(
         string sagaId,
         string finalStatus,
@@ -316,6 +249,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="stepType">Optional step type/category for filtering.</param>
     /// <param name="serviceName">Optional service name where the step executes.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/>, <paramref name="stepId"/>, or <paramref name="stepName"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/>, <paramref name="stepId"/>, or <paramref name="stepName"/> is empty or whitespace.</exception>
     public static bool IsValidStartStep(
         string sagaId,
         string stepId,
@@ -336,6 +271,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="compensationType">Optional compensation type/category.</param>
     /// <param name="compensatingService">Optional service performing the compensation.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/>, <paramref name="compensationId"/>, or <paramref name="stepName"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/>, <paramref name="compensationId"/>, or <paramref name="stepName"/> is empty or whitespace.</exception>
     public static bool IsValidStartCompensation(
         string sagaId,
         string compensationId,
@@ -352,6 +289,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="errorMessage">The error message describing the failure.</param>
     /// <param name="exception">Optional exception containing detailed error information.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="errorMessage"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="errorMessage"/> is empty or whitespace.</exception>
     public static bool IsValidRecordStepFailure(
         Activity? activity,
         string errorMessage,
@@ -366,7 +305,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="correlationId">Optional correlation identifier for distributed tracing.</param>
     /// <param name="sagaType">Optional saga type/category for filtering and grouping.</param>
     /// <param name="tenantId">Optional tenant identifier for multi-tenancy scenarios.</param>
-    /// <exception cref="ArgumentException">Thrown when validation fails with a list of problems.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> or <paramref name="definitionId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/>, <paramref name="definitionId"/>, <paramref name="correlationId"/>, <paramref name="sagaType"/>, or <paramref name="tenantId"/> is empty or whitespace.</exception>
     public static void EnsureValidStartSaga(
         string sagaId,
         string definitionId,
@@ -390,7 +330,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="duration">Total execution duration for performance tracking.</param>
     /// <param name="completedSteps">Number of successfully completed steps.</param>
     /// <param name="failedSteps">Number of failed steps.</param>
-    /// <exception cref="ArgumentException">Thrown when validation fails with a list of problems.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> or <paramref name="finalStatus"/> is empty or whitespace.</exception>
     public static void EnsureValidRecordSagaComplete(
         string sagaId,
         string finalStatus,
@@ -416,7 +357,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="attempt">Retry attempt number (default: 1).</param>
     /// <param name="stepType">Optional step type/category for filtering.</param>
     /// <param name="serviceName">Optional service name where the step executes.</param>
-    /// <exception cref="ArgumentException">Thrown when validation fails with a list of problems.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/>, <paramref name="stepId"/>, or <paramref name="stepName"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/>, <paramref name="stepId"/>, or <paramref name="stepName"/> is empty or whitespace.</exception>
     public static void EnsureValidStartStep(
         string sagaId,
         string stepId,
@@ -442,7 +384,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="stepOrder">Execution order of the step being compensated.</param>
     /// <param name="compensationType">Optional compensation type/category.</param>
     /// <param name="compensatingService">Optional service performing the compensation.</param>
-    /// <exception cref="ArgumentException">Thrown when validation fails with a list of problems.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/>, <paramref name="compensationId"/>, or <paramref name="stepName"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/>, <paramref name="compensationId"/>, or <paramref name="stepName"/> is empty or whitespace.</exception>
     public static void EnsureValidStartCompensation(
         string sagaId,
         string compensationId,
@@ -464,7 +407,8 @@ public static class SagaActivitySourceExtensionsValidation
     /// <param name="activity">The activity to record the failure on.</param>
     /// <param name="errorMessage">The error message describing the failure.</param>
     /// <param name="exception">Optional exception containing detailed error information.</param>
-    /// <exception cref="ArgumentException">Thrown when validation fails with a list of problems.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="errorMessage"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="errorMessage"/> is empty or whitespace.</exception>
     public static void EnsureValidRecordStepFailure(
         Activity? activity,
         string errorMessage,
