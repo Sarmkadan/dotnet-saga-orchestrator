@@ -21,7 +21,7 @@ public static class ExceptionMapperValidation
     /// <param name="value">The error response to validate.</param>
     /// <returns>A list of validation problems (empty if valid).</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    public static IReadOnlyList<string> Validate(this ErrorResponse value)
+    public static IReadOnlyList<string> Validate(this ErrorResponse? value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -37,9 +37,9 @@ public static class ExceptionMapperValidation
             problems.Add("ErrorResponse.Message must not be null or whitespace.");
         }
 
-        if (value.Timestamp == default)
+        if (value.Timestamp.Kind != DateTimeKind.Utc)
         {
-            problems.Add("ErrorResponse.Timestamp must be a valid UTC date.");
+            problems.Add("ErrorResponse.Timestamp must be in UTC kind.");
         }
 
         if (string.IsNullOrWhiteSpace(value.RequestId))
@@ -55,9 +55,9 @@ public static class ExceptionMapperValidation
     /// </summary>
     /// <param name="value">The error response to check.</param>
     /// <returns>True if the error response is valid; otherwise, false.</returns>
-    public static bool IsValid(this ErrorResponse value)
+    public static bool IsValid(this ErrorResponse? value)
     {
-        return value.Validate().Count == 0;
+        return value?.Validate().Count == 0;
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public static class ExceptionMapperValidation
     /// <param name="value">The error response to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown if the error response contains validation problems.</exception>
-    public static void EnsureValid(this ErrorResponse value)
+    public static void EnsureValid(this ErrorResponse? value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -75,8 +75,7 @@ public static class ExceptionMapperValidation
         if (problems.Count > 0)
         {
             throw new ArgumentException(
-                "ErrorResponse validation failed. " +
-                string.Join(" ", problems),
+                $"ErrorResponse validation failed. {string.Join(" ", problems)}",
                 nameof(value));
         }
     }
