@@ -172,6 +172,37 @@ if (statusCommand.IsValid)
 }
 ```
 
+## InMemorySagaDefinitionRepositoryExtensions
+
+The `InMemorySagaDefinitionRepositoryExtensions` class provides a set of convenience extension methods for querying and interacting with in-memory saga definition repositories. It simplifies common operations like retrieving saga definitions by name, version, or status, as well as performing counting and existence checks. These methods allow for more expressive and concise data retrieval in your application.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Core.Domain.Models;
+
+// Assuming repository is an instance of InMemorySagaDefinitionRepository
+var repository = new InMemorySagaDefinitionRepository();
+
+// Check if a definition exists
+bool exists = await repository.ExistsByNameAsync("OrderProcessing");
+
+// Retrieve specific definitions
+var definition = await repository.GetByNameAsync("OrderProcessing");
+var latestVersion = await repository.GetLatestVersionAsync("OrderProcessing");
+var activeDefinitions = await repository.GetActiveAsync();
+
+// Count definitions
+int totalCount = await repository.CountAsync();
+int activeCount = await repository.CountActiveAsync();
+
+// Search and filter
+var searchResults = await repository.SearchByNameAsync("Order");
+var versionTwoDefinitions = await repository.GetByVersionAsync(2);
+var recentDefinitions = await repository.GetCreatedAfterAsync(DateTime.UtcNow.AddDays(-7));
+```
+
 ## InMemorySagaStepRepositoryExtensions
 
 The `InMemorySagaStepRepositoryExtensions` class provides a set of extension methods for the `InMemorySagaStepRepository` that enable efficient querying, validation, and status tracking for saga steps directly from the repository. These methods simplify common operations such as retrieving steps by status, identifying retryable or timed-out steps, and checking the overall completion status of a saga.
