@@ -2875,9 +2875,53 @@ catch (InvalidOperationException ex)
   Console.WriteLine($"Expected error: {ex.Message}");
 }
 
-// Example 10: Attempt to update non-existent definition
-var nonExistentDefinition = new SagaDefinition("Non-existent", "Test");
-nonExistentDefinition.Id = "non_existent_id";
-var updateResult = await sagaDefinitionRepository.UpdateAsync(nonExistentDefinition);
-Console.WriteLine($"Update non-existent definition result: {updateResult?.Id ?? "null (definition not found)}");
+
+## SagaEventPublisherExtensions
+
+The `SagaEventPublisherExtensions` provide convenient extension methods for `SagaEventPublisher`, facilitating enhanced saga event management. These extensions enable simplified event publishing, streamlined event querying, and advanced event subscription capabilities, allowing for better monitoring and diagnostic capabilities within the saga orchestration workflow.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.Services;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Assuming publisher is an instance of SagaEventPublisher
+var publisher = new SagaEventPublisher();
+
+// 1. Publish a custom event
+await publisher.PublishAsync(
+    "saga-123",
+    "OrderCreated",
+    "Customer placed a new order",
+    EventSeverity.Information,
+    new Dictionary<string, object> { { "OrderId", "ORD-999" } }
+);
+
+// 2. Publish a step event
+await publisher.PublishStepEventAsync(
+    "saga-123",
+    "step-456",
+    "PaymentStep",
+    "PaymentProcessed",
+    "Payment charged successfully",
+    EventSeverity.Information
+);
+
+// 3. Query events
+var criticalEvents = publisher.GetEventsBySeverity(EventSeverity.Critical);
+var recentEvents = publisher.GetRecentEvents(10);
+var hasErrors = publisher.HasEventsOfSeverity(EventSeverity.Error);
+
+// 4. Statistics and Export
+var stats = publisher.GetEventStatistics();
+await publisher.ExportEventsAsync("events-export.json");
+
+// 5. Subscription
+var subscription = publisher.SubscribeToType("PaymentProcessed", (evt) => {
+    Console.WriteLine($"Payment processed event: {evt.Description}");
+});
+// Dispose when finished
+subscription.Dispose();
 ```
