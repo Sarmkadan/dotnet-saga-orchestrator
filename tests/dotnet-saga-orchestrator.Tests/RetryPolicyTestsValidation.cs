@@ -13,6 +13,10 @@ public static class RetryPolicyTestsValidation
     /// <summary>
     /// Validates that a <see cref="RetryPolicyTests"/> instance is properly constructed for testing.
     /// </summary>
+    /// <remarks>
+    /// RetryPolicyTests is a test class with no instance state to validate.
+    /// Validation is performed through its individual test methods.
+    /// </remarks>
     /// <param name="value">The test instance to validate.</param>
     /// <returns>A list of validation errors (empty if valid).</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
@@ -20,12 +24,9 @@ public static class RetryPolicyTestsValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var errors = new List<string>();
-
-        // RetryPolicyTests is a test class with no instance fields to validate
-        // All validation is done through its test methods
-
-        return errors.AsReadOnly();
+        // RetryPolicyTests is a test class with no instance state to validate.
+        // Validation is performed through its individual test methods.
+        return Array.Empty<string>();
     }
 
     /// <summary>
