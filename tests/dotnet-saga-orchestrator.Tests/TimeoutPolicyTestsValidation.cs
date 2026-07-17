@@ -40,9 +40,7 @@ public static class TimeoutPolicyTestsValidation
     /// <param name="value">The instance to check.</param>
     /// <returns>True if the instance is valid; otherwise, false.</returns>
     public static bool IsValid(this TimeoutPolicyTests? value)
-    {
-        return value is not null && value.Validate().Count == 0;
-    }
+        => value is not null && value.Validate().Count == 0;
 
     /// <summary>
     /// Ensures that a <see cref="TimeoutPolicyTests"/> instance is valid, throwing an <see cref="ArgumentException"/> if it is not.
