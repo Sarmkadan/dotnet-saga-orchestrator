@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using SagaOrchestrator.Core.Domain.Enums;
@@ -38,8 +37,10 @@ public static class InMemorySagaRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="status">The saga status to filter by.</param>
     /// <returns>A read-only list of sagas matching the status.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<IReadOnlyList<Saga>> GetByStatusAsync(this InMemorySagaRepository repository, SagaStatus status)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         var result = await repository.GetByStatusAsync(status).ConfigureAwait(false);
         return result.AsReadOnly();
     }
@@ -51,9 +52,11 @@ public static class InMemorySagaRepositoryExtensions
     /// <param name="definitionId">The definition ID to search for.</param>
     /// <returns>A read-only list of sagas matching the definition ID.</returns>
     /// <exception cref="ArgumentException">Thrown if definitionId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<IReadOnlyList<Saga>> SearchByDefinitionIdAsync(this InMemorySagaRepository repository, string definitionId)
     {
         ArgumentException.ThrowIfNullOrEmpty(definitionId);
+        ArgumentNullException.ThrowIfNull(repository);
 
         var criteria = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
         {
@@ -71,9 +74,11 @@ public static class InMemorySagaRepositoryExtensions
     /// <param name="name">The saga name to search for (case-insensitive).</param>
     /// <returns>A read-only list of sagas matching the name.</returns>
     /// <exception cref="ArgumentException">Thrown if name is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<IReadOnlyList<Saga>> SearchByNameAsync(this InMemorySagaRepository repository, string name)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
+        ArgumentNullException.ThrowIfNull(repository);
 
         var allSagas = await repository.GetAllAsync().ConfigureAwait(false);
         var result = allSagas.Where(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -85,8 +90,10 @@ public static class InMemorySagaRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>A read-only list of timed out sagas.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<IReadOnlyList<Saga>> GetTimedOutSagasAsync(this InMemorySagaRepository repository)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         var allSagas = await repository.GetAllAsync().ConfigureAwait(false);
         var result = allSagas.Where(s => s.IsTimedOut()).ToList();
         return result.AsReadOnly();
@@ -97,8 +104,10 @@ public static class InMemorySagaRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>A read-only list of retryable sagas.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<IReadOnlyList<Saga>> GetRetryableSagasAsync(this InMemorySagaRepository repository)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         var allSagas = await repository.GetAllAsync().ConfigureAwait(false);
         var result = allSagas.Where(s => s.CanRetry()).ToList();
         return result.AsReadOnly();
@@ -111,8 +120,10 @@ public static class InMemorySagaRepositoryExtensions
     /// <param name="failedAfter">The date after which failures should be considered.</param>
     /// <returns>A read-only list of sagas that failed after the specified date.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if failedAfter is in the future.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<IReadOnlyList<Saga>> GetFailedSagasAfterAsync(this InMemorySagaRepository repository, DateTime failedAfter)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         if (failedAfter > DateTime.UtcNow)
         {
             throw new ArgumentOutOfRangeException(nameof(failedAfter), "Cannot search for failures in the future.");
@@ -134,8 +145,10 @@ public static class InMemorySagaRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="status">The saga status to count.</param>
     /// <returns>The count of sagas with the specified status.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<int> CountByStatusAsync(this InMemorySagaRepository repository, SagaStatus status)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         var sagas = await repository.GetByStatusAsync(status).ConfigureAwait(false);
         return sagas.Count;
     }
@@ -145,8 +158,10 @@ public static class InMemorySagaRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>The total count of sagas.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<int> CountAllAsync(this InMemorySagaRepository repository)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         var sagas = await repository.GetAllAsync().ConfigureAwait(false);
         return sagas.Count;
     }
@@ -158,9 +173,11 @@ public static class InMemorySagaRepositoryExtensions
     /// <param name="correlationId">The correlation ID to check.</param>
     /// <returns>True if a saga with the correlation ID exists, otherwise false.</returns>
     /// <exception cref="ArgumentException">Thrown if correlationId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<bool> ExistsByCorrelationIdAsync(this InMemorySagaRepository repository, string correlationId)
     {
         ArgumentException.ThrowIfNullOrEmpty(correlationId);
+        ArgumentNullException.ThrowIfNull(repository);
         var saga = await repository.GetByCorrelationIdAsync(correlationId).ConfigureAwait(false);
         return saga != null;
     }
@@ -170,18 +187,16 @@ public static class InMemorySagaRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>A read-only list of completed sagas.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<IReadOnlyList<Saga>> GetCompletedSagasAsync(this InMemorySagaRepository repository)
-    {
-        return await repository.GetByStatusAsync(SagaStatus.Completed).ConfigureAwait(false);
-    }
+        => await repository.GetByStatusAsync(SagaStatus.Completed).ConfigureAwait(false);
 
     /// <summary>
     /// Gets all failed sagas.
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>A read-only list of failed sagas.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if repository is null.</exception>
     public static async Task<IReadOnlyList<Saga>> GetFailedSagasAsync(this InMemorySagaRepository repository)
-    {
-        return await repository.GetByStatusAsync(SagaStatus.Failed).ConfigureAwait(false);
-    }
+        => await repository.GetByStatusAsync(SagaStatus.Failed).ConfigureAwait(false);
 }
