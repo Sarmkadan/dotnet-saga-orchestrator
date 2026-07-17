@@ -2,16 +2,25 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+// Required for AOT/trim compatibility warnings suppression
+using System.Diagnostics.CodeAnalysis;
+
 namespace SagaOrchestrator.Core.Extensions;
 
 /// <summary>
 /// Provides JSON serialization and deserialization helpers for enum types.
 /// </summary>
+[RequiresUnreferencedCode("JSON serialization and deserialization requires preserving enum types")]
+[RequiresDynamicCode("JSON serialization and deserialization requires dynamic code generation for enum types")]
 public static class EnumExtensionsJsonExtensions
 {
     /// <summary>
     /// Configured JSON serializer options with camelCase naming policy.
     /// </summary>
+    /// <remarks>
+    /// This configuration uses runtime serialization which requires preserving enum types.
+    /// For AOT scenarios, consider using <see cref="JsonSerializerOptions"/> with source generation.
+    /// </remarks>
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -27,15 +36,7 @@ public static class EnumExtensionsJsonExtensions
     /// <returns>A JSON string representation of the enum value.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson<TEnum>(this TEnum value, bool indented = false) where TEnum : Enum
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var options = new JsonSerializerOptions(JsonOptions)
-        {
-            WriteIndented = indented
-        };
-        return JsonSerializer.Serialize(value, options);
-    }
+        => JsonSerializer.Serialize(value, new JsonSerializerOptions(JsonOptions) { WriteIndented = indented });
 
     /// <summary>
     /// Deserializes a JSON string to an enum value.
@@ -48,7 +49,6 @@ public static class EnumExtensionsJsonExtensions
     public static TEnum? FromJson<TEnum>(string json) where TEnum : Enum
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
-
         return JsonSerializer.Deserialize<TEnum>(json, JsonOptions);
     }
 
