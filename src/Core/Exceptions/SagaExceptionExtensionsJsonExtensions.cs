@@ -48,9 +48,7 @@ public static class SagaExceptionExtensionsJsonExtensions
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
-        return string.IsNullOrEmpty(json)
-            ? null
-            : JsonSerializer.Deserialize<SagaException>(json, _jsonSerializerOptions);
+        return JsonSerializer.Deserialize<SagaException>(json, _jsonSerializerOptions);
     }
 
     /// <summary>
@@ -66,15 +64,10 @@ public static class SagaExceptionExtensionsJsonExtensions
 
         value = null;
 
-        if (string.IsNullOrEmpty(json))
-        {
-            return false;
-        }
-
         try
         {
             value = JsonSerializer.Deserialize<SagaException>(json, _jsonSerializerOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
