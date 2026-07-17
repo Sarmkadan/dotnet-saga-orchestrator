@@ -256,7 +256,11 @@ public static class SagaStepValidation
     /// <param name="value">The saga step to check</param>
     /// <returns>True if valid; otherwise, false</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
-    public static bool IsValid(this SagaStep value) => Validate(value).Count == 0;
+    public static bool IsValid(this SagaStep value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return Validate(value).Count == 0;
+    }
 
     /// <summary>
     /// Ensures that a <see cref="SagaStep"/> instance is valid, throwing an <see cref="ArgumentException"/>
@@ -269,13 +273,11 @@ public static class SagaStepValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (IsValid(value))
+        if (!IsValid(value))
         {
-            return;
+            var errors = Validate(value);
+            throw new ArgumentException(
+                $"SagaStep is invalid:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", errors)}");
         }
-
-        var errors = Validate(value);
-        throw new ArgumentException(
-            $"SagaStep is invalid:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", errors)}");
     }
 }
