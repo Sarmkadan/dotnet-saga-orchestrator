@@ -23,11 +23,8 @@ public static class SagaOrchestratorBenchmarksExtensionsJsonExtensions
     /// <returns>A JSON string representation of the value.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this SagaOrchestratorBenchmarksExtensions value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        return JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_options) { WriteIndented = true } : _options);
-    }
+        => ArgumentNullException.ThrowIfNull(value),
+            JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_options) { WriteIndented = true } : _options);
 
     /// <summary>
     /// Deserializes a JSON string to a <see cref="SagaOrchestratorBenchmarksExtensions"/> instance.
