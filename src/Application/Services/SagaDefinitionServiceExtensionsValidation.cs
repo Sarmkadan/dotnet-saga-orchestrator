@@ -11,13 +11,21 @@ using System.Collections.Generic;
 namespace SagaOrchestrator.Application.Services;
 
 /// <summary>
-/// Validation helpers for <see cref="SagaDefinitionService"/> instances.
+/// Provides validation extension methods for <see cref="SagaDefinitionService"/> instances.
+/// <para>
+/// Note: SagaDefinitionService is a stateless service with no instance state to validate.
+/// These extension methods provide a consistent validation interface for service validation patterns.
+/// </para>
 /// </summary>
 public static class SagaDefinitionServiceExtensionsValidation
 {
     /// <summary>
-    /// Validates the specified <see cref="SagaDefinitionService"/> instance and returns a list of human-readable problems.
+    /// Validates the specified <see cref="SagaDefinitionService"/> instance.
     /// </summary>
+    /// <remarks>
+    /// Since <see cref="SagaDefinitionService"/> is a stateless service with no instance state to validate,
+    /// this method always returns an empty list of problems for non-null instances.
+    /// </remarks>
     /// <param name="value">The instance to validate.</param>
     /// <returns>A read-only list of validation problems; empty if the instance is valid.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
@@ -25,12 +33,7 @@ public static class SagaDefinitionServiceExtensionsValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = new List<string>();
-
-        // SagaDefinitionService is a service class with no instance state to validate
-        // All validation is done through its methods and the extension methods
-
-        return problems.AsReadOnly();
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -39,7 +42,7 @@ public static class SagaDefinitionServiceExtensionsValidation
     /// <param name="value">The instance to check.</param>
     /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
-    public static bool IsValid(this SagaDefinitionService? value) => Validate(value).Count == 0;
+    public static bool IsValid(this SagaDefinitionService? value) => value is not null;
 
     /// <summary>
     /// Ensures that the specified <see cref="SagaDefinitionService"/> instance is valid, throwing an <see cref="ArgumentException"/> if it is not.
@@ -49,15 +52,9 @@ public static class SagaDefinitionServiceExtensionsValidation
     /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not valid.</exception>
     public static void EnsureValid(this SagaDefinitionService? value)
     {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var problems = Validate(value);
-        if (problems.Count == 0)
+        if (value is null)
         {
-            return;
+            throw new ArgumentNullException(nameof(value));
         }
-
-        throw new ArgumentException(
-            $"SagaDefinitionService instance is not valid. Problems:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", problems)}");
     }
 }
