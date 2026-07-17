@@ -35,7 +35,7 @@ namespace SagaOrchestrator.Data.Repositories
         public static bool IsValid(this InMemorySagaDefinitionRepository value)
         {
             ArgumentNullException.ThrowIfNull(value);
-            return !value.Validate().Any();
+            return value.Validate().Count == 0;
         }
 
         /// <summary>
