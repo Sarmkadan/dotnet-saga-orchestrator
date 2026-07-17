@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace SagaOrchestrator.Tests;
 
 /// <summary>
-/// Provides System.Text.Json serialization extensions for SagaIdGeneratorTests.
+/// Provides System.Text.Json serialization extensions for <see cref="SagaIdGeneratorTests"/>.
 /// </summary>
 public static class SagaIdGeneratorTestsJsonExtensions
 {
@@ -17,11 +17,11 @@ public static class SagaIdGeneratorTestsJsonExtensions
     };
 
     /// <summary>
-    /// Serializes a SagaIdGeneratorTests instance to JSON.
+    /// Serializes a <see cref="SagaIdGeneratorTests"/> instance to JSON.
     /// </summary>
-    /// <param name="value">The SagaIdGeneratorTests instance to serialize.</param>
+    /// <param name="value">The <see cref="SagaIdGeneratorTests"/> instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
-    /// <returns>A JSON string representation of the SagaIdGeneratorTests instance.</returns>
+    /// <returns>A JSON string representation of the <see cref="SagaIdGeneratorTests"/> instance.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this SagaIdGeneratorTests value, bool indented = false)
     {
@@ -35,23 +35,41 @@ public static class SagaIdGeneratorTestsJsonExtensions
     }
 
     /// <summary>
-    /// Deserializes a JSON string to a SagaIdGeneratorTests instance.
+    /// Deserializes a JSON string to a <see cref="SagaIdGeneratorTests"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>A SagaIdGeneratorTests instance, or null if deserialization fails.</returns>
+    /// <returns>A <see cref="SagaIdGeneratorTests"/> instance, or <see langword="null"/> if deserialization fails.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
     public static SagaIdGeneratorTests? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : TryDeserialize(json, _jsonSerializerOptions);
+    }
 
+    /// <summary>
+    /// Attempts to deserialize a JSON string to a <see cref="SagaIdGeneratorTests"/> instance.
+    /// </summary>
+    /// <param name="json">The JSON string to deserialize.</param>
+    /// <param name="value">The deserialized <see cref="SagaIdGeneratorTests"/> instance, or <see langword="null"/> if deserialization fails.</param>
+    /// <returns><see langword="true"/> if deserialization succeeds; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
+    public static bool TryFromJson(string json, out SagaIdGeneratorTests? value)
+    {
+        ArgumentNullException.ThrowIfNull(json);
+
+        value = null;
+        return !string.IsNullOrWhiteSpace(json)
+            && TryDeserialize(json, _jsonSerializerOptions, out value);
+    }
+
+    private static SagaIdGeneratorTests? TryDeserialize(string json, JsonSerializerOptions options)
+    {
         try
         {
-            return JsonSerializer.Deserialize<SagaIdGeneratorTests>(json, _jsonSerializerOptions);
+            return JsonSerializer.Deserialize<SagaIdGeneratorTests>(json, options);
         }
         catch (JsonException)
         {
@@ -59,31 +77,16 @@ public static class SagaIdGeneratorTestsJsonExtensions
         }
     }
 
-    /// <summary>
-    /// Attempts to deserialize a JSON string to a SagaIdGeneratorTests instance.
-    /// </summary>
-    /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized SagaIdGeneratorTests instance, or null if deserialization fails.</param>
-    /// <returns>True if deserialization succeeds; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
-    public static bool TryFromJson(string json, out SagaIdGeneratorTests? value)
+    private static bool TryDeserialize(string json, JsonSerializerOptions options, out SagaIdGeneratorTests? value)
     {
-        ArgumentNullException.ThrowIfNull(json);
-
-        value = null;
-
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return false;
-        }
-
         try
         {
-            value = JsonSerializer.Deserialize<SagaIdGeneratorTests>(json, _jsonSerializerOptions);
+            value = JsonSerializer.Deserialize<SagaIdGeneratorTests>(json, options);
             return true;
         }
         catch (JsonException)
         {
+            value = null;
             return false;
         }
     }
