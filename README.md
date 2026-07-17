@@ -1233,6 +1233,110 @@ Console.WriteLine($"Snapshot service registered: {snapshotService != null}");
 Console.WriteLine($"Breakpoint service registered: {breakpointService != null}");
 ```
 
+## SagaActivitySourceValidation
+
+The `SagaActivitySourceValidation` class provides validation methods for saga activity source telemetry operations. It contains utility methods to validate saga start, completion, step execution, and compensation operations, ensuring that activity source parameters meet expected constraints before telemetry is recorded. The validation methods return detailed error messages for invalid parameters, while the `IsValid` methods provide boolean checks, and `EnsureValid` methods throw exceptions when validation fails.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Telemetry;
+
+// Example 1: Validate saga start parameters
+var startValidation = SagaActivitySourceValidation.Validate(
+    sagaId: "saga_order_123",
+    definitionId: "order_processing_v2",
+    correlationId: "corr_customer_456"
+);
+
+if (startValidation.Count == 0)
+{
+    Console.WriteLine("Saga start parameters are valid");
+}
+else
+{
+    Console.WriteLine("Validation errors:");
+    foreach (var error in startValidation)
+    {
+        Console.WriteLine($"- {error}");
+    }
+}
+
+// Example 2: Check if saga completion parameters are valid
+bool isValidCompletion = SagaActivitySourceValidation.IsValid(
+    sagaId: "saga_order_123",
+    finalStatus: "Completed",
+    totalSteps: 5
+);
+
+Console.WriteLine($"Saga completion valid: {isValidCompletion}");
+
+// Example 3: Validate step execution parameters
+var stepValidation = SagaActivitySourceValidation.Validate(
+    sagaId: "saga_order_123",
+    stepId: "step_validate_001",
+    stepName: "Validate Order",
+    order: 1,
+    attempt: 1
+);
+
+if (stepValidation.Count > 0)
+{
+    Console.WriteLine("Step validation failed:");
+    foreach (var error in stepValidation)
+    {
+        Console.WriteLine($"- {error}");
+    }
+}
+
+// Example 4: Validate compensation parameters
+var compensationValidation = SagaActivitySourceValidation.Validate(
+    sagaId: "saga_order_123",
+    compensationId: "comp_refund_001",
+    stepName: "Process Payment",
+    stepOrder: 2
+);
+
+Console.WriteLine($"Compensation parameters valid: {compensationValidation.Count == 0}");
+
+// Example 5: Use EnsureValid to throw exceptions on invalid parameters
+try
+{
+    SagaActivitySourceValidation.EnsureValid(
+        sagaId: "saga_order_123",
+        definitionId: "order_processing_v2"
+    );
+    Console.WriteLine("Parameters are valid");
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Validation failed: {ex.Message}");
+}
+
+// Example 6: Check if step parameters are valid with IsValid
+bool isValidStep = SagaActivitySourceValidation.IsValid(
+    sagaId: "saga_order_123",
+    stepId: "step_001",
+    stepName: "Validate Order",
+    order: 1,
+    attempt: 1
+);
+
+if (isValidStep)
+{
+    Console.WriteLine("Step parameters are valid for telemetry");
+}
+
+// Example 7: Handle invalid correlation ID
+var invalidCorrelationValidation = SagaActivitySourceValidation.Validate(
+    sagaId: "saga_order_123",
+    definitionId: "order_processing_v2",
+    correlationId: "   " // whitespace correlation ID
+);
+
+Console.WriteLine($"Invalid correlation validation count: {invalidCorrelationValidation.Count}"); // Should be 1
+```
+
 ## InMemoryCompensationTransactionRepository
 
 The `InMemoryCompensationTransactionRepository` provides an in-memory implementation of `ICompensationTransactionRepository` for storing and retrieving compensation transactions during saga execution. It maintains all compensation transactions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
