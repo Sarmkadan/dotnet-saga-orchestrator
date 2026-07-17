@@ -40,5 +40,12 @@ public static class SagaDefinitionValidatorTestsExtensions
         await instance.ValidateAndGetErrorsAsync_InvalidStepName_ReturnsError();
         await instance.ValidateAndGetErrorsAsync_InvalidServiceUrl_ReturnsError();
         await instance.ValidateAndGetErrorsAsync_InvalidCompensationUrl_ReturnsError();
+        await instance.ValidateAndGetErrorsAsync_TimeoutZero_ReturnsError();
+        await instance.ValidateAndGetErrorsAsync_TimeoutTooLarge_ReturnsError();
+        await instance.ValidateAndGetErrorsAsync_NegativeRetries_ReturnsError();
+        await instance.ValidateAndGetErrorsAsync_TooManyRetries_ReturnsError();
+        await instance.ValidateAndGetErrorsAsync_DuplicateStepOrder_ReturnsError();
+        await instance.ValidateAndGetErrorsAsync_OrderDoesNotStartAtOne_ReturnsError();
+        await instance.ValidateAndGetErrorsAsync_MultipleErrors_ReturnsAll();
     }
 }
