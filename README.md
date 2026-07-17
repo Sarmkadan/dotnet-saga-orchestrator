@@ -319,6 +319,58 @@ var failed = await repository.GetFailedSagasAsync();
 Console.WriteLine(failed.Count);
 ```
 
+## CircuitBreakerRecoveryTests
+
+The `CircuitBreakerRecoveryTests` class validates the asynchronous circuit breaker recovery lifecycle, ensuring that a breaker properly transitions from open → half-open → closed states based on probe success or failure. These tests verify the circuit breaker's resilience behavior with configurable failure thresholds and timeout windows, including per-identifier state isolation and explicit reset capabilities.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Resilience;
+
+// Create a circuit breaker with 3 failures required to open, and 5 second timeout
+var breaker = new CircuitBreaker(failureThreshold: 3, timeoutSeconds: 5);
+
+// Simulate failures to trip the breaker
+for (int i = 0; i < 3; i++)
+{
+    try
+    {
+        await breaker.ExecuteAsync(() => throw new InvalidOperationException("Service unavailable"), 
+                              "payment-service");
+    }
+    catch { /* expected */ }
+}
+
+// Breaker is now open - subsequent calls are rejected immediately
+var state = breaker.GetState("payment-service"); // Returns CircuitBreakerState.Open
+
+// Wait for timeout to elapse (5 seconds + buffer)
+await Task.Delay(TimeSpan.FromSeconds(5.5));
+
+// Breaker transitions to half-open state
+state = breaker.GetState("payment-service"); // Returns CircuitBreakerState.HalfOpen
+
+// Execute a probe request - success will close the breaker
+try
+{
+    var result = await breaker.ExecuteAsync(() => Task.FromResult(42), "payment-service");
+    state = breaker.GetState("payment-service"); // Returns CircuitBreakerState.Closed
+}
+catch
+{
+    // Probe failed - breaker reopens immediately
+    state = breaker.GetState("payment-service"); // Returns CircuitBreakerState.Open
+}
+
+// Reset the breaker state explicitly (regardless of current state)
+breaker.Reset("payment-service");
+state = breaker.GetState("payment-service"); // Returns CircuitBreakerState.Closed
+
+// Each identifier maintains independent breaker state
+var inventoryBreakerState = breaker.GetState("inventory-service"); // Returns CircuitBreakerState.Closed
+```
+
 ## InMemoryCompensationTransactionRepositoryValidation
 
 The `InMemoryCompensationTransactionRepositoryValidation` class provides validation helpers for `InMemoryCompensationTransactionRepository` and `CompensationTransaction` instances. It offers methods to validate repository instances and compensation transactions, ensuring data integrity and proper state management during saga compensation workflows.
