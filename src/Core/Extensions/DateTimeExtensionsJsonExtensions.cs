@@ -1,6 +1,6 @@
 #nullable enable
 // =============================================================================
-// Author: 
+// Author:
 // CTO & Software Architect
 // =============================================================================
 
@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace SagaOrchestrator.Core.Extensions;
 
 /// <summary>
-/// Provides JSON serialization and deserialization helpers for <see cref="DateTimeExtensions"/>.
+/// Provides JSON serialization and deserialization helpers for <see cref="DateTime"/>.
 /// </summary>
 public static class DateTimeExtensionsJsonExtensions
 {
@@ -21,16 +21,13 @@ public static class DateTimeExtensionsJsonExtensions
     };
 
     /// <summary>
-    /// Serializes a <see cref="DateTimeExtensions"/> instance to a JSON string.
+    /// Serializes a <see cref="DateTime"/> instance to a JSON string.
     /// </summary>
-    /// <param name="value">The <see cref="DateTimeExtensions"/> to serialize.</param>
+    /// <param name="value">The <see cref="DateTime"/> to serialize.</param>
     /// <param name="indented">If true, the JSON will be formatted with indentation.</param>
-    /// <returns>A JSON string representation of the <see cref="DateTimeExtensions"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+    /// <returns>A JSON string representation of the <see cref="DateTime"/>.</returns>
     public static string ToJson(this DateTime value, bool indented = false)
     {
-        ArgumentNullException.ThrowIfNull(value);
-
         JsonSerializerOptions options = indented ? new(JsonSerializerOptions) { WriteIndented = true } : JsonSerializerOptions;
         return JsonSerializer.Serialize(value, options);
     }
@@ -40,12 +37,12 @@ public static class DateTimeExtensionsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A <see cref="DateTime"/> instance.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is empty.</exception>
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
-    public static DateTime? FromJson(string json)
+    public static DateTime FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
-
         return JsonSerializer.Deserialize<DateTime>(json, JsonSerializerOptions);
     }
 
@@ -53,20 +50,20 @@ public static class DateTimeExtensionsJsonExtensions
     /// Attempts to deserialize a JSON string into a <see cref="DateTime"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized <see cref="DateTime"/> if successful; otherwise, null.</param>
+    /// <param name="value">The deserialized <see cref="DateTime"/> if successful; otherwise, default.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out DateTime? value)
+    public static bool TryFromJson(string json, out DateTime value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
         try
         {
             value = JsonSerializer.Deserialize<DateTime>(json, JsonSerializerOptions);
-            return value is not null;
+            return true;
         }
         catch (JsonException)
         {
-            value = null;
+            value = default;
             return false;
         }
     }
