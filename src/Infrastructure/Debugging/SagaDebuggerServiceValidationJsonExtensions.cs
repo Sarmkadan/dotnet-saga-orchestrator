@@ -58,9 +58,10 @@ public static class SagaDebuggerServiceValidationJsonExtensions
     /// Deserializes a JSON string into a <see cref="SagaDebuggerService"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized debugger service instance, or null if deserialization fails.</returns>
+    /// <returns>The deserialized debugger service instance.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or whitespace.</exception>
-    public static SagaDebuggerService? FromJson(string json)
+    /// <exception cref="FormatException">Thrown when the JSON string cannot be deserialized into a <see cref="SagaDebuggerService"/> instance.</exception>
+    public static SagaDebuggerService FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json, nameof(json));
 
@@ -83,12 +84,9 @@ public static class SagaDebuggerServiceValidationJsonExtensions
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or whitespace.</exception>
     public static bool TryFromJson(string json, out SagaDebuggerService? value)
     {
-        value = null;
+        ArgumentException.ThrowIfNullOrWhiteSpace(json, nameof(json));
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return false;
-        }
+        value = null;
 
         try
         {
