@@ -2,11 +2,10 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using SagaOrchestrator.Core.Domain.Enums;
 
 namespace SagaOrchestrator.Core.Domain.Models;
@@ -97,12 +96,14 @@ public static class CompensationTransactionValidation
         }
 
         // Validate ErrorMessage (if set, should not be whitespace)
-        if (!string.IsNullOrWhiteSpace(value.ErrorMessage) && string.IsNullOrWhiteSpace(value.ErrorMessage.Trim()))
+        if (value.ErrorMessage is not null && string.IsNullOrWhiteSpace(value.ErrorMessage.Trim()))
             errors.Add("CompensationTransaction.ErrorMessage must not be whitespace if set.");
 
         // Validate RetryCount (should not exceed MaxRetries)
         if (value.RetryCount < 0)
             errors.Add("CompensationTransaction.RetryCount must be a non-negative integer.");
+        else if (value.MaxRetries <= 0)
+            errors.Add("CompensationTransaction.MaxRetries must be a positive integer.");
         else if (value.RetryCount > value.MaxRetries)
             errors.Add("CompensationTransaction.RetryCount must not exceed MaxRetries.");
 
@@ -133,16 +134,18 @@ public static class CompensationTransactionValidation
     /// <param name="value">The compensation transaction to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when the compensation transaction is invalid.</exception>
+    /// <remarks>
+    /// Calls the <see cref="Validate"/> method and throws an <see cref="ArgumentException"/> if any validation errors are found.
+    /// The exception message includes all validation errors separated by newlines.
+    /// </remarks>
     public static void EnsureValid(this CompensationTransaction value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
         var errors = value.Validate();
         if (errors.Count > 0)
-        {
             throw new ArgumentException(
                 $"CompensationTransaction is invalid:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
-        }
     }
 
     /// <summary>
@@ -150,6 +153,7 @@ public static class CompensationTransactionValidation
     /// </summary>
     /// <param name="value">The string to check.</param>
     /// <returns><see langword="true"/> if valid GUID format; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     private static bool IsValidGuidFormat(string value)
     {
         return Guid.TryParse(value, out _);
