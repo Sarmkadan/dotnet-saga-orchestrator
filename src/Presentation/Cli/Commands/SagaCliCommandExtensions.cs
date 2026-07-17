@@ -22,6 +22,8 @@ public static class SagaCliCommandExtensions
     /// <param name="key">The argument key to retrieve.</param>
     /// <returns>The argument value if found; otherwise, null.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="command"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="key"/> is empty.</exception>
     public static string? GetArgument(this SagaCliCommand command, string key)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -38,6 +40,8 @@ public static class SagaCliCommandExtensions
     /// <param name="defaultValue">The default value to return if the argument doesn't exist.</param>
     /// <returns>The argument value if found; otherwise, the default value.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="command"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="key"/> is empty.</exception>
     public static string GetArgument(this SagaCliCommand command, string key, string defaultValue)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -53,6 +57,8 @@ public static class SagaCliCommandExtensions
     /// <param name="key">The argument key to retrieve.</param>
     /// <returns>The parsed integer value if found and valid; otherwise, null.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="command"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="key"/> is empty.</exception>
     public static int? GetIntArgument(this SagaCliCommand command, string key)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -75,6 +81,8 @@ public static class SagaCliCommandExtensions
     /// <param name="key">The argument key to retrieve.</param>
     /// <returns>The parsed boolean value if found and valid; otherwise, null.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="command"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="key"/> is empty.</exception>
     public static bool? GetBooleanArgument(this SagaCliCommand command, string key)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -101,6 +109,8 @@ public static class SagaCliCommandExtensions
     /// <param name="optionName">The option name to check (without leading dashes).</param>
     /// <returns>True if the option exists; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="command"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="optionName"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="optionName"/> is empty.</exception>
     public static bool HasOption(this SagaCliCommand command, string optionName)
     {
         ArgumentNullException.ThrowIfNull(command);
