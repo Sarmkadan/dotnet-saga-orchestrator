@@ -11,6 +11,11 @@ namespace SagaOrchestrator.Tests;
 
 /// <summary>
 /// Provides validation helpers for <see cref="CircuitBreakerTests"/> instances.
+/// <para>
+/// This validation class ensures that <see cref="CircuitBreakerTests"/> instances are in a valid state
+/// before test execution. Since <see cref="CircuitBreakerTests"/> is a test fixture class with no mutable
+/// state to validate, the validation always returns an empty list of problems.
+/// </para>
 /// </summary>
 public static class CircuitBreakerTestsValidation
 {
@@ -24,12 +29,7 @@ public static class CircuitBreakerTestsValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = new List<string>();
-
-        // CircuitBreakerTests is a test class with no instance fields to validate
-        // All validation is done through its test methods
-
-        return problems.AsReadOnly();
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -51,12 +51,10 @@ public static class CircuitBreakerTestsValidation
         ArgumentNullException.ThrowIfNull(value);
 
         var problems = Validate(value);
-        if (problems.Count == 0)
+        if (problems.Count > 0)
         {
-            return;
+            throw new ArgumentException(
+                $"CircuitBreakerTests instance is not valid. Problems:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}");
         }
-
-        throw new ArgumentException(
-            $"CircuitBreakerTests instance is not valid. Problems:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}");
     }
 }
