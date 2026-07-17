@@ -16,11 +16,11 @@ namespace SagaOrchestrator.Application.Services;
 public static class SagaOrchestrationServiceExtensions
 {
     /// <summary>
-    /// Retrieves a saga by ID safely, returning null if the saga does not exist, instead of throwing an exception.
+    /// Retrieves a saga by ID safely, returning null if the saga does not exist instead of throwing a <see cref="SagaNotFoundException"/>.
     /// </summary>
     /// <param name="service">The saga orchestration service instance.</param>
     /// <param name="sagaId">The unique identifier of the saga.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">The cancellation token to observe while waiting for the task to complete.</param>
     /// <returns>The <see cref="Saga"/> object if found, otherwise null.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="service"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is null or empty.</exception>
@@ -46,7 +46,7 @@ public static class SagaOrchestrationServiceExtensions
     /// Lists all sagas currently in the 'Running' status.
     /// </summary>
     /// <param name="service">The saga orchestration service instance.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">The cancellation token to observe while waiting for the task to complete.</param>
     /// <returns>A read-only list of sagas currently running.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="service"/> is null.</exception>
     public static async Task<IReadOnlyList<Saga>> ListRunningSagasAsync(
@@ -63,7 +63,7 @@ public static class SagaOrchestrationServiceExtensions
     /// Lists all sagas currently in the 'Failed' status.
     /// </summary>
     /// <param name="service">The saga orchestration service instance.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">The cancellation token to observe while waiting for the task to complete.</param>
     /// <returns>A read-only list of sagas currently in a failed state.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="service"/> is null.</exception>
     public static async Task<IReadOnlyList<Saga>> ListFailedSagasAsync(
