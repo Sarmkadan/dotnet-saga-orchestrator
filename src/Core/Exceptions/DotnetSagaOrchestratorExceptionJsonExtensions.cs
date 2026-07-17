@@ -15,6 +15,10 @@ namespace SagaOrchestrator.Core.Exceptions;
 /// </summary>
 public static class DotnetSagaOrchestratorExceptionJsonExtensions
 {
+    /// <summary>
+    /// Gets the default JSON serialization options used by the extension methods.
+    /// Uses camelCase property naming, no indentation, and ignores null values when writing.
+    /// </summary>
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -23,12 +27,12 @@ public static class DotnetSagaOrchestratorExceptionJsonExtensions
     };
 
     /// <summary>
-    /// Serializes the exception to a JSON string.
+    /// Serializes the exception to a JSON string using camelCase property naming.
     /// </summary>
     /// <param name="value">The exception to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the exception.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this DotnetSagaOrchestratorException value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -42,10 +46,11 @@ public static class DotnetSagaOrchestratorExceptionJsonExtensions
 
     /// <summary>
     /// Deserializes a JSON string to a <see cref="DotnetSagaOrchestratorException"/>.
+    /// Returns <see langword="null"/> if the JSON is invalid or cannot be deserialized.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized exception, or null if the JSON is invalid.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <returns>The deserialized exception, or <see langword="null"/> if the JSON is invalid or deserialization fails.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/>, empty, or consists only of white-space characters.</exception>
     public static DotnetSagaOrchestratorException? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
@@ -64,9 +69,9 @@ public static class DotnetSagaOrchestratorExceptionJsonExtensions
     /// Attempts to deserialize a JSON string to a <see cref="DotnetSagaOrchestratorException"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized exception, or null if deserialization failed.</param>
-    /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <param name="value">When this method returns, contains the deserialized exception if deserialization succeeded; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/>, empty, or consists only of white-space characters.</exception>
     public static bool TryFromJson(string json, out DotnetSagaOrchestratorException? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
