@@ -27,12 +27,7 @@ public static class SagaEventPublisherValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var errors = new List<string>();
-
-        // SagaEventPublisher itself doesn't have state to validate
-        // Validation is for method parameters when called
-
-        return errors.AsReadOnly();
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -40,9 +35,10 @@ public static class SagaEventPublisherValidation
     /// </summary>
     /// <param name="value">The SagaEventPublisher instance to check</param>
     /// <returns>True if valid; false otherwise</returns>
+    /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
     public static bool IsValid(this SagaEventPublisher value)
     {
-        return value?.Validate().Count == 0;
+        return value is not null && value.Validate().Count == 0;
     }
 
     /// <summary>
@@ -68,12 +64,10 @@ public static class SagaEventPublisherValidation
     /// </summary>
     /// <param name="sagaEvent">The saga event to validate</param>
     /// <returns>List of validation error messages; empty if valid</returns>
+    /// <exception cref="ArgumentNullException">Thrown if sagaEvent is null</exception>
     public static IReadOnlyList<string> Validate(this SagaEvent sagaEvent)
     {
-        if (sagaEvent == null)
-        {
-            return new[] { "SagaEvent cannot be null." };
-        }
+        ArgumentNullException.ThrowIfNull(sagaEvent);
 
         var errors = new List<string>();
 
@@ -131,6 +125,8 @@ public static class SagaEventPublisherValidation
     /// <summary>
     /// Checks if a string is a valid GUID.
     /// </summary>
+    /// <param name="value">The string to validate</param>
+    /// <returns>True if valid GUID; false otherwise</returns>
     private static bool IsValidGuid(string value)
     {
         return Guid.TryParse(value, out _);
@@ -139,29 +135,55 @@ public static class SagaEventPublisherValidation
     /// <summary>
     /// Checks if a file path is valid.
     /// </summary>
+    /// <param name="path">The file path to validate</param>
+    /// <returns>True if valid path; false otherwise</returns>
+    /// <exception cref="ArgumentNullException">Thrown if path is null</exception>
     private static bool IsValidFilePath(string path)
     {
-        try
-        {
-            // Basic validation - check for invalid characters
-            var invalidChars = System.IO.Path.GetInvalidPathChars();
-            if (path.IndexOfAny(invalidChars) >= 0)
-            {
-                return false;
-            }
+        ArgumentNullException.ThrowIfNull(path);
 
-            // Check if it's an absolute path or relative path
-            if (System.IO.Path.IsPathRooted(path))
-            {
-                return true;
-            }
-
-            // For relative paths, just ensure they don't contain invalid sequences
-            return !path.Contains("..") && !path.EndsWith(".") && !path.StartsWith(".");
-        }
-        catch
+        if (path.Length == 0)
         {
             return false;
         }
+
+        // Check for invalid characters
+        var invalidChars = System.IO.Path.GetInvalidPathChars();
+        if (path.IndexOfAny(invalidChars) >= 0)
+        {
+            return false;
+        }
+
+        // Check for invalid path sequences
+        if (path.Contains("..") || path.EndsWith(".") || path.StartsWith("."))
+        {
+            return false;
+        }
+
+        // Check for Windows reserved names
+        var fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+        if (IsWindowsReservedName(fileName))
+        {
+            return false;
+        }
+
+        // Check if it's an absolute path (valid) or relative path (also valid if format is correct)
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if a filename is a Windows reserved name.
+    /// </summary>
+    /// <param name="name">The filename to check</param>
+    /// <returns>True if reserved name; false otherwise</returns>
+    private static bool IsWindowsReservedName(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return false;
+        }
+
+        var reservedNames = new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" };
+        return reservedNames.Contains(name, StringComparer.OrdinalIgnoreCase);
     }
 }
