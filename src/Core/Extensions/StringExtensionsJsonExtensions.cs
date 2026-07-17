@@ -25,7 +25,7 @@ public static class StringExtensionsJsonExtensions
     /// </summary>
     /// <param name="value">The string to serialize.</param>
     /// <param name="indented">If true, the JSON will be formatted with indentation.</param>
-    /// <returns>A JSON string representation of the string.</returns>
+    /// <returns>A JSON string representation of the input string, properly escaped and quoted.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static string ToJson(this string value, bool indented = false)
     {
@@ -46,8 +46,8 @@ public static class StringExtensionsJsonExtensions
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
-        return JsonSerializer.Deserialize<string>(json, JsonSerializerOptions)
-            ?? throw new JsonException("Failed to deserialize string from JSON.");
+        var result = JsonSerializer.Deserialize<string>(json, JsonSerializerOptions);
+        return result ?? throw new JsonException("Failed to deserialize string from JSON.");
     }
 
     /// <summary>
@@ -56,6 +56,7 @@ public static class StringExtensionsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized string if successful; otherwise, null.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null or empty.</exception>
     public static bool TryFromJson(string json, out string? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
