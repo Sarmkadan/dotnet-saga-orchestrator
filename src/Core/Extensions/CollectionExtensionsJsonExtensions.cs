@@ -1,16 +1,11 @@
 #nullable enable
-// =============================================================================
-// Author: Vladyslav Zaiets | https://sarmkadan.com
-// CTO & Software Architect
-// =============================================================================
 
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace SagaOrchestrator.Core.Extensions;
 
 /// <summary>
-/// Provides JSON serialization and deserialization helpers for <see cref="CollectionExtensions"/>.
+/// Provides JSON serialization and deserialization helpers for collections.
 /// </summary>
 public static class CollectionExtensionsJsonExtensions
 {
@@ -21,48 +16,54 @@ public static class CollectionExtensionsJsonExtensions
     };
 
     /// <summary>
-    /// Serializes a <see cref="CollectionExtensionsData"/> instance to a JSON string.
+    /// Serializes a collection to a JSON string.
     /// </summary>
-    /// <param name="data">The <see cref="CollectionExtensionsData"/> to serialize.</param>
+    /// <typeparam name="T">The type of elements in the collection.</typeparam>
+    /// <param name="collection">The collection to serialize.</param>
     /// <param name="indented">If true, the JSON will be formatted with indentation.</param>
-    /// <returns>A JSON string representation of the <see cref="CollectionExtensionsData"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="data"/> is null.</exception>
-    public static string ToJson(this CollectionExtensionsData data, bool indented = false)
+    /// <returns>A JSON string representation of the collection.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="collection"/> is null.</exception>
+    public static string ToJson<T>(this IEnumerable<T> collection, bool indented = false)
     {
-        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(collection);
 
         JsonSerializerOptions options = indented ? new(JsonSerializerOptions) { WriteIndented = true } : JsonSerializerOptions;
-        return JsonSerializer.Serialize(data, options);
+        return JsonSerializer.Serialize(collection, options);
     }
 
     /// <summary>
-    /// Deserializes a JSON string into a <see cref="CollectionExtensionsData"/>.
+    /// Deserializes a JSON string into an enumerable.
     /// </summary>
+    /// <typeparam name="T">The type of elements in the enumerable.</typeparam>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>A <see cref="CollectionExtensionsData"/> instance.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null or empty.</exception>
+    /// <returns>An enumerable instance, or null if deserialization fails.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is empty.</exception>
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
-    public static CollectionExtensionsData? FromJson(string json)
+    public static IEnumerable<T>? FromJson<T>(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
-        return JsonSerializer.Deserialize<CollectionExtensionsData>(json, JsonSerializerOptions);
+        return JsonSerializer.Deserialize<IEnumerable<T>>(json, JsonSerializerOptions);
     }
 
     /// <summary>
-    /// Attempts to deserialize a JSON string into a <see cref="CollectionExtensionsData"/>.
+    /// Attempts to deserialize a JSON string into an enumerable.
     /// </summary>
+    /// <typeparam name="T">The type of elements in the enumerable.</typeparam>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized <see cref="CollectionExtensionsData"/> if successful; otherwise, null.</param>
+    /// <param name="value">The deserialized enumerable if successful; otherwise, null.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out CollectionExtensionsData? value)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is empty.</exception>
+    public static bool TryFromJson<T>(string json, out IEnumerable<T>? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
 
         try
         {
-            value = JsonSerializer.Deserialize<CollectionExtensionsData>(json, JsonSerializerOptions);
-            return value is not null;
+            value = JsonSerializer.Deserialize<IEnumerable<T>>(json, JsonSerializerOptions);
+            return true;
         }
         catch (JsonException)
         {
@@ -70,9 +71,4 @@ public static class CollectionExtensionsJsonExtensions
             return false;
         }
     }
-}
-
-public class CollectionExtensionsData
-{
-    // Add properties here that match the data you want to serialize
 }
