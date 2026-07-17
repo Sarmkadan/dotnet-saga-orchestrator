@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -52,8 +52,10 @@ public static class InMemorySagaDefinitionRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>A list of active saga definitions.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     public static async Task<IReadOnlyList<SagaDefinition>> GetActiveAsync(this InMemorySagaDefinitionRepository repository)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         return await repository.GetActiveAsync().ConfigureAwait(false);
     }
 
@@ -63,9 +65,11 @@ public static class InMemorySagaDefinitionRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="nameFragment">The fragment to search for in saga definition names.</param>
     /// <returns>A list of matching saga definitions.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="nameFragment"/> is null.</exception>
     public static async Task<IReadOnlyList<SagaDefinition>> SearchByNameAsync(this InMemorySagaDefinitionRepository repository, string nameFragment)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(nameFragment);
 
         var allDefinitions = await repository.GetAllAsync().ConfigureAwait(false);
@@ -81,8 +85,11 @@ public static class InMemorySagaDefinitionRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="version">The version number to filter by.</param>
     /// <returns>A list of saga definitions with the specified version.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     public static async Task<IReadOnlyList<SagaDefinition>> GetByVersionAsync(this InMemorySagaDefinitionRepository repository, int version)
     {
+        ArgumentNullException.ThrowIfNull(repository);
+
         var allDefinitions = await repository.GetAllAsync().ConfigureAwait(false);
         return allDefinitions
             .Where(d => d.Version == version)
@@ -96,9 +103,11 @@ public static class InMemorySagaDefinitionRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="name">The name of the saga definition.</param>
     /// <returns>The latest version of the saga definition, or null if not found.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="name"/> is null or empty.</exception>
     public static async Task<SagaDefinition?> GetLatestVersionAsync(this InMemorySagaDefinitionRepository repository, string name)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(name);
 
         var allDefinitions = await repository.GetAllAsync().ConfigureAwait(false);
@@ -127,8 +136,11 @@ public static class InMemorySagaDefinitionRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="cutoffDate">The date threshold for filtering saga definitions.</param>
     /// <returns>A list of saga definitions created after the cutoff date.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     public static async Task<IReadOnlyList<SagaDefinition>> GetCreatedAfterAsync(this InMemorySagaDefinitionRepository repository, DateTime cutoffDate)
     {
+        ArgumentNullException.ThrowIfNull(repository);
+
         var allDefinitions = await repository.GetAllAsync().ConfigureAwait(false);
         return allDefinitions
             .Where(d => d.CreatedAt > cutoffDate)
@@ -142,8 +154,11 @@ public static class InMemorySagaDefinitionRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>The total number of saga definitions.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     public static async Task<int> CountAsync(this InMemorySagaDefinitionRepository repository)
     {
+        ArgumentNullException.ThrowIfNull(repository);
+
         var allDefinitions = await repository.GetAllAsync().ConfigureAwait(false);
         return allDefinitions.Count;
     }
@@ -153,8 +168,11 @@ public static class InMemorySagaDefinitionRepositoryExtensions
     /// </summary>
     /// <param name="repository">The repository instance.</param>
     /// <returns>The number of active saga definitions.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     public static async Task<int> CountActiveAsync(this InMemorySagaDefinitionRepository repository)
     {
+        ArgumentNullException.ThrowIfNull(repository);
+
         var activeDefinitions = await repository.GetActiveAsync().ConfigureAwait(false);
         return activeDefinitions.Count;
     }
