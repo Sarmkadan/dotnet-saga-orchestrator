@@ -1,4 +1,5 @@
 #nullable enable
+
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,7 +11,7 @@ namespace SagaOrchestrator.Core.Exceptions;
 /// </summary>
 public static class ConfigurationExceptionJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
@@ -34,11 +35,11 @@ public static class ConfigurationExceptionJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A <see cref="ConfigurationException"/> instance if the deserialization is successful; otherwise, null.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is empty or whitespace.</exception>
     public static ConfigurationException? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
         try
         {
             return JsonSerializer.Deserialize<ConfigurationException>(json, _jsonSerializerOptions);
@@ -53,14 +54,15 @@ public static class ConfigurationExceptionJsonExtensions
     /// Attempts to deserialize a JSON string into a <see cref="ConfigurationException"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized <see cref="ConfigurationException"/> instance if the operation is successful.</param>
-    /// <returns>true if the deserialization is successful; otherwise, false.</returns>
+    /// <param name="value">The deserialized <see cref="ConfigurationException"/> instance if the operation is successful; otherwise, null.</param>
+    /// <returns><see langword="true"/> if the deserialization is successful; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is empty.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson(string json, out ConfigurationException? value)
     {
         ArgumentNullException.ThrowIfNull(json);
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+
         try
         {
             value = JsonSerializer.Deserialize<ConfigurationException>(json, _jsonSerializerOptions);
