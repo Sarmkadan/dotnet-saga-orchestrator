@@ -21,120 +21,78 @@ public static class CompensationTransactionExtensionsValidation
         var errors = new List<string>();
 
         // Validate IsActive result
-        try
-        {
-            _ = transaction.IsActive();
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.IsActive)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.IsActive(),
+            nameof(CompensationTransactionExtensions.IsActive),
+            errors);
 
         // Validate IsCompletedSuccessfully result
-        try
-        {
-            _ = transaction.IsCompletedSuccessfully();
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.IsCompletedSuccessfully)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.IsCompletedSuccessfully(),
+            nameof(CompensationTransactionExtensions.IsCompletedSuccessfully),
+            errors);
 
         // Validate IsFailed result
-        try
-        {
-            _ = transaction.IsFailed();
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.IsFailed)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.IsFailed(),
+            nameof(CompensationTransactionExtensions.IsFailed),
+            errors);
 
         // Validate GetDurationMs - should be non-negative if not null
-        try
-        {
-            var durationMs = transaction.GetDurationMs();
-            if (durationMs.HasValue && durationMs <= 0)
-            {
-                errors.Add($"{nameof(CompensationTransactionExtensions.GetDurationMs)}() must return a positive value when set, but returned {durationMs}.");
-            }
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.GetDurationMs)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.GetDurationMs(),
+            nameof(CompensationTransactionExtensions.GetDurationMs),
+            duration => duration.HasValue && duration <= 0,
+            errors);
 
         // Validate GetElapsedTimeMs - should be non-negative if not null
-        try
-        {
-            var elapsedTimeMs = transaction.GetElapsedTimeMs();
-            if (elapsedTimeMs.HasValue && elapsedTimeMs <= 0)
-            {
-                errors.Add($"{nameof(CompensationTransactionExtensions.GetElapsedTimeMs)}() must return a positive value when set, but returned {elapsedTimeMs}.");
-            }
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.GetElapsedTimeMs)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.GetElapsedTimeMs(),
+            nameof(CompensationTransactionExtensions.GetElapsedTimeMs),
+            elapsed => elapsed.HasValue && elapsed <= 0,
+            errors);
 
         // Validate DeepCopy - should not be null
-        try
-        {
-            var copy = transaction.DeepCopy();
-            if (copy is null)
-            {
-                errors.Add($"{nameof(CompensationTransactionExtensions.DeepCopy)}() returned null.");
-            }
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.DeepCopy)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.DeepCopy(),
+            nameof(CompensationTransactionExtensions.DeepCopy),
+            result => result is null,
+            errors);
 
         // Validate UpdateRequestPayload - should not throw
-        try
-        {
-            transaction.UpdateRequestPayload([]);
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.UpdateRequestPayload)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.UpdateRequestPayload([]),
+            nameof(CompensationTransactionExtensions.UpdateRequestPayload),
+            errors);
 
         // Validate HasExceededMaxRetries result
-        try
-        {
-            _ = transaction.HasExceededMaxRetries();
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.HasExceededMaxRetries)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.HasExceededMaxRetries(),
+            nameof(CompensationTransactionExtensions.HasExceededMaxRetries),
+            errors);
 
         // Validate GetSummary - should return non-null, non-empty string
-        try
-        {
-            var summary = transaction.GetSummary();
-            if (string.IsNullOrEmpty(summary))
-            {
-                errors.Add($"{nameof(CompensationTransactionExtensions.GetSummary)}() returned null or empty string.");
-            }
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.GetSummary)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.GetSummary(),
+            nameof(CompensationTransactionExtensions.GetSummary),
+            result => string.IsNullOrEmpty(result),
+            errors);
 
         // Validate CanSafelyRetry result
-        try
-        {
-            _ = transaction.CanSafelyRetry();
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"{nameof(CompensationTransactionExtensions.CanSafelyRetry)}() threw an exception: {ex.Message}");
-        }
+        ValidateMethodCall(
+            transaction,
+            static t => t.CanSafelyRetry(),
+            nameof(CompensationTransactionExtensions.CanSafelyRetry),
+            errors);
 
         return errors.AsReadOnly();
     }
@@ -145,10 +103,8 @@ public static class CompensationTransactionExtensionsValidation
     /// <param name="transaction">The transaction to check.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="transaction"/> is <see langword="null"/>.</exception>
-    public static bool IsValidExtensionMethods(this CompensationTransaction transaction)
-    {
-        return transaction.ValidateExtensionMethods().Count == 0;
-    }
+    public static bool IsValidExtensionMethods(this CompensationTransaction transaction) =>
+        transaction.ValidateExtensionMethods().Count == 0;
 
     /// <summary>
     /// Ensures that the specified <see cref="CompensationTransaction"/> can have its extension methods called safely.
@@ -164,7 +120,61 @@ public static class CompensationTransactionExtensionsValidation
         if (errors.Count > 0)
         {
             throw new ArgumentException(
-                $"CompensationTransaction extension methods validation failed:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", errors)}");
+                $"CompensationTransaction extension methods validation failed:{Environment.NewLine}- {
+                    string.Join($"{Environment.NewLine}- ", errors)}");
+        }
+    }
+
+    private static void ValidateMethodCall<TResult>(
+        CompensationTransaction transaction,
+        Func<CompensationTransaction, TResult> methodCall,
+        string methodName,
+        List<string> errors)
+    {
+        try
+        {
+            _ = methodCall(transaction);
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"{methodName}() threw an exception: {ex.Message}");
+        }
+    }
+
+    private static void ValidateMethodCall(
+        CompensationTransaction transaction,
+        Action<CompensationTransaction> methodCall,
+        string methodName,
+        List<string> errors)
+    {
+        try
+        {
+            methodCall(transaction);
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"{methodName}() threw an exception: {ex.Message}");
+        }
+    }
+
+    private static void ValidateMethodCall<TResult>(
+        CompensationTransaction transaction,
+        Func<CompensationTransaction, TResult> methodCall,
+        string methodName,
+        Func<TResult, bool> validationPredicate,
+        List<string> errors)
+    {
+        try
+        {
+            var result = methodCall(transaction);
+            if (validationPredicate(result))
+            {
+                errors.Add($"{methodName}() must return a valid result, but validation failed.");
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"{methodName}() threw an exception: {ex.Message}");
         }
     }
 }
