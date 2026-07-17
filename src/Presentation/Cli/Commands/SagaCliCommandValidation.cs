@@ -16,6 +16,14 @@ namespace SagaOrchestrator.Presentation.Cli.Commands;
 public static class SagaCliCommandValidation
 {
     /// <summary>
+    /// Gets the set of valid command types.
+    /// </summary>
+    private static readonly HashSet<string> ValidCommandTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "create", "execute", "status", "list", "compensate", "help"
+    };
+
+    /// <summary>
     /// Validates a <see cref="SagaCliCommand"/> and returns a list of human-readable validation problems.
     /// </summary>
     /// <param name="value">The command to validate.</param>
@@ -32,22 +40,16 @@ public static class SagaCliCommandValidation
         {
             errors.Add("CommandType cannot be null or whitespace.");
         }
-        else if (value.CommandType is not ("create" or "execute" or "status" or "list" or "compensate" or "help"))
+        else if (!ValidCommandTypes.Contains(value.CommandType))
         {
-            errors.Add($"Invalid CommandType '{value.CommandType}'. Must be one of: create, execute, status, list, compensate, help.");
+            errors.Add($"Invalid CommandType '{value.CommandType}'. Must be one of: {string.Join(", ", ValidCommandTypes)}.");
         }
 
         // Validate Arguments dictionary
-        if (value.Arguments is null)
-        {
-            errors.Add("Arguments dictionary cannot be null.");
-        }
+        ArgumentNullException.ThrowIfNull(value.Arguments);
 
         // Validate Options list
-        if (value.Options is null)
-        {
-            errors.Add("Options list cannot be null.");
-        }
+        ArgumentNullException.ThrowIfNull(value.Options);
 
         // Command-specific validation
         if (value.CommandType == "create")
@@ -101,25 +103,16 @@ public static class SagaCliCommandValidation
         {
             throw new ArgumentException(
                 $"SagaCliCommand is invalid. Validation errors: {string.Join(" ", errors)}",
-                nameof(value));
+                nameof(value),
+                new AggregateException(errors.Select(e => new ArgumentException(e))));
         }
     }
 
     private static void ValidateCreateCommand(SagaCliCommand command, List<string> errors)
     {
-        if (command.Arguments is null)
+        if (!command.Arguments.TryGetValue("definition", out var definition) || string.IsNullOrWhiteSpace(definition))
         {
-            errors.Add("Arguments cannot be null for create command.");
-            return;
-        }
-
-        if (!command.Arguments.ContainsKey("definition"))
-        {
-            errors.Add("--definition parameter is required for create command.");
-        }
-        else if (string.IsNullOrWhiteSpace(command.Arguments["definition"]))
-        {
-            errors.Add("--definition parameter cannot be null or whitespace.");
+            errors.Add("--definition parameter is required for create command and cannot be null or whitespace.");
         }
 
         // Validate optional --data parameter if present
@@ -146,27 +139,17 @@ public static class SagaCliCommandValidation
 
     private static void ValidateExecuteCommand(SagaCliCommand command, List<string> errors)
     {
-        if (command.Arguments is null)
+        if (!command.Arguments.TryGetValue("saga-id", out var sagaId) || string.IsNullOrWhiteSpace(sagaId))
         {
-            errors.Add("Arguments cannot be null for execute command.");
-            return;
+            errors.Add("--saga-id parameter is required for execute command and cannot be null or whitespace.");
         }
-
-        if (!command.Arguments.ContainsKey("saga-id"))
-        {
-            errors.Add("--saga-id parameter is required for execute command.");
-        }
-        else if (string.IsNullOrWhiteSpace(command.Arguments["saga-id"]))
-        {
-            errors.Add("--saga-id parameter cannot be null or whitespace.");
-        }
-        else if (!IsValidGuid(command.Arguments["saga-id"]))
+        else if (!IsValidGuid(sagaId))
         {
             errors.Add("--saga-id parameter must be a valid GUID.");
         }
 
         // Validate optional --async parameter
-        if (command.Options is not null && command.Options.Contains("async"))
+        if (command.Options.Contains("async"))
         {
             // No additional validation needed for boolean flag
         }
@@ -174,27 +157,17 @@ public static class SagaCliCommandValidation
 
     private static void ValidateStatusCommand(SagaCliCommand command, List<string> errors)
     {
-        if (command.Arguments is null)
+        if (!command.Arguments.TryGetValue("saga-id", out var sagaId) || string.IsNullOrWhiteSpace(sagaId))
         {
-            errors.Add("Arguments cannot be null for status command.");
-            return;
+            errors.Add("--saga-id parameter is required for status command and cannot be null or whitespace.");
         }
-
-        if (!command.Arguments.ContainsKey("saga-id"))
-        {
-            errors.Add("--saga-id parameter is required for status command.");
-        }
-        else if (string.IsNullOrWhiteSpace(command.Arguments["saga-id"]))
-        {
-            errors.Add("--saga-id parameter cannot be null or whitespace.");
-        }
-        else if (!IsValidGuid(command.Arguments["saga-id"]))
+        else if (!IsValidGuid(sagaId))
         {
             errors.Add("--saga-id parameter must be a valid GUID.");
         }
 
         // Validate optional --verbose parameter
-        if (command.Options is not null && command.Options.Contains("verbose"))
+        if (command.Options.Contains("verbose"))
         {
             // No additional validation needed for boolean flag
         }
@@ -202,21 +175,11 @@ public static class SagaCliCommandValidation
 
     private static void ValidateCompensateCommand(SagaCliCommand command, List<string> errors)
     {
-        if (command.Arguments is null)
+        if (!command.Arguments.TryGetValue("saga-id", out var sagaId) || string.IsNullOrWhiteSpace(sagaId))
         {
-            errors.Add("Arguments cannot be null for compensate command.");
-            return;
+            errors.Add("--saga-id parameter is required for compensate command and cannot be null or whitespace.");
         }
-
-        if (!command.Arguments.ContainsKey("saga-id"))
-        {
-            errors.Add("--saga-id parameter is required for compensate command.");
-        }
-        else if (string.IsNullOrWhiteSpace(command.Arguments["saga-id"]))
-        {
-            errors.Add("--saga-id parameter cannot be null or whitespace.");
-        }
-        else if (!IsValidGuid(command.Arguments["saga-id"]))
+        else if (!IsValidGuid(sagaId))
         {
             errors.Add("--saga-id parameter must be a valid GUID.");
         }
@@ -235,7 +198,7 @@ public static class SagaCliCommandValidation
     private static void ValidateListCommand(SagaCliCommand command, List<string> errors)
     {
         // --limit parameter validation
-        if (command.Arguments?.TryGetValue("limit", out var limitStr) == true && !string.IsNullOrWhiteSpace(limitStr))
+        if (command.Arguments.TryGetValue("limit", out var limitStr) && !string.IsNullOrWhiteSpace(limitStr))
         {
             if (!int.TryParse(limitStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var limit) || limit <= 0)
             {
@@ -244,7 +207,7 @@ public static class SagaCliCommandValidation
         }
 
         // --filter parameter validation
-        if (command.Arguments?.TryGetValue("filter", out var filter) == true && !string.IsNullOrWhiteSpace(filter))
+        if (command.Arguments.TryGetValue("filter", out var filter) && !string.IsNullOrWhiteSpace(filter))
         {
             var validFilters = new[] { "pending", "inprogress", "completed", "failed", "compensating", "compensated" };
             if (!validFilters.Contains(filter.ToLowerInvariant()))
@@ -279,15 +242,15 @@ public static class SagaCliCommandValidation
             return false;
         }
 
-        // Basic JSON validation - check if it starts with { or [ and ends with } or ]
-        var trimmed = json.Trim();
-        if ((trimmed.StartsWith('{') && trimmed.EndsWith('}')) ||
-            (trimmed.StartsWith('[') && trimmed.EndsWith(']'))
-        )
+        try
         {
+            // Use System.Text.Json for proper JSON validation
+            _ = System.Text.Json.JsonDocument.Parse(json.Trim());
             return true;
         }
-
-        return false;
+        catch
+        {
+            return false;
+        }
     }
 }
