@@ -449,6 +449,89 @@ catch (ArgumentException ex)
 }
 ```
 
+## SagaOptionsValidation
+
+The `SagaOptionsValidation` class provides validation helpers for `SagaOptions` configuration. It validates timeout policies, retry policies, cache policies, worker policies, and webhook policies within the saga configuration, ensuring all timeout and retry values are positive and properly configured.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Configuration;
+
+// Create valid saga options with proper configuration
+var options = new SagaOptions
+{
+    TimeoutPolicies = new TimeoutPolicies
+    {
+        DefaultStepTimeoutSeconds = 30,
+        DefaultSagaTimeoutSeconds = 300,
+        MaxStepTimeoutSeconds = 60,
+        MaxSagaTimeoutSeconds = 600,
+        CompensationTimeoutSeconds = 30
+    },
+    RetryPolicies = new RetryPolicies
+    {
+        DefaultMaxRetries = 3,
+        MaxRetries = 5,
+        DefaultRetryDelayMs = 1000,
+        MaxBackoffDelayMs = 30000,
+        BackoffMultiplier = 2.0,
+        UseExponentialBackoff = true
+    },
+    CachePolicies = new CachePolicies
+    {
+        SagaCacheExpirationMinutes = 60,
+        DefinitionCacheExpirationMinutes = 120,
+        HealthCheckCacheExpirationSeconds = 30,
+        MaxCacheSize = 1000
+    },
+    WorkerPolicies = new WorkerPolicies
+    {
+        TimeoutWorkerIntervalSeconds = 5,
+        CompensationWorkerIntervalSeconds = 10,
+        EventProcessingWorkerIntervalSeconds = 2,
+        MaxEventsToKeep = 1000
+    },
+    WebhookPolicies = new WebhookPolicies
+    {
+        WebhookTimeoutSeconds = 30,
+        MaxWebhookRetries = 3,
+        WebhookRetryDelayMs = 2000,
+        MaxWebhookPayloadBytes = 1024 * 1024 // 1MB
+    }
+};
+
+// Validate the options and get error messages
+var validationErrors = options.Validate();
+if (validationErrors.Count > 0)
+{
+    Console.WriteLine("Validation errors found:");
+    foreach (var error in validationErrors)
+    {
+        Console.WriteLine($"- {error}");
+    }
+}
+else
+{
+    Console.WriteLine("SagaOptions are valid!");
+}
+
+// Check if options are valid
+bool isValid = options.IsValid();
+Console.WriteLine($"Is valid: {isValid}");
+
+// Ensure options are valid (throws if invalid)
+try
+{
+    options.EnsureValid();
+    Console.WriteLine("SagaOptions passed validation!");
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Validation failed: {ex.Message}");
+}
+```
+
 ## InMemorySagaStepRepositoryValidation
 
 The `InMemorySagaStepRepositoryValidation` class provides validation helpers for `InMemorySagaStepRepository` instances and `SagaStep` entities. It offers methods to validate repository instances and saga steps, ensuring data integrity and proper state management during saga execution workflows.
