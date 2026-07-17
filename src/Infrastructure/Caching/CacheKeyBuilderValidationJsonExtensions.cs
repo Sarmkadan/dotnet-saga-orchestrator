@@ -42,7 +42,7 @@ namespace SagaOrchestrator.Infrastructure.Caching
         /// Deserializes a JSON string to a <see cref="CacheKeyBuilderValidation"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized <see cref="CacheKeyBuilderValidation"/> instance, or <see langword="null"/> if the JSON is empty.</returns>
+        /// <returns>The deserialized <see cref="CacheKeyBuilderValidation"/> instance, or <see langword="null"/> if <paramref name="json"/> is empty or whitespace.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
         /// <exception cref="JsonException">The JSON is invalid.</exception>
         public static CacheKeyBuilderValidation? FromJson(string json)
@@ -61,10 +61,13 @@ namespace SagaOrchestrator.Infrastructure.Caching
         /// Attempts to deserialize a JSON string to a <see cref="CacheKeyBuilderValidation"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">The deserialized <see cref="CacheKeyBuilderValidation"/> instance, or <see langword="null"/> if deserialization fails.</param>
+        /// <param name="value">The deserialized <see cref="CacheKeyBuilderValidation"/> instance, or <see langword="null"/> if deserialization fails or <paramref name="json"/> is empty or whitespace.</param>
         /// <returns><see langword="true"/> if deserialization succeeds; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
         public static bool TryFromJson(string json, out CacheKeyBuilderValidation? value)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             try
             {
                 value = FromJson(json);
