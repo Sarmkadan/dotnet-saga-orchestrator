@@ -449,17 +449,17 @@ catch (ArgumentException ex)
 }
 ```
 
-## SagaOptionsValidation
+## SagaOptionsExtensions
 
-The `SagaOptionsValidation` class provides validation helpers for `SagaOptions` configuration. It validates timeout policies, retry policies, cache policies, worker policies, and webhook policies within the saga configuration, ensuring all timeout and retry values are positive and properly configured.
+The `SagaOptionsExtensions` class provides extension methods for `SagaOptions` that offer convenient ways to query and manipulate saga orchestrator configuration. These methods allow you to check caching status, calculate effective timeouts and retry limits based on configured policies, and create new option instances with overrides while preserving existing settings.
 
 ### Usage Example
 
 ```csharp
 using SagaOrchestrator.Configuration;
 
-// Create valid saga options with proper configuration
-var options = new SagaOptions
+// Create base saga options with configuration
+var baseOptions = new SagaOptions
 {
     TimeoutPolicies = new TimeoutPolicies
     {
@@ -480,57 +480,48 @@ var options = new SagaOptions
     },
     CachePolicies = new CachePolicies
     {
+        EnableCaching = true,
         SagaCacheExpirationMinutes = 60,
         DefinitionCacheExpirationMinutes = 120,
         HealthCheckCacheExpirationSeconds = 30,
         MaxCacheSize = 1000
-    },
-    WorkerPolicies = new WorkerPolicies
-    {
-        TimeoutWorkerIntervalSeconds = 5,
-        CompensationWorkerIntervalSeconds = 10,
-        EventProcessingWorkerIntervalSeconds = 2,
-        MaxEventsToKeep = 1000
-    },
-    WebhookPolicies = new WebhookPolicies
-    {
-        WebhookTimeoutSeconds = 30,
-        MaxWebhookRetries = 3,
-        WebhookRetryDelayMs = 2000,
-        MaxWebhookPayloadBytes = 1024 * 1024 // 1MB
     }
 };
 
-// Validate the options and get error messages
-var validationErrors = options.Validate();
-if (validationErrors.Count > 0)
-{
-    Console.WriteLine("Validation errors found:");
-    foreach (var error in validationErrors)
-    {
-        Console.WriteLine($"- {error}");
-    }
-}
-else
-{
-    Console.WriteLine("SagaOptions are valid!");
-}
+// Check if caching is enabled
+bool cachingEnabled = baseOptions.IsCachingEnabled();
+Console.WriteLine($"Caching enabled: {cachingEnabled}");
 
-// Check if options are valid
-bool isValid = options.IsValid();
-Console.WriteLine($"Is valid: {isValid}");
+// Calculate effective timeouts based on requested values and policy constraints
+int requestedStepTimeout = 45;
+int effectiveStepTimeout = baseOptions.GetEffectiveStepTimeout(requestedStepTimeout);
+Console.WriteLine($"Effective step timeout: {effectiveStepTimeout} seconds");
 
-// Ensure options are valid (throws if invalid)
-try
+int requestedSagaTimeout = 250;
+int effectiveSagaTimeout = baseOptions.GetEffectiveSagaTimeout(requestedSagaTimeout);
+Console.WriteLine($"Effective saga timeout: {effectiveSagaTimeout} seconds");
+
+// Calculate effective retry limit based on requested value and policy constraints
+int requestedMaxRetries = 4;
+int effectiveMaxRetries = baseOptions.GetEffectiveMaxRetries(requestedMaxRetries);
+Console.WriteLine($"Effective max retries: {effectiveMaxRetries}");
+
+// Create new options with overrides while preserving existing settings
+var customizedOptions = baseOptions.WithOverrides(options =>
 {
-    options.EnsureValid();
-    Console.WriteLine("SagaOptions passed validation!");
-}
-catch (ArgumentException ex)
-{
-    Console.WriteLine($"Validation failed: {ex.Message}");
-}
+    options.TimeoutPolicies.DefaultStepTimeoutSeconds = 45;
+    options.RetryPolicies.DefaultMaxRetries = 5;
+    options.CachePolicies.SagaCacheExpirationMinutes = 120;
+});
+
+Console.WriteLine($"Customized step timeout: {customizedOptions.TimeoutPolicies.DefaultStepTimeoutSeconds}");
+Console.WriteLine($"Customized max retries: {customizedOptions.RetryPolicies.DefaultMaxRetries}");
+Console.WriteLine($"Customized cache expiration: {customizedOptions.CachePolicies.SagaCacheExpirationMinutes} minutes");
 ```
+
+## SagaOptionsValidation
+
+The `SagaOptionsValidation` class provides validation helpers for `SagaOptions` configuration.
 
 ## InMemorySagaStepRepositoryValidation
 
