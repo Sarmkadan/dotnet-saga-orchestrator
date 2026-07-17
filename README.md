@@ -1462,6 +1462,107 @@ Console.WriteLine($"Invalid correlation validation count: {invalidCorrelationVal
 
 The `InMemoryCompensationTransactionRepository` provides an in-memory implementation of `ICompensationTransactionRepository` for storing and retrieving compensation transactions during saga execution. It maintains all compensation transactions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
 
+## CollectionExtensionsValidation
+
+The `CollectionExtensionsValidation` class provides extension methods for validating collections and dictionaries. It helps ensure data integrity by checking for common issues like null elements, empty strings, default values, and minimum dates before processing collections in saga workflows. The validation methods return detailed error messages for invalid data, while the `IsValid` methods provide boolean checks, and `EnsureValid` methods throw exceptions when validation fails.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Extensions;
+
+// Example 1: Validate a collection of strings
+var stringValues = new List<string> { "order_123", "order_456", "" };
+var stringProblems = stringValues.Validate();
+
+if (stringProblems.Count > 0)
+{
+    Console.WriteLine("String collection validation issues:");
+    foreach (var problem in stringProblems)
+    {
+        Console.WriteLine($"- {problem}");
+    }
+}
+else
+{
+    Console.WriteLine("String collection is valid");
+}
+
+// Example 2: Validate a collection of integers
+var numbers = new List<int> { 1, 0, 3, 4 };
+var numberProblems = numbers.Validate();
+
+if (numberProblems.Count > 0)
+{
+    Console.WriteLine("Number collection validation issues:");
+    foreach (var problem in numberProblems)
+    {
+        Console.WriteLine($"- {problem}");
+    }
+}
+
+// Example 3: Validate a dictionary
+var orderData = new Dictionary<string, string>
+{
+    { "orderId", "ord_123" },
+    { "customerId", "" },
+    { "status", "pending" }
+};
+
+var dictProblems = orderData.Validate();
+
+if (dictProblems.Count > 0)
+{
+    Console.WriteLine("Dictionary validation issues:");
+    foreach (var problem in dictProblems)
+    {
+        Console.WriteLine($"- {problem}");
+    }
+}
+
+// Example 4: Use IsValid for quick checks
+var validNumbers = new List<int> { 1, 2, 3 };
+bool isValid = validNumbers.IsValid();
+Console.WriteLine($"Numbers collection is valid: {isValid}"); // True
+
+var invalidNumbers = new List<int> { 1, 0, 3 };
+isValid = invalidNumbers.IsValid();
+Console.WriteLine($"Numbers collection is valid: {isValid}"); // False
+
+// Example 5: Use EnsureValid to throw exceptions on invalid data
+try
+{
+    var problematicData = new List<string> { "valid", null, "also_valid" };
+    problematicData.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Validation failed: {ex.Message}");
+}
+
+// Example 6: Validate a collection of dates
+var dates = new List<DateTime>
+{
+    DateTime.UtcNow,
+    DateTime.MinValue, // Invalid
+    DateTime.UtcNow.AddDays(-1)
+};
+
+var dateProblems = dates.Validate();
+Console.WriteLine($"Date collection has {dateProblems.Count} validation issues");
+
+// Example 7: Validate a collection of DateTimeOffset
+var dateOffsets = new List<DateTimeOffset>
+{
+    DateTimeOffset.UtcNow,
+    DateTimeOffset.MinValue, // Invalid
+    DateTimeOffset.UtcNow.AddDays(-1)
+};
+
+var offsetProblems = dateOffsets.Validate();
+Console.WriteLine($"DateTimeOffset collection has {offsetProblems.Count} validation issues");
+```
+
 ## CacheKeyBuilderJsonExtensions
 
 The `CacheKeyBuilderJsonExtensions` class provides extension methods for serializing and deserializing cache keys to/from JSON format. It enables consistent cache key representation for debugging, logging, and inter-service communication scenarios where cache keys need to be transmitted or persisted as structured data.
