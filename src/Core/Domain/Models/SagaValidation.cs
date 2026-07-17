@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using SagaOrchestrator.Core.Domain.Enums;
 
 namespace SagaOrchestrator.Core.Domain.Models;
@@ -28,16 +27,16 @@ public static class SagaValidation
 
         var errors = new List<string>();
 
-        // Validate Id
-        if (string.IsNullOrWhiteSpace(value.Id))
+        // Validate Id - should be a valid GUID format
+        if (string.IsNullOrWhiteSpace(value.Id) || !Guid.TryParse(value.Id, out _))
         {
-            errors.Add("Saga.Id cannot be null or whitespace.");
+            errors.Add("Saga.Id must be a valid GUID.");
         }
 
-        // Validate CorrelationId
-        if (string.IsNullOrWhiteSpace(value.CorrelationId))
+        // Validate CorrelationId - should be a valid GUID format
+        if (string.IsNullOrWhiteSpace(value.CorrelationId) || !Guid.TryParse(value.CorrelationId, out _))
         {
-            errors.Add("Saga.CorrelationId cannot be null or whitespace.");
+            errors.Add("Saga.CorrelationId must be a valid GUID.");
         }
 
         // Validate Status
@@ -56,10 +55,6 @@ public static class SagaValidation
         if (value.Steps is null)
         {
             errors.Add("Saga.Steps cannot be null.");
-        }
-        else if (value.Steps.Count < 0)
-        {
-            errors.Add("Saga.Steps.Count cannot be negative.");
         }
 
         // Validate StartedAt
@@ -106,10 +101,10 @@ public static class SagaValidation
             }
         }
 
-        // Validate FailureReason
-        if (value.FailureReason is not null && string.IsNullOrWhiteSpace(value.FailureReason))
+        // Validate FailureReason - check if it's null or whitespace
+        if (string.IsNullOrWhiteSpace(value.FailureReason))
         {
-            errors.Add("Saga.FailureReason cannot be empty or whitespace when set.");
+            errors.Add("Saga.FailureReason cannot be null, empty, or whitespace.");
         }
 
         // Validate CompensationStartedAt
@@ -134,17 +129,29 @@ public static class SagaValidation
         {
             errors.Add("Saga.RetryCount cannot be negative.");
         }
+        else if (value.RetryCount > 100)
+        {
+            errors.Add("Saga.RetryCount cannot exceed 100.");
+        }
 
         // Validate MaxRetries
         if (value.MaxRetries < 0)
         {
             errors.Add("Saga.MaxRetries cannot be negative.");
         }
+        else if (value.MaxRetries > 50)
+        {
+            errors.Add("Saga.MaxRetries cannot exceed 50.");
+        }
 
         // Validate TimeoutSeconds
         if (value.TimeoutSeconds <= 0)
         {
             errors.Add("Saga.TimeoutSeconds must be a positive value greater than zero.");
+        }
+        else if (value.TimeoutSeconds > 86400)
+        {
+            errors.Add("Saga.TimeoutSeconds cannot exceed 86400 seconds (24 hours).");
         }
 
         // Validate Metadata
@@ -178,7 +185,9 @@ public static class SagaValidation
         {
             var errors = Validate(value);
             throw new ArgumentException(
-                $"Saga validation failed with {errors.Count} error(s):{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", errors)}");
+                $"Saga validation failed with {errors.Count} error(s):{Environment.NewLine}- {
+                    string.Join($"{Environment.NewLine}- ", errors)
+                }");
         }
     }
 }
