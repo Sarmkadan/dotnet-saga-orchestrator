@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using SagaOrchestrator.Core.Domain.Models;
 
 namespace SagaOrchestrator.Application.Services;
@@ -16,6 +17,15 @@ namespace SagaOrchestrator.Application.Services;
 /// </summary>
 public static class SagaOrchestrationServiceValidation
 {
+    private static readonly Lazy<FieldInfo> _sagaRepositoryField = new(() =>
+        typeof(SagaOrchestrationService).GetField("_sagaRepository", BindingFlags.NonPublic | BindingFlags.Instance)!);
+
+    private static readonly Lazy<FieldInfo> _stepRepositoryField = new(() =>
+        typeof(SagaOrchestrationService).GetField("_stepRepository", BindingFlags.NonPublic | BindingFlags.Instance)!);
+
+    private static readonly Lazy<FieldInfo> _compensationServiceField = new(() =>
+        typeof(SagaOrchestrationService).GetField("_compensationService", BindingFlags.NonPublic | BindingFlags.Instance)!);
+
     /// <summary>
     /// Validates the <see cref="SagaOrchestrationService"/> instance and returns a collection of human‑readable problems.
     /// </summary>
@@ -34,6 +44,22 @@ public static class SagaOrchestrationServiceValidation
             return problems;
         }
 
+        // Validate required dependencies using cached reflection
+        if (_sagaRepositoryField.Value.GetValue(value) is null)
+        {
+            problems.Add("SagaOrchestrationService._sagaRepository dependency is null.");
+        }
+
+        if (_stepRepositoryField.Value.GetValue(value) is null)
+        {
+            problems.Add("SagaOrchestrationService._stepRepository dependency is null.");
+        }
+
+        if (_compensationServiceField.Value.GetValue(value) is null)
+        {
+            problems.Add("SagaOrchestrationService._compensationService dependency is null.");
+        }
+
         return problems.AsReadOnly();
     }
 
@@ -46,7 +72,7 @@ public static class SagaOrchestrationServiceValidation
     public static bool IsValid(this SagaOrchestrationService value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        return !value.Validate().Any();
+        return value.Validate().Count == 0;
     }
 
     /// <summary>
@@ -61,7 +87,7 @@ public static class SagaOrchestrationServiceValidation
     {
         ArgumentNullException.ThrowIfNull(value);
         var problems = value.Validate();
-        if (problems.Any())
+        if (problems.Count > 0)
         {
             throw new ArgumentException(string.Join("; ", problems), nameof(value));
         }
