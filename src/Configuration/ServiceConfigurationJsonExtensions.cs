@@ -14,8 +14,12 @@ namespace SagaOrchestrator.Configuration;
 public static class ServiceConfigurationJsonExtensions
 {
     /// <summary>
-    /// Configured JSON serializer options with camelCase property naming policy.
+    /// Gets the configured JSON serializer options with camelCase property naming policy.
     /// </summary>
+    /// <remarks>
+    /// These options are used by all serialization and deserialization methods in this class.
+    /// The options use camelCase naming policy and compact JSON formatting (no indentation).
+    /// </remarks>
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -43,7 +47,8 @@ public static class ServiceConfigurationJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A <see cref="SagaOptions"/> instance populated from the JSON.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     /// <exception cref="JsonException">Thrown when JSON is invalid or cannot be deserialized.</exception>
     public static SagaOptions? FromJson(string json)
     {
@@ -55,7 +60,10 @@ public static class ServiceConfigurationJsonExtensions
     /// Tries to deserialize a JSON string to a <see cref="SagaOptions"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized <see cref="SagaOptions"/> instance, or null if deserialization failed.</param>
+    /// <param name="value">
+    /// When this method returns, contains the deserialized <see cref="SagaOptions"/> instance,
+    /// or null if deserialization failed.
+    /// </param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
     public static bool TryFromJson(string json, out SagaOptions? value)
     {
