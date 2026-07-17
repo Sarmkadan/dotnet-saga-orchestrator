@@ -34,14 +34,9 @@ public static class SagaTimeoutExceptionJsonExtensionsJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions)
-            {
-                WriteIndented = true
-            }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
+        return indented
+            ? JsonSerializer.Serialize(value, new JsonSerializerOptions(_jsonOptions) { WriteIndented = true })
+            : JsonSerializer.Serialize(value, _jsonOptions);
     }
 
     /// <summary>
@@ -54,18 +49,20 @@ public static class SagaTimeoutExceptionJsonExtensionsJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrEmpty(json))
-        {
-            return null;
-        }
+        return string.IsNullOrEmpty(json)
+            ? null
+            : SafeDeserialize(json);
 
-        try
+        static SagaTimeoutException? SafeDeserialize(string jsonValue)
         {
-            return JsonSerializer.Deserialize<SagaTimeoutException>(json, _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
+            try
+            {
+                return JsonSerializer.Deserialize<SagaTimeoutException>(jsonValue, _jsonOptions);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
         }
     }
 
