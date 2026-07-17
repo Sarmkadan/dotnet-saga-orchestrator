@@ -63,12 +63,10 @@ public static class CompensationServiceTestsJsonExtensions
         }
     }
 
+    /// <summary>
+    /// Creates a new <see cref="JsonSerializerOptions"/> instance with indentation enabled for pretty-printing.
+    /// </summary>
+    /// <returns>A new <see cref="JsonSerializerOptions"/> with <see cref="JsonSerializerOptions.WriteIndented"/> set to <see langword="true"/>.</returns>
     private static JsonSerializerOptions GetIndentedOptions()
-    {
-        var options = new JsonSerializerOptions(_jsonSerializerOptions)
-        {
-            WriteIndented = true,
-        };
-        return options;
-    }
+        => new(_jsonSerializerOptions) { WriteIndented = true };
 }
