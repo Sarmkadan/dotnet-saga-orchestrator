@@ -11,6 +11,7 @@ namespace SagaOrchestrator.Application.DTOs
     {
         /// <summary>
         /// Determines whether the <see cref="CreateSagaRequest"/> has a valid timeout.
+        /// A valid timeout is one that is non-negative when specified.
         /// </summary>
         /// <param name="request">The <see cref="CreateSagaRequest"/> to check.</param>
         /// <returns><c>true</c> if the request has a valid timeout; otherwise, <c>false</c>.</returns>
@@ -19,11 +20,12 @@ namespace SagaOrchestrator.Application.DTOs
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            return request.TimeoutSeconds.HasValue && request.TimeoutSeconds.Value >= 0;
+            return request.TimeoutSeconds >= 0;
         }
 
         /// <summary>
         /// Gets a read-only dictionary of metadata for the <see cref="CreateSagaRequest"/>.
+        /// If the metadata is <c>null</c>, returns an empty read-only dictionary.
         /// </summary>
         /// <param name="request">The <see cref="CreateSagaRequest"/> to get metadata from.</param>
         /// <returns>A read-only dictionary of metadata.</returns>
@@ -32,11 +34,11 @@ namespace SagaOrchestrator.Application.DTOs
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            return request.Metadata?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, object>();
+            return request.Metadata?.AsReadOnly() ?? new Dictionary<string, object>().AsReadOnly();
         }
 
         /// <summary>
-        /// Tries to parse the <see cref="CreateSagaRequest.Data"/> as a decimal value.
+        /// Tries to parse the <see cref="CreateSagaRequest.Data"/> as a decimal value using invariant culture.
         /// </summary>
         /// <param name="request">The <see cref="CreateSagaRequest"/> to parse data from.</param>
         /// <param name="result">The parsed decimal value.</param>
