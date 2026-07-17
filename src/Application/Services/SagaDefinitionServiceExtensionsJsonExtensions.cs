@@ -28,24 +28,16 @@ public static class SagaDefinitionServiceExtensionsJsonExtensions
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the <see cref="SagaDefinitionService"/> instance.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
-    public static string ToJson(this SagaDefinitionService value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
-            : _jsonSerializerOptions;
-
-        return JsonSerializer.Serialize(value, options);
-    }
+    public static string ToJson(this SagaDefinitionService value, bool indented = false) =>
+        JsonSerializer.Serialize(value, GetJsonSerializerOptions(indented));
 
     /// <summary>
     /// Deserializes a JSON string to a <see cref="SagaDefinitionService"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized <see cref="SagaDefinitionService"/> instance, or <see langword="null"/> if deserialization fails.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or whitespace.</exception>
-    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/>, empty, or consists only of white-space characters.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized into a <see cref="SagaDefinitionService"/> instance.</exception>
     public static SagaDefinitionService? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -65,8 +57,8 @@ public static class SagaDefinitionServiceExtensionsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized <see cref="SagaDefinitionService"/> instance if successful.</param>
-    /// <returns><see langword="true"/> if deserialization succeeded; otherwise <see langword="false"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or whitespace.</exception>
+    /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/>, empty, or consists only of white-space characters.</exception>
     public static bool TryFromJson(string json, out SagaDefinitionService? value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(json);
@@ -76,11 +68,14 @@ public static class SagaDefinitionServiceExtensionsJsonExtensions
         try
         {
             value = JsonSerializer.Deserialize<SagaDefinitionService>(json, _jsonSerializerOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
             return false;
         }
     }
+
+    private static JsonSerializerOptions GetJsonSerializerOptions(bool indented) =>
+        new(_jsonSerializerOptions) { WriteIndented = indented };
 }
