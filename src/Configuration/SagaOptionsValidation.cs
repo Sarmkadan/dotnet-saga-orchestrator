@@ -52,10 +52,7 @@ public static class SagaOptionsValidation
     /// <param name="value">The saga options to validate.</param>
     /// <returns>True if valid; otherwise false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static bool IsValid(this SagaOptions value)
-    {
-        return value.Validate().Count == 0;
-    }
+    public static bool IsValid(this SagaOptions value) => value.Validate().Count == 0;
 
     /// <summary>
     /// Validates the saga configuration options and throws an exception with all validation problems.
