@@ -2145,6 +2145,88 @@ The `SagaOptions` class provides centralized configuration for saga orchestrator
 
 ## InfrastructureConfiguration
 
+## SagaCommandResultValidation
+
+The `SagaCommandResultValidation` class provides validation methods for `SagaCommandResult` and `SagaCommandResult<T>` objects. It contains utility methods to validate command results, check if results are valid, and ensure validation passes before proceeding with saga operations. The validation methods return detailed error messages for invalid results, while the `IsValid` methods provide boolean checks, and `EnsureValid` methods throw exceptions when validation fails.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.DTOs;
+
+// Example 1: Validate a successful command result
+var successResult = SagaCommandResult.SuccessResult(
+    "Order processed successfully",
+    new { OrderId = "ord_12345", Status = "Completed" }
+);
+
+var validationErrors = SagaCommandResultValidation.Validate(successResult);
+if (validationErrors.Count == 0)
+{
+    Console.WriteLine("Command result is valid");
+}
+else
+{
+    Console.WriteLine("Validation errors:");
+    foreach (var error in validationErrors)
+    {
+        Console.WriteLine($"- {error}");
+    }
+}
+
+// Example 2: Validate a failed command result
+var failureResult = SagaCommandResult.FailureResult(
+    "Payment processing failed",
+    "Insufficient funds",
+    "Payment gateway unavailable"
+);
+
+var failureErrors = SagaCommandResultValidation.Validate(failureResult);
+Console.WriteLine($"Failure result has {failureErrors.Count} validation issues");
+
+// Example 3: Check if command result is valid with IsValid
+bool isValid = SagaCommandResultValidation.IsValid(successResult);
+Console.WriteLine($"Is valid: {isValid}"); // True
+
+bool isFailureValid = SagaCommandResultValidation.IsValid(failureResult);
+Console.WriteLine($"Is failure valid: {isFailureValid}"); // True (failed results are valid)
+
+// Example 4: Use EnsureValid to throw exceptions on invalid results
+try
+{
+    SagaCommandResultValidation.EnsureValid(failureResult);
+    Console.WriteLine("Parameters are valid");
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Validation failed: {ex.Message}");
+}
+
+// Example 5: Validate generic command result
+var genericSuccess = SagaCommandResult<string>.SuccessResult(
+    "payment_processing_complete",
+    "Payment processed successfully"
+);
+
+var genericErrors = SagaCommandResultValidation.Validate(genericSuccess);
+Console.WriteLine($"Generic result validation count: {genericErrors.Count}");
+
+// Example 6: Check if generic command result is valid
+bool isGenericValid = SagaCommandResultValidation.IsValid(genericSuccess);
+Console.WriteLine($"Is generic result valid: {isGenericValid}"); // True
+
+// Example 7: Use EnsureValid with generic type
+try
+{
+    SagaCommandResultValidation.EnsureValid(genericSuccess);
+    Console.WriteLine("Generic parameters are valid");
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Generic validation failed: {ex.Message}");
+}
+```
+
 The `InfrastructureConfiguration` record defines infrastructure-level configuration for the saga orchestrator, controlling which infrastructure services are registered in the dependency injection container. It enables or disables caching, HTTP clients, event bus, formatting, logging, integration services, rate limiting, and background workers. This configuration is typically loaded from `appsettings.json` under the `Infrastructure` section or configured programmatically using the `InfrastructureConfiguration` constructor.
 
 ### Usage Example
