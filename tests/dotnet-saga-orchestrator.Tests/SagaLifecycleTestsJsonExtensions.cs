@@ -55,6 +55,7 @@ public static class SagaLifecycleTestsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized instance, or <see langword="null"/> if the JSON represents a null value.</param>
     /// <returns><see langword="true"/> if deserialization succeeds; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
     public static bool TryFromJson(string json, out SagaLifecycleTests? value)
     {
         ArgumentNullException.ThrowIfNull(json);
