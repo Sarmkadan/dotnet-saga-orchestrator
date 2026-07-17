@@ -1,75 +1,88 @@
+#nullable enable
+
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
 namespace SagaOrchestrator.Tests
 {
     /// <summary>
-    /// Provides JSON serialization and deserialization helpers for the <see cref="TimeoutPolicyTests"/> class.
+    /// Provides System.Text.Json serialization extensions for <see cref="TimeoutPolicyTests"/>.
     /// </summary>
     public static class TimeoutPolicyTestsExtensionsJsonExtensions
     {
-        /// <summary>
-        /// Configured JSON serializer options with camelCase naming policy.
-        /// </summary>
-        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
-            WriteIndented = false
+            WriteIndented = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         /// <summary>
-        /// Serializes a <see cref="TimeoutPolicyTests"/> instance to a JSON string.
+        /// Serializes a <see cref="TimeoutPolicyTests"/> instance to JSON.
         /// </summary>
         /// <param name="value">The <see cref="TimeoutPolicyTests"/> instance to serialize.</param>
-        /// <param name="indented">Whether to format the JSON with indentation.</param>
-        /// <returns>A JSON string representation of the <see cref="TimeoutPolicyTests"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-        public static string ToJson(this TimeoutPolicyTests value, bool indented = false)
-        {
-            ArgumentNullException.ThrowIfNull(value);
-
-            var options = new JsonSerializerOptions(JsonOptions)
-            {
-                WriteIndented = indented
-            };
-            return JsonSerializer.Serialize(value, options);
-        }
+        /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
+        /// <returns>A JSON string representation of the <see cref="TimeoutPolicyTests"/> instance.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
+        public static string ToJson(this TimeoutPolicyTests value, bool indented = false) =>
+            JsonSerializer.Serialize(value, indented
+                ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
+                : _jsonSerializerOptions);
 
         /// <summary>
         /// Deserializes a JSON string to a <see cref="TimeoutPolicyTests"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized <see cref="TimeoutPolicyTests"/> instance, or null if deserialization fails.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
-        /// <exception cref="JsonException">Thrown when JSON deserialization fails.</exception>
+        /// <returns>The deserialized <see cref="TimeoutPolicyTests"/> instance, or null if the JSON represents a null value.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
+        /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static TimeoutPolicyTests? FromJson(string json)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            ArgumentNullException.ThrowIfNull(json);
 
-            return JsonSerializer.Deserialize<TimeoutPolicyTests>(json, JsonOptions);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<TimeoutPolicyTests>(json, _jsonSerializerOptions);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
         }
 
         /// <summary>
         /// Attempts to deserialize a JSON string to a <see cref="TimeoutPolicyTests"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">The deserialized <see cref="TimeoutPolicyTests"/> instance, or null if deserialization fails.</param>
-        /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <param name="value">Receives the deserialized instance, or null if deserialization fails.</param>
+        /// <returns><see langword="true"/> if deserialization succeeds; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
         public static bool TryFromJson(string json, out TimeoutPolicyTests? value)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            ArgumentNullException.ThrowIfNull(json);
+
+            value = null;
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return false;
+            }
 
             try
             {
-                value = JsonSerializer.Deserialize<TimeoutPolicyTests>(json, JsonOptions);
+                value = JsonSerializer.Deserialize<TimeoutPolicyTests>(json, _jsonSerializerOptions);
                 return true;
             }
             catch (JsonException)
             {
-                value = null;
                 return false;
             }
         }
