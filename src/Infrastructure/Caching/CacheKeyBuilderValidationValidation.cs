@@ -11,7 +11,7 @@ namespace SagaOrchestrator.Infrastructure.Caching
     public static class CacheKeyBuilderValidationValidation
     {
         /// <summary>
-        /// Validates the <see cref="CacheKeyBuilderValidation"/> static methods.
+        /// Validates the <see cref="CacheKeyBuilderValidation"/> static methods by exercising them with various inputs.
         /// </summary>
         /// <param name="value">The <see cref="CacheKeyBuilderValidation"/> type reference (unused, for API consistency).</param>
         /// <returns>A list of validation error messages; empty if validation succeeds.</returns>
@@ -22,225 +22,236 @@ namespace SagaOrchestrator.Infrastructure.Caching
 
             var errors = new List<string>();
 
-            // Validate that all static methods exist and are callable by invoking them with null
-            // This ensures the methods exist and have the correct signatures
+            // Test Validate methods with invalid inputs (should return non-empty error lists)
+            var validateSagaIdErrors = CacheKeyBuilderValidation.ValidateSagaId(null);
+            if (validateSagaIdErrors.Count == 0)
+            {
+                errors.Add("ValidateSagaId returned empty errors for null input");
+            }
+
+            var validateDefinitionErrors = CacheKeyBuilderValidation.ValidateDefinition(null, null);
+            if (validateDefinitionErrors.Count == 0)
+            {
+                errors.Add("ValidateDefinition returned empty errors for null inputs");
+            }
+
+            var validateStatusErrors = CacheKeyBuilderValidation.ValidateStatus(null);
+            if (validateStatusErrors.Count == 0)
+            {
+                errors.Add("ValidateStatus returned empty errors for null input");
+            }
+
+            var validateServiceNameErrors = CacheKeyBuilderValidation.ValidateServiceName(null);
+            if (validateServiceNameErrors.Count == 0)
+            {
+                errors.Add("ValidateServiceName returned empty errors for null input");
+            }
+
+            var validateRateLimitErrors = CacheKeyBuilderValidation.ValidateRateLimit(null, null);
+            if (validateRateLimitErrors.Count == 0)
+            {
+                errors.Add("ValidateRateLimit returned empty errors for null inputs");
+            }
+
+            var validateUserIdErrors = CacheKeyBuilderValidation.ValidateUserId(null);
+            if (validateUserIdErrors.Count == 0)
+            {
+                errors.Add("ValidateUserId returned empty errors for null input");
+            }
+
+            var validateSessionIdErrors = CacheKeyBuilderValidation.ValidateSessionId(null);
+            if (validateSessionIdErrors.Count == 0)
+            {
+                errors.Add("ValidateSessionId returned empty errors for null input");
+            }
+
+            var validateWebhookIdErrors = CacheKeyBuilderValidation.ValidateWebhookId(null);
+            if (validateWebhookIdErrors.Count == 0)
+            {
+                errors.Add("ValidateWebhookId returned empty errors for null input");
+            }
+
+            var validateCacheKeyErrors = CacheKeyBuilderValidation.ValidateCacheKey(null);
+            if (validateCacheKeyErrors.Count == 0)
+            {
+                errors.Add("ValidateCacheKey returned empty errors for null input");
+            }
+
+            // Test Validate methods with whitespace inputs (should return non-empty error lists)
+            var validateSagaIdWhitespaceErrors = CacheKeyBuilderValidation.ValidateSagaId("   ");
+            if (validateSagaIdWhitespaceErrors.Count == 0)
+            {
+                errors.Add("ValidateSagaId returned empty errors for whitespace input");
+            }
+
+            var validateDefinitionWhitespaceErrors = CacheKeyBuilderValidation.ValidateDefinition("   ", "   ");
+            if (validateDefinitionWhitespaceErrors.Count == 0)
+            {
+                errors.Add("ValidateDefinition returned empty errors for whitespace inputs");
+            }
+
+            // Test IsValid methods with invalid inputs (should return false)
+            if (CacheKeyBuilderValidation.IsValidSagaId(null))
+            {
+                errors.Add("IsValidSagaId returned true for null input");
+            }
+
+            if (CacheKeyBuilderValidation.IsValidDefinition(null, null))
+            {
+                errors.Add("IsValidDefinition returned true for null inputs");
+            }
+
+            if (CacheKeyBuilderValidation.IsValidStatus(null))
+            {
+                errors.Add("IsValidStatus returned true for null input");
+            }
+
+            if (CacheKeyBuilderValidation.IsValidServiceName(null))
+            {
+                errors.Add("IsValidServiceName returned true for null input");
+            }
+
+            if (CacheKeyBuilderValidation.IsValidRateLimit(null, null))
+            {
+                errors.Add("IsValidRateLimit returned true for null inputs");
+            }
+
+            if (CacheKeyBuilderValidation.IsValidUserId(null))
+            {
+                errors.Add("IsValidUserId returned true for null input");
+            }
+
+            if (CacheKeyBuilderValidation.IsValidSessionId(null))
+            {
+                errors.Add("IsValidSessionId returned true for null input");
+            }
+
+            if (CacheKeyBuilderValidation.IsValidWebhookId(null))
+            {
+                errors.Add("IsValidWebhookId returned true for null input");
+            }
+
+            if (CacheKeyBuilderValidation.IsValidCacheKey(null))
+            {
+                errors.Add("IsValidCacheKey returned true for null input");
+            }
+
+            // Test EnsureValid methods with invalid inputs (should throw)
             try
             {
-                // Test Validate methods with null inputs
-                var validateSagaIdErrors = CacheKeyBuilderValidation.ValidateSagaId(null);
-                if (validateSagaIdErrors.Count == 0)
+                CacheKeyBuilderValidation.EnsureValidSagaId(null!);
+                errors.Add("EnsureValidSagaId did not throw for null input");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                CacheKeyBuilderValidation.EnsureValidDefinition(null!, null!);
+                errors.Add("EnsureValidDefinition did not throw for null inputs");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                CacheKeyBuilderValidation.EnsureValidStatus(null!);
+                errors.Add("EnsureValidStatus did not throw for null input");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                CacheKeyBuilderValidation.EnsureValidServiceName(null!);
+                errors.Add("EnsureValidServiceName did not throw for null input");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                CacheKeyBuilderValidation.EnsureValidRateLimit(null!, null!);
+                errors.Add("EnsureValidRateLimit did not throw for null inputs");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                CacheKeyBuilderValidation.EnsureValidUserId(null!);
+                errors.Add("EnsureValidUserId did not throw for null input");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                CacheKeyBuilderValidation.EnsureValidSessionId(null!);
+                errors.Add("EnsureValidSessionId did not throw for null input");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                CacheKeyBuilderValidation.EnsureValidWebhookId(null!);
+                errors.Add("EnsureValidWebhookId did not throw for null input");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                CacheKeyBuilderValidation.EnsureValidCacheKey(null!);
+                errors.Add("EnsureValidCacheKey did not throw for null input");
+            }
+            catch (ArgumentNullException)
+            {
+                // Expected
+            }
+
+            // Test valid inputs (should not throw and return empty error lists)
+            try
+            {
+                var validSagaIdErrors = CacheKeyBuilderValidation.ValidateSagaId("valid-saga-id");
+                if (validSagaIdErrors.Count > 0)
                 {
-                    errors.Add("ValidateSagaId returned empty errors for null input - method signature may be incorrect");
+                    errors.Add("ValidateSagaId returned errors for valid input: " + string.Join(", ", validSagaIdErrors));
                 }
             }
             catch (Exception ex)
             {
-                errors.Add($"ValidateSagaId method call failed: {ex.Message}");
+                errors.Add($"ValidateSagaId threw exception for valid input: {ex.Message}");
             }
 
             try
             {
-                var validateDefinitionErrors = CacheKeyBuilderValidation.ValidateDefinition(null, null);
-                if (validateDefinitionErrors.Count == 0)
+                var validDefinitionErrors = CacheKeyBuilderValidation.ValidateDefinition("def-id", "def-name");
+                if (validDefinitionErrors.Count > 0)
                 {
-                    errors.Add("ValidateDefinition returned empty errors for null inputs - method signature may be incorrect");
+                    errors.Add("ValidateDefinition returned errors for valid inputs: " + string.Join(", ", validDefinitionErrors));
                 }
             }
             catch (Exception ex)
             {
-                errors.Add($"ValidateDefinition method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var validateStatusErrors = CacheKeyBuilderValidation.ValidateStatus(null);
-                if (validateStatusErrors.Count == 0)
-                {
-                    errors.Add("ValidateStatus returned empty errors for null input - method signature may be incorrect");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"ValidateStatus method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var validateServiceNameErrors = CacheKeyBuilderValidation.ValidateServiceName(null);
-                if (validateServiceNameErrors.Count == 0)
-                {
-                    errors.Add("ValidateServiceName returned empty errors for null input - method signature may be incorrect");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"ValidateServiceName method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var validateRateLimitErrors = CacheKeyBuilderValidation.ValidateRateLimit(null, null);
-                if (validateRateLimitErrors.Count == 0)
-                {
-                    errors.Add("ValidateRateLimit returned empty errors for null inputs - method signature may be incorrect");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"ValidateRateLimit method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var validateUserIdErrors = CacheKeyBuilderValidation.ValidateUserId(null);
-                if (validateUserIdErrors.Count == 0)
-                {
-                    errors.Add("ValidateUserId returned empty errors for null input - method signature may be incorrect");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"ValidateUserId method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var validateSessionIdErrors = CacheKeyBuilderValidation.ValidateSessionId(null);
-                if (validateSessionIdErrors.Count == 0)
-                {
-                    errors.Add("ValidateSessionId returned empty errors for null input - method signature may be incorrect");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"ValidateSessionId method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var validateWebhookIdErrors = CacheKeyBuilderValidation.ValidateWebhookId(null);
-                if (validateWebhookIdErrors.Count == 0)
-                {
-                    errors.Add("ValidateWebhookId returned empty errors for null input - method signature may be incorrect");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"ValidateWebhookId method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var validateCacheKeyErrors = CacheKeyBuilderValidation.ValidateCacheKey(null);
-                if (validateCacheKeyErrors.Count == 0)
-                {
-                    errors.Add("ValidateCacheKey returned empty errors for null input - method signature may be incorrect");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"ValidateCacheKey method call failed: {ex.Message}");
-            }
-
-            // Test IsValid methods
-            try
-            {
-                var isValidSagaId = CacheKeyBuilderValidation.IsValidSagaId(null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidSagaId method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var isValidDefinition = CacheKeyBuilderValidation.IsValidDefinition(null, null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidDefinition method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var isValidStatus = CacheKeyBuilderValidation.IsValidStatus(null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidStatus method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var isValidServiceName = CacheKeyBuilderValidation.IsValidServiceName(null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidServiceName method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var isValidRateLimit = CacheKeyBuilderValidation.IsValidRateLimit(null, null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidRateLimit method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var isValidUserId = CacheKeyBuilderValidation.IsValidUserId(null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidUserId method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var isValidSessionId = CacheKeyBuilderValidation.IsValidSessionId(null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidSessionId method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var isValidWebhookId = CacheKeyBuilderValidation.IsValidWebhookId(null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidWebhookId method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                var isValidCacheKey = CacheKeyBuilderValidation.IsValidCacheKey(null);
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"IsValidCacheKey method call failed: {ex.Message}");
-            }
-
-            // Test EnsureValid methods
-            try
-            {
-                CacheKeyBuilderValidation.EnsureValidSagaId("test");
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"EnsureValidSagaId method call failed: {ex.Message}");
-            }
-
-            try
-            {
-                CacheKeyBuilderValidation.EnsureValidDefinition("test", "test");
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"EnsureValidDefinition method call failed: {ex.Message}");
+                errors.Add($"ValidateDefinition threw exception for valid inputs: {ex.Message}");
             }
 
             return errors;
@@ -254,6 +265,7 @@ namespace SagaOrchestrator.Infrastructure.Caching
         /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
         public static bool IsValid(this CacheKeyBuilderValidation value)
         {
+            ArgumentNullException.ThrowIfNull(value);
             return Validate(value).Count == 0;
         }
 
@@ -266,6 +278,7 @@ namespace SagaOrchestrator.Infrastructure.Caching
         /// <exception cref="ArgumentException"><paramref name="value"/> contains invalid methods.</exception>
         public static void EnsureValid(this CacheKeyBuilderValidation value)
         {
+            ArgumentNullException.ThrowIfNull(value);
             var errors = Validate(value);
             if (errors.Count > 0)
             {
