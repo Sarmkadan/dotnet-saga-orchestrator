@@ -1,4 +1,5 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -51,8 +52,7 @@ public static class CreateSagaRequestValidation
     /// <param name="value">The request to evaluate.</param>
     /// <returns><c>true</c> if the request contains no validation problems; otherwise, <c>false</c>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
-    public static bool IsValid(this CreateSagaRequest value) =>
-        value.Validate().Count == 0;
+    public static bool IsValid(this CreateSagaRequest value) => value.Validate().Count == 0;
 
     /// <summary>
     /// Ensures that the <see cref="CreateSagaRequest"/> instance is valid.
