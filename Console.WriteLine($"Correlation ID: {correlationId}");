@@ -1,0 +1,8 @@
+
+## Notes
+
+* **Thread safety** – The extension methods read from the saga’s internal collections but do not perform any synchronization. If a saga is being mutated concurrently (e.g., by the orchestration service), callers should ensure proper locking or use immutable snapshots.
+* **Null handling** – All methods validate the `saga` argument and throw `ArgumentNullException` if it is `null`. Metadata helpers tolerate missing keys and return `null` for reference types or the default value for value types.
+* **Retry logic** – `CanRetry` and `IncrementRetry` rely on the saga’s current step’s retry policy. If the policy is not set, the methods behave as if no retries are allowed.
+* **Duration calculation** – `GetDurationSeconds` returns `null` if the saga’s `CreatedAt` timestamp is not set. This can occur for sagas that have not yet been persisted.
+* **Metadata type safety** – `GetMetadata<T>` performs a safe cast; if the stored value cannot be cast to `T`, the method returns `default(T)`. Consumers should handle the possibility of a `null` or default value.
