@@ -16,11 +16,12 @@ namespace SagaOrchestrator.Core.Exceptions;
 /// </summary>
 public static class SagaExceptionJsonExtensionsJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNameCaseInsensitive = true
     };
 
     /// <summary>
@@ -29,16 +30,13 @@ public static class SagaExceptionJsonExtensionsJsonExtensions
     /// <param name="value">The SagaException to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the SagaException.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this SagaException value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
-            ? new JsonSerializerOptions(_jsonOptions)
-            {
-                WriteIndented = true
-            }
+            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
             : _jsonOptions;
 
         return JsonSerializer.Serialize(value, options);
@@ -49,24 +47,14 @@ public static class SagaExceptionJsonExtensionsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized SagaException, or <see langword="null"/> if the JSON is <see langword="null"/>, empty, or invalid.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is <see langword="null"/>.</exception>
     public static SagaException? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrEmpty(json))
-        {
-            return null;
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<SagaException>(json, _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return string.IsNullOrEmpty(json)
+            ? null
+            : JsonSerializer.Deserialize<SagaException>(json, _jsonOptions);
     }
 
     /// <summary>
@@ -75,26 +63,12 @@ public static class SagaExceptionJsonExtensionsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized SagaException if successful.</param>
     /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is <see langword="null"/>.</exception>
     public static bool TryFromJson(string json, out SagaException? value)
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        value = null;
-
-        if (string.IsNullOrEmpty(json))
-        {
-            return false;
-        }
-
-        try
-        {
-            value = JsonSerializer.Deserialize<SagaException>(json, _jsonOptions);
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
+        value = FromJson(json);
+        return value is not null;
     }
 }
