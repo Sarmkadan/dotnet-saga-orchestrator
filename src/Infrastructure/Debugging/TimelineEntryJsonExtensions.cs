@@ -16,10 +16,15 @@ namespace SagaOrchestrator.Infrastructure.Debugging;
 /// </summary>
 public static class TimelineEntryJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
+    };
+
+    private static JsonSerializerOptions GetSerializerOptions(bool indented) => new(_jsonSerializerOptions)
+    {
+        WriteIndented = indented
     };
 
     /// <summary>
@@ -33,12 +38,7 @@ public static class TimelineEntryJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (indented)
-        {
-            _jsonSerializerOptions.WriteIndented = true;
-        }
-
-        return JsonSerializer.Serialize(value, _jsonSerializerOptions);
+        return JsonSerializer.Serialize(value, GetSerializerOptions(indented));
     }
 
     /// <summary>
@@ -47,13 +47,14 @@ public static class TimelineEntryJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized timeline entry, or null if deserialization fails.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed or cannot be deserialized to a <see cref="TimelineEntry"/>.</exception>
     public static TimelineEntry? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
 
         try
         {
-            return JsonSerializer.Deserialize<TimelineEntry>(json, _jsonSerializerOptions);
+            return JsonSerializer.Deserialize<TimelineEntry>(json, GetSerializerOptions(false));
         }
         catch (JsonException)
         {
@@ -68,13 +69,14 @@ public static class TimelineEntryJsonExtensions
     /// <param name="value">Receives the deserialized timeline entry if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed or cannot be deserialized to a <see cref="TimelineEntry"/>.</exception>
     public static bool TryFromJson(string json, out TimelineEntry? value)
     {
         ArgumentNullException.ThrowIfNull(json);
 
         try
         {
-            value = JsonSerializer.Deserialize<TimelineEntry>(json, _jsonSerializerOptions);
+            value = JsonSerializer.Deserialize<TimelineEntry>(json, GetSerializerOptions(false));
             return true;
         }
         catch (JsonException)
