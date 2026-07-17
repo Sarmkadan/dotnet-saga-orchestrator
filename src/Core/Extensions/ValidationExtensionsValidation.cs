@@ -16,8 +16,11 @@ public static class ValidationExtensionsValidation
     /// Validates ValidationExtensions extension method behavior and returns a list of human-readable problems.
     /// </summary>
     /// <returns>A read-only list of validation problems, or empty if valid.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
     public static IReadOnlyList<string> Validate()
     {
+        ArgumentNullException.ThrowIfNull(nameof(ValidationExtensions));
+
         var problems = new List<string>();
 
         // Validate NotNull<T> with non-null value
@@ -110,7 +113,7 @@ public static class ValidationExtensionsValidation
         // Validate NotNullOrWhiteSpace with whitespace string
         try
         {
-            ValidationExtensions.NotNullOrWhiteSpace("   ", nameof(ValidationExtensions.NotNullOrWhiteSpace));
+            ValidationExtensions.NotNullOrWhiteSpace(" ", nameof(ValidationExtensions.NotNullOrWhiteSpace));
             problems.Add("NotNullOrWhiteSpace method is not working correctly - should throw ArgumentException for whitespace string");
         }
         catch (ArgumentException)
@@ -309,11 +312,12 @@ public static class ValidationExtensionsValidation
             problems.Add($"NotEmpty method for Guid threw wrong exception type: {ex.GetType().Name}");
         }
 
-        // Validate ValidateIf with valid value
+        // Validate ValidateIf with valid reference type value
         try
         {
-            var validateIfResult = ValidationExtensions.ValidateIf(5, x => x > 0, "Value must be positive");
-            if (validateIfResult != 5)
+            var stringValue = "test@example.com";
+            var validateIfResult = ValidationExtensions.ValidateIf(stringValue, x => x.Contains("@"), "Value must contain @");
+            if (validateIfResult != stringValue)
             {
                 problems.Add("ValidateIf method is not working correctly - should return the validated value when validation passes");
             }
@@ -326,7 +330,7 @@ public static class ValidationExtensionsValidation
         // Validate ValidateIf with invalid value
         try
         {
-            ValidationExtensions.ValidateIf(0, x => x > 0, "Value must be positive");
+            ValidationExtensions.ValidateIf("invalid", x => x.Contains("@"), "Value must contain @");
             problems.Add("ValidateIf method is not working correctly - should throw ArgumentException for invalid value");
         }
         catch (ArgumentException)
@@ -489,6 +493,7 @@ public static class ValidationExtensionsValidation
     /// Determines whether the ValidationExtensions extension methods are working correctly.
     /// </summary>
     /// <returns><c>true</c> if the extension methods are working correctly; otherwise, <c>false</c>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
     public static bool IsValid()
     {
         return Validate().Count == 0;
@@ -497,6 +502,7 @@ public static class ValidationExtensionsValidation
     /// <summary>
     /// Ensures that the ValidationExtensions extension methods are working correctly, throwing an <see cref="ArgumentException"/> if not.
     /// </summary>
+    /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
     /// <exception cref="ArgumentException">Extension methods are not working correctly.</exception>
     public static void EnsureValid()
     {
@@ -504,7 +510,8 @@ public static class ValidationExtensionsValidation
         if (problems.Count > 0)
         {
             throw new ArgumentException(
-                $"ValidationExtensions validation failed with {problems.Count} problem(s):{Environment.NewLine} - ".Replace("\n", "\n- ") +
+                $"ValidationExtensions validation failed with {problems.Count} problem(s):{
+                    Environment.NewLine} - ".Replace("\n", "\n- ") +
                 string.Join(Environment.NewLine + "- ", problems)
             );
         }
