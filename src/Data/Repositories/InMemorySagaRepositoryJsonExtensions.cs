@@ -1,6 +1,6 @@
 #nullable enable
 // =============================================================================
-// Author: 
+// Author:
 // =============================================================================
 
 using System;
@@ -41,9 +41,15 @@ public static class InMemorySagaRepositoryJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>An <see cref="InMemorySagaRepository"/> instance deserialized from the JSON string, or null if deserialization fails.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     public static InMemorySagaRepository? FromJson(string json)
     {
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentNullException.ThrowIfNull(json);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            throw new ArgumentException("JSON string cannot be empty or whitespace.", nameof(json));
+        }
 
         try
         {
@@ -61,14 +67,20 @@ public static class InMemorySagaRepositoryJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized <see cref="InMemorySagaRepository"/> instance, or null if deserialization fails.</param>
     /// <returns>true if deserialization succeeds; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson(string json, out InMemorySagaRepository? value)
     {
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentNullException.ThrowIfNull(json);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            throw new ArgumentException("JSON string cannot be empty or whitespace.", nameof(json));
+        }
 
         try
         {
             value = JsonSerializer.Deserialize<InMemorySagaRepository>(json, _jsonOptions);
-            return value != null;
+            return value is not null;
         }
         catch (JsonException)
         {
