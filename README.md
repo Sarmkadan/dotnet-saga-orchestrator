@@ -1651,6 +1651,67 @@ if (orderDefinition.GetStepCount() > 0)
 }
 ```
 
+## SagaStepExtensions
+
+The `SagaStepExtensions` class provides extension methods for the `SagaStep` class to simplify common saga step operations including status checks, retry logic, timeout handling, and payload management. These extensions make it easier to work with saga steps by providing fluent, readable APIs for common patterns and calculations.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a saga step
+var step = new SagaStep
+{
+    Id = "step_001",
+    SagaId = "saga_order_123",
+    Name = "Process Payment",
+    Order = 2,
+    Status = SagaStepStatus.Failed,
+    ServiceUrl = "https://payment-service/api/charge",
+    MaxRetries = 3,
+    TimeoutSeconds = 30,
+    RetryCount = 1,
+    RetryPolicy = new RetryPolicy(5, 1000),
+    Payload = new Dictionary<string, object> { { "orderId", "ord_123" }, { "amount", 99.99 } },
+    StartedAt = DateTime.UtcNow.AddSeconds(-45),
+    CompletedAt = DateTime.UtcNow.AddSeconds(-30)
+};
+
+// Check if step is in terminal state
+bool isTerminal = step.IsTerminal();
+Console.WriteLine($"Is terminal: {isTerminal}"); // False (Failed is not terminal)
+
+// Check if step is retryable
+bool isRetryable = step.IsRetryable();
+Console.WriteLine($"Is retryable: {isRetryable}"); // True (Failed and can retry)
+
+// Get next retry delay in milliseconds
+int nextRetryDelay = step.GetNextRetryDelayMs();
+Console.WriteLine($"Next retry delay: {nextRetryDelay}ms"); // ~2000ms (exponential backoff)
+
+// Get execution duration in milliseconds
+long? duration = step.GetExecutionDurationMs();
+Console.WriteLine($"Execution duration: {duration}ms"); // ~15000ms
+
+// Get effective max retries
+int maxRetries = step.GetEffectiveMaxRetries();
+Console.WriteLine($"Effective max retries: {maxRetries}"); // 5 (from RetryPolicy)
+
+// Get effective timeout in seconds
+int timeoutSeconds = step.GetEffectiveTimeoutSeconds();
+Console.WriteLine($"Effective timeout: {timeoutSeconds}s"); // 30 (from step.TimeoutSeconds)
+
+// Clone the step for retry
+var clonedStep = step.Clone();
+Console.WriteLine($"Cloned step ID: {clonedStep.Id}"); // New GUID
+
+// Update payload with new data
+step.UpdatePayload(new Dictionary<string, object> { { "retryCount", 2 } }, overwriteExisting: true);
+Console.WriteLine($"Updated payload contains retryCount: {step.Payload.ContainsKey("retryCount")}"); // True
+```
+
 ## CacheKeyBuilderJsonExtensions
 
 The `CacheKeyBuilderJsonExtensions` class provides extension methods for serializing and deserializing cache keys to/from JSON format. It enables consistent cache key representation for debugging, logging, and inter-service communication scenarios where cache keys need to be transmitted or persisted as structured data.
