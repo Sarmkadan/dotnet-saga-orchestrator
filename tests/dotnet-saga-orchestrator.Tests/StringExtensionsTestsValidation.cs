@@ -2,14 +2,15 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
-using System.Globalization;
+using System.Reflection;
 
 namespace SagaOrchestrator.Tests;
 
 /// <summary>
 /// Provides validation helpers for <see cref="StringExtensionsTests"/> instances.
+/// Validates that the test class contains all expected test methods.
 /// </summary>
 public static class StringExtensionsTestsValidation
 {
@@ -25,65 +26,50 @@ public static class StringExtensionsTestsValidation
 
         var problems = new List<string>();
 
-        // Validate ToSnakeCase_PascalCaseInput_InsertsUnderscoreBetweenWords
-        // This is a method signature, no validation needed beyond null check
+        // Validate that all expected test methods exist
+        var expectedTestMethods = new[]
+        {
+            nameof(StringExtensionsTests.ToSnakeCase_PascalCaseInput_InsertsUnderscoreBetweenWords),
+            nameof(StringExtensionsTests.ToSnakeCase_SingleWord_ReturnsLowercase),
+            nameof(StringExtensionsTests.ToKebabCase_PascalCaseInput_ReturnsHyphenSeparated),
+            nameof(StringExtensionsTests.ToCamelCase_PascalCase_LowercasesFirstCharacter),
+            nameof(StringExtensionsTests.ToCamelCase_SingleCharacter_ReturnsLowercase),
+            nameof(StringExtensionsTests.Truncate_StringLongerThanMax_AppendsEllipsis),
+            nameof(StringExtensionsTests.Truncate_StringShorterThanMax_ReturnsOriginalUnchanged),
+            nameof(StringExtensionsTests.CountOccurrences_SubstringRepeatedMultipleTimes_ReturnsExactCount),
+            nameof(StringExtensionsTests.CountOccurrences_SubstringNotPresent_ReturnsZero),
+            nameof(StringExtensionsTests.ToSlug_StringWithSpacesAndSpecialChars_ReturnsUrlFriendlySlug),
+            nameof(StringExtensionsTests.ToSlug_EmptyString_ReturnsEmptyString),
+            nameof(StringExtensionsTests.RemovePrefix_PrefixPresent_RemovesPrefix),
+            nameof(StringExtensionsTests.RemovePrefix_PrefixAbsent_ReturnsOriginalValue),
+            nameof(StringExtensionsTests.RemoveSuffix_SuffixPresent_RemovesSuffix),
+            nameof(StringExtensionsTests.NullIfEmpty_EmptyString_ReturnsNull),
+            nameof(StringExtensionsTests.NullIfEmpty_NonEmptyString_ReturnsSameValue),
+            nameof(StringExtensionsTests.Repeat_PositiveCount_ConcatenatesStringNTimes),
+            nameof(StringExtensionsTests.Repeat_ZeroCount_ReturnsEmptyString),
+            nameof(StringExtensionsTests.SplitAndTrim_StringWithSpacesAroundDelimiters_ReturnsTrimmedParts)
+        };
 
-        // Validate ToSnakeCase_SingleWord_ReturnsLowercase
-        // This is a method signature, no validation needed beyond null check
+        var testClassType = typeof(StringExtensionsTests);
+        var actualTestMethods = testClassType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => m.Name.StartsWith("To", StringComparison.Ordinal) ||
+                       m.Name.StartsWith("Truncate", StringComparison.Ordinal) ||
+                       m.Name.StartsWith("CountOccurrences", StringComparison.Ordinal) ||
+                       m.Name.StartsWith("ToSlug", StringComparison.Ordinal) ||
+                       m.Name.StartsWith("Remove", StringComparison.Ordinal) ||
+                       m.Name.StartsWith("NullIfEmpty", StringComparison.Ordinal) ||
+                       m.Name.StartsWith("Repeat", StringComparison.Ordinal) ||
+                       m.Name.StartsWith("SplitAndTrim", StringComparison.Ordinal))
+            .Select(m => m.Name)
+            .ToHashSet(StringComparer.Ordinal);
 
-        // Validate ToKebabCase_PascalCaseInput_ReturnsHyphenSeparated
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate ToCamelCase_PascalCase_LowercasesFirstCharacter
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate ToCamelCase_SingleCharacter_ReturnsLowercase
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate Truncate_StringLongerThanMax_AppendsEllipsis
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate Truncate_StringShorterThanMax_ReturnsOriginalUnchanged
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate CountOccurrences_SubstringRepeatedMultipleTimes_ReturnsExactCount
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate CountOccurrences_SubstringNotPresent_ReturnsZero
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate ToSlug_StringWithSpacesAndSpecialChars_ReturnsUrlFriendlySlug
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate ToSlug_EmptyString_ReturnsEmptyString
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate RemovePrefix_PrefixPresent_RemovesPrefix
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate RemovePrefix_PrefixAbsent_ReturnsOriginalValue
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate RemoveSuffix_SuffixPresent_RemovesSuffix
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate NullIfEmpty_EmptyString_ReturnsNull
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate NullIfEmpty_NonEmptyString_ReturnsSameValue
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate Repeat_PositiveCount_ConcatenatesStringNTimes
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate Repeat_ZeroCount_ReturnsEmptyString
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate SplitAndTrim_StringWithSpacesAroundDelimiters_ReturnsTrimmedParts
-        // This is a method signature, no validation needed beyond null check
-
-        // Validate Batch_CollectionOfTen_ProducesCorrectBatchCount
-        // This is a method signature, no validation needed beyond null check
+        foreach (var expectedMethod in expectedTestMethods)
+        {
+            if (!actualTestMethods.Contains(expectedMethod))
+            {
+                problems.Add($"Expected test method '{expectedMethod}' is missing from StringExtensionsTests class");
+            }
+        }
 
         return problems.AsReadOnly();
     }
@@ -113,6 +99,6 @@ public static class StringExtensionsTestsValidation
         }
 
         throw new ArgumentException(
-            $"StringExtensionsTests instance is not valid. Problems: {string.Join(", ", problems)}");
+        $"StringExtensionsTests instance is not valid. Problems:{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", problems)}");
     }
 }
