@@ -7,7 +7,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace SagaOrchestrator.Application.DTOs;
@@ -18,10 +17,11 @@ namespace SagaOrchestrator.Application.DTOs;
 /// </summary>
 public static class SagaCommandResultExtensions
 {
+    private const string DefaultSuccessMessage = "Operation completed successfully";
     /// <summary>
     /// Converts a <see cref="SagaCommandResult"/> to a <see cref="SagaCommandResult{T}"/> with the specified data type.
     /// </summary>
-    /// <typeparam name="T">The type of data to cast to.</typeparam>
+    /// <typeparam name="T">The type of data to include in the typed result.</typeparam>
     /// <param name="result">The source result to convert.</param>
     /// <param name="data">The data to include in the typed result.</param>
     /// <returns>A new typed result with the same success state and errors.</returns>
@@ -30,7 +30,7 @@ public static class SagaCommandResultExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        return new SagaCommandResult<T>
+        return new()
         {
             Success = result.Success,
             Message = result.Message,
@@ -53,9 +53,9 @@ public static class SagaCommandResultExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        var data = dataSelector?.Invoke(result.Data) ?? result.Data;
+        var data = dataSelector is null ? result.Data : dataSelector(result.Data);
 
-        return new SagaCommandResult
+        return new()
         {
             Success = result.Success,
             Message = result.Message,
@@ -146,22 +146,18 @@ public static class SagaCommandResultExtensions
     /// <returns>A new result representing the combination of all input results.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="results"/> is null.</exception>
     public static SagaCommandResult Combine(this IEnumerable<SagaCommandResult> results)
+{
+    ArgumentNullException.ThrowIfNull(results);
+
+    var resultList = results.ToList();
+    return resultList.Count switch
     {
-        ArgumentNullException.ThrowIfNull(results);
-
-        var resultList = results.ToList();
-        if (resultList.Count == 0)
-        {
-            return SagaCommandResult.FailureResult("Cannot combine empty result collection.");
-        }
-
-        var allSuccessful = resultList.All(r => r.Success);
-        var allErrors = resultList.SelectMany(r => r.Errors).ToList();
-
-        return allSuccessful
-            ? SagaCommandResult.SuccessResult("All operations completed successfully")
-            : SagaCommandResult.FailureResult("One or more operations failed", allErrors.ToArray());
-    }
+        0 => SagaCommandResult.FailureResult("Cannot combine empty result collection."),
+        _ => resultList.All(r => r.Success)
+            ? SagaCommandResult.SuccessResult(DefaultSuccessMessage)
+            : SagaCommandResult.FailureResult("One or more operations failed", resultList.SelectMany(r => r.Errors).ToArray())
+    };
+}
 
     /// <summary>
     /// Creates a failure result with the same error collection as the source result.
