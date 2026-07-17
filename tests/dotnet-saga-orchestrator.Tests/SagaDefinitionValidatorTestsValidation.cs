@@ -46,21 +46,26 @@ public static class SagaDefinitionValidatorTestsValidation
             nameof(SagaDefinitionValidatorTests.ValidateAsync_ThrowsWithAllErrors_InExceptionMessage)
         };
 
-        // Check for null or empty method names
-        if (value.GetType().GetMethods()
+        // Check if any expected test methods are missing
+        var actualMethodNames = value.GetType().GetMethods()
             .Where(m => m.DeclaringType == typeof(SagaDefinitionValidatorTests))
             .Select(m => m.Name)
-            .All(name => !asyncMethodNames.Contains(name)))
+            .ToHashSet(StringComparer.Ordinal);
+
+        var missingMethods = asyncMethodNames.Where(name => !actualMethodNames.Contains(name)).ToList();
+
+        if (missingMethods.Count > 0)
         {
-            errors.Add("Instance does not contain any expected test methods.");
+            errors.Add($"Instance is missing required test methods: {string.Join(", ", missingMethods)}.");
         }
 
-        // Validate that all required async methods exist
+        // Validate that all required async methods exist and are in the correct type
         foreach (var methodName in asyncMethodNames)
         {
-            if (!value.GetType().GetMethod(methodName)?.DeclaringType?.Name.Equals("SagaDefinitionValidatorTests", StringComparison.Ordinal) ?? false)
+            var method = value.GetType().GetMethod(methodName);
+            if (method?.DeclaringType?.Name != "SagaDefinitionValidatorTests")
             {
-                errors.Add($"Required test method '{methodName}' is missing or not in SagaDefinitionValidatorTests.");
+                errors.Add($"Required test method '{methodName}' is missing or not declared in SagaDefinitionValidatorTests.");
             }
         }
 
@@ -72,8 +77,10 @@ public static class SagaDefinitionValidatorTestsValidation
     /// </summary>
     /// <param name="value">The instance to validate.</param>
     /// <returns>True if the instance is valid; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static bool IsValid(this SagaDefinitionValidatorTests value)
     {
+        ArgumentNullException.ThrowIfNull(value);
         return Validate(value).Count == 0;
     }
 
@@ -81,9 +88,11 @@ public static class SagaDefinitionValidatorTestsValidation
     /// Validates the <see cref="SagaDefinitionValidatorTests"/> instance and throws an <see cref="ArgumentException"/> if invalid.
     /// </summary>
     /// <param name="value">The instance to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when the instance is invalid, containing a list of validation errors.</exception>
     public static void EnsureValid(this SagaDefinitionValidatorTests value)
     {
+        ArgumentNullException.ThrowIfNull(value);
         var errors = Validate(value);
 
         if (errors.Count > 0)
