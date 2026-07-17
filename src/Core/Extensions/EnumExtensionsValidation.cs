@@ -32,17 +32,22 @@ public static class EnumExtensionsValidation
             problems.Add($"Enum value '{value}' is not defined in type '{typeof(T).Name}'.");
         }
 
-        // Check for default enum value (common issue for uninitialized enums)
-        var underlyingType = Enum.GetUnderlyingType(typeof(T));
-        var defaultValue = Activator.CreateInstance(underlyingType);
-        var numericValue = Convert.ChangeType(value, underlyingType, CultureInfo.InvariantCulture);
-
-        if (object.Equals(numericValue, defaultValue))
+        // Skip default value check for flags enums as they can have zero value
+        if (!typeof(T).IsDefined(typeof(FlagsAttribute), false))
         {
-            problems.Add($"Enum value '{value}' is the default value for type '{typeof(T).Name}'.");
+            // Check for default enum value (common issue for uninitialized enums)
+            var underlyingTypeForDefaultCheck = Enum.GetUnderlyingType(typeof(T));
+            var defaultValue = Activator.CreateInstance(underlyingTypeForDefaultCheck);
+            var numericValue = Convert.ChangeType(value, underlyingTypeForDefaultCheck, CultureInfo.InvariantCulture);
+
+            if (object.Equals(numericValue, defaultValue))
+            {
+                problems.Add($"Enum value '{value}' is the default value for type '{typeof(T).Name}'.");
+            }
         }
 
         // For numeric enums, check if the value is within a reasonable range
+        var underlyingType = Enum.GetUnderlyingType(typeof(T));
         if (underlyingType == typeof(int) || underlyingType == typeof(long) ||
             underlyingType == typeof(short) || underlyingType == typeof(byte))
         {
@@ -60,16 +65,15 @@ public static class EnumExtensionsValidation
             }
         }
 
-        // Check if the enum value has a Description attribute (if it's a common pattern in this codebase)
+        // Check if the enum value has a Description attribute
         var field = typeof(T).GetField(value.ToString());
-        if (field != null)
+        var descriptionAttr = field is not null
+            ? (DescriptionAttribute?)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute))
+            : null;
+
+        if (descriptionAttr is null)
         {
-            var descriptionAttr = (DescriptionAttribute?)Attribute.GetCustomAttribute(
-                field, typeof(DescriptionAttribute));
-            if (descriptionAttr == null)
-            {
-                problems.Add($"Enum value '{value}' does not have a Description attribute.");
-            }
+            problems.Add($"Enum value '{value}' does not have a Description attribute.");
         }
 
         return problems.AsReadOnly();
@@ -99,14 +103,11 @@ public static class EnumExtensionsValidation
     {
         var problems = value.Validate();
 
-        if (problems.Count == 0)
-        {
-            return value;
-        }
-
-        throw new ArgumentException(
-            $"Enum value '{value}' of type '{typeof(T).Name}' is not valid. Problems:{Environment.NewLine}  - " +
-            string.Join($"{Environment.NewLine}  - ", problems) +
-            $"{Environment.NewLine}Consider using EnumExtensions.ParseEnum<T> or ensuring the value comes from a valid source.");
+        return problems.Count == 0
+            ? value
+            : throw new ArgumentException(
+                $"Enum value '{value}' of type '{typeof(T).Name}' is not valid. Problems:{Environment.NewLine} - " +
+                string.Join($"{Environment.NewLine} - ", problems) +
+                $"{Environment.NewLine}Consider using EnumExtensions.ParseEnum<T> or ensuring the value comes from a valid source.");
     }
 }
