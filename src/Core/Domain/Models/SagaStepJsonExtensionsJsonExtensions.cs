@@ -27,17 +27,19 @@ public static class SagaStepJsonExtensionsJsonExtensions
     /// </summary>
     /// <param name="value">The SagaStep instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
-    /// <returns>A JSON string representation of the SagaStep.</returns>
+    /// <returns>A JSON string representation of the SagaStep, or null if the input is null.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static string ToJson(this SagaStep value, bool indented = false)
+    /// <exception cref="JsonException">Thrown when the value cannot be serialized.</exception>
+    public static string? ToJson(this SagaStep? value, bool indented = false)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        if (value is null)
+        {
+            return null;
+        }
 
         var options = indented
             ? new JsonSerializerOptions(_jsonSerializerOptions)
-            {
-                WriteIndented = true
-            }
+            { WriteIndented = true }
             : _jsonSerializerOptions;
 
         return JsonSerializer.Serialize(value, options);
@@ -47,7 +49,7 @@ public static class SagaStepJsonExtensionsJsonExtensions
     /// Deserializes a JSON string to a SagaStep instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>A SagaStep instance, or null if the JSON is null or empty.</returns>
+    /// <returns>A SagaStep instance if deserialization succeeds, or null if the JSON is empty or whitespace.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static SagaStep? FromJson(string json)
     {
@@ -65,9 +67,10 @@ public static class SagaStepJsonExtensionsJsonExtensions
     /// Attempts to deserialize a JSON string to a SagaStep instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The resulting SagaStep instance, or null if deserialization fails.</param>
+    /// <param name="value">When this method returns, contains the deserialized SagaStep instance if successful, or null if deserialization fails.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized.</exception>
     public static bool TryFromJson(string json, out SagaStep? value)
     {
         value = default;
@@ -84,7 +87,7 @@ public static class SagaStepJsonExtensionsJsonExtensions
             value = JsonSerializer.Deserialize<SagaStep>(json, _jsonSerializerOptions);
             return true;
         }
-        catch (JsonException)
+        catch
         {
             return false;
         }
