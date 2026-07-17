@@ -70,7 +70,7 @@ public static class SagaResponseValidation
         }
 
         // Validate steps collection
-        if (value.Steps == null)
+        if (value.Steps is null)
         {
             problems.Add($"{nameof(value.Steps)} cannot be null.");
         }
@@ -116,7 +116,7 @@ public static class SagaResponseValidation
 
     private static void ValidateString(string? value, string propertyName, List<string> problems)
     {
-        if (value == null)
+        if (value is null)
         {
             problems.Add($"{propertyName} cannot be null.");
         }
@@ -150,20 +150,31 @@ public static class SagaResponseValidation
         }
         else if (date > DateTime.UtcNow.AddMinutes(1))
         {
-            problems.Add($"{propertyName} ({date.ToString(CultureInfo.InvariantCulture)}) must be in the past.");
+            problems.Add($"{propertyName} ({date:O}) must be in the past.");
         }
     }
 
     private static void ValidateFutureDate(DateTime? date, string propertyName, List<string> problems)
     {
-        if (date.HasValue && date.Value != default && date.Value < DateTime.UtcNow.AddMinutes(-1))
+        if (date.HasValue)
         {
-            problems.Add($"{propertyName} ({date.Value.ToString(CultureInfo.InvariantCulture)}) must be in the future or null.");
+            if (date.Value == default)
+            {
+                problems.Add($"{propertyName} cannot be default (DateTime.MinValue).");
+            }
+            else if (date.Value.Kind != DateTimeKind.Utc)
+            {
+                problems.Add($"{propertyName} must be in UTC.");
+            }
+            else if (date.Value < DateTime.UtcNow.AddMinutes(-1))
+            {
+                problems.Add($"{propertyName} ({date.Value:O}) must be in the future or null.");
+            }
         }
     }
 
     private static string FormatValues(SagaResponse value)
     {
-        return $"Values: Id='{value.Id}', CorrelationId='{value.CorrelationId}', Status='{value.Status}', DefinitionId='{value.DefinitionId}', DefinitionName='{value.DefinitionName}', StartedAt={value.StartedAt:O}, CompletedAt={value.CompletedAt?.ToString("O") ?? "null"}, FailureReason={(value.FailureReason == null ? "null" : "'" + value.FailureReason + "'")}, StepCount={value.StepCount}, CompletedSteps={value.CompletedSteps}, FailedSteps={value.FailedSteps}, RetryCount={value.RetryCount}, Steps.Count={value.Steps?.Count ?? 0}";
+        return $"Values: Id='{value.Id}', CorrelationId='{value.CorrelationId}', Status='{value.Status}', DefinitionId='{value.DefinitionId}', DefinitionName='{value.DefinitionName}', StartedAt={value.StartedAt:O}, CompletedAt={value.CompletedAt?.ToString("O") ?? "null"}, FailureReason={(value.FailureReason == null ? "null" : $"'" + value.FailureReason + "'")}, StepCount={value.StepCount}, CompletedSteps={value.CompletedSteps}, FailedSteps={value.FailedSteps}, RetryCount={value.RetryCount}, Steps.Count={value.Steps?.Count ?? 0}";
     }
 }
