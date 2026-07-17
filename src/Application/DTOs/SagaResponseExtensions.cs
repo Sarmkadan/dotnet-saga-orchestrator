@@ -26,7 +26,7 @@ public static class SagaResponseExtensions
     {
         ArgumentNullException.ThrowIfNull(sagaResponse);
 
-        return string.Equals(sagaResponse.Status, "Completed", StringComparison.OrdinalIgnoreCase) &&
+        return sagaResponse.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase) &&
                sagaResponse.CompletedAt.HasValue &&
                sagaResponse.FailedSteps == 0;
     }
@@ -43,7 +43,7 @@ public static class SagaResponseExtensions
 
         return !sagaResponse.CompletedAt.HasValue &&
                sagaResponse.FailedSteps < sagaResponse.StepCount &&
-               !string.Equals(sagaResponse.Status, "Failed", StringComparison.OrdinalIgnoreCase);
+               !sagaResponse.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public static class SagaResponseExtensions
     {
         ArgumentNullException.ThrowIfNull(sagaResponse);
 
-        return string.Equals(sagaResponse.Status, "Failed", StringComparison.OrdinalIgnoreCase) ||
+        return sagaResponse.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase) ||
                sagaResponse.FailedSteps > 0;
     }
 
@@ -71,13 +71,9 @@ public static class SagaResponseExtensions
     {
         ArgumentNullException.ThrowIfNull(sagaResponse);
 
-        if (sagaResponse.CompletedAt == null)
-        {
-            return null;
-        }
-
-        var duration = sagaResponse.CompletedAt.Value - sagaResponse.StartedAt;
-        return (long)duration.TotalMilliseconds;
+        return sagaResponse.CompletedAt is null
+            ? null
+            : (long)sagaResponse.CompletedAt.Value.Subtract(sagaResponse.StartedAt).TotalMilliseconds;
     }
 
     /// <summary>
@@ -108,7 +104,7 @@ public static class SagaResponseExtensions
         ArgumentNullException.ThrowIfNull(sagaResponse);
 
         return sagaResponse.Steps
-            .Where(step => string.Equals(step.Status, "Failed", StringComparison.OrdinalIgnoreCase))
+            .Where(static step => step.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase))
             .ToList()
             .AsReadOnly();
     }
@@ -125,7 +121,7 @@ public static class SagaResponseExtensions
         ArgumentNullException.ThrowIfNull(sagaResponse);
 
         return sagaResponse.Steps
-            .Where(step => string.Equals(step.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+            .Where(static step => step.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase))
             .ToList()
             .AsReadOnly();
     }
@@ -142,7 +138,7 @@ public static class SagaResponseExtensions
         ArgumentNullException.ThrowIfNull(sagaResponse);
 
         return sagaResponse.Steps
-            .Where(step => string.Equals(step.Status, "InProgress", StringComparison.OrdinalIgnoreCase))
+            .Where(static step => step.Status.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
             .ToList()
             .AsReadOnly();
     }
@@ -159,7 +155,7 @@ public static class SagaResponseExtensions
         ArgumentNullException.ThrowIfNull(sagaResponse);
 
         return sagaResponse.Steps
-            .Where(step => string.Equals(step.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+            .Where(static step => step.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
             .ToList()
             .AsReadOnly();
     }
@@ -175,13 +171,13 @@ public static class SagaResponseExtensions
     {
         ArgumentNullException.ThrowIfNull(sagaResponse);
 
-        if (!sagaResponse.CompletedAt.HasValue || sagaResponse.CompletedSteps == 0)
+        if (sagaResponse.CompletedAt is null || sagaResponse.CompletedSteps == 0)
         {
             return null;
         }
 
         var completedSteps = sagaResponse.GetCompletedSteps();
-        var totalMilliseconds = completedSteps.Sum(step => step.Duration?.TotalMilliseconds ?? 0);
+        var totalMilliseconds = completedSteps.Sum(static step => step.Duration?.TotalMilliseconds ?? 0);
 
         return totalMilliseconds / sagaResponse.CompletedSteps;
     }
