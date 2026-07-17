@@ -19,9 +19,9 @@ public static class RetryPolicyValidation
     /// <summary>
     /// Validates a <see cref="RetryPolicy"/> instance and returns a list of human-readable problems.
     /// </summary>
-    /// <param name="value">The retry policy to validate</param>
-    /// <returns>An enumerable of validation problems; empty if valid</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
+    /// <param name="value">The retry policy to validate.</param>
+    /// <returns>An enumerable of validation problems; empty if the policy is valid.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
     public static IReadOnlyList<string> Validate(this RetryPolicy value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -62,8 +62,9 @@ public static class RetryPolicyValidation
     /// <summary>
     /// Determines whether a <see cref="RetryPolicy"/> instance is valid.
     /// </summary>
-    /// <param name="value">The retry policy to check</param>
-    /// <returns>True if valid; otherwise false</returns>
+    /// <param name="value">The retry policy to check.</param>
+    /// <returns><see langword="true"/> if the policy is valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
     public static bool IsValid(this RetryPolicy value)
     {
         return value.Validate().Count == 0;
@@ -73,9 +74,9 @@ public static class RetryPolicyValidation
     /// Ensures that a <see cref="RetryPolicy"/> instance is valid, throwing an <see cref="ArgumentException"/>
     /// with a detailed message if it is not.
     /// </summary>
-    /// <param name="value">The retry policy to validate</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is invalid</exception>
+    /// <param name="value">The retry policy to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is invalid with a detailed message.</exception>
     public static void EnsureValid(this RetryPolicy value)
     {
         ArgumentNullException.ThrowIfNull(value);
