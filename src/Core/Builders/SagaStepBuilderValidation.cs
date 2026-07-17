@@ -29,46 +29,77 @@ public static class SagaStepBuilderValidation
 
         // Validate required fields
         if (string.IsNullOrWhiteSpace(step.Name))
+        {
             errors.Add("Step name is required and cannot be null or whitespace");
+        }
 
         if (string.IsNullOrWhiteSpace(step.ServiceName))
+        {
             errors.Add("Service name is required and cannot be null or whitespace");
+        }
 
         if (string.IsNullOrWhiteSpace(step.ServiceUrl))
+        {
             errors.Add("Action URL is required and cannot be null or whitespace");
+        }
         else if (!Uri.IsWellFormedUriString(step.ServiceUrl, UriKind.Absolute))
+        {
             errors.Add("Action URL must be a valid absolute URI");
+        }
 
-        // Validate timeout
-        if (step.TimeoutSeconds <= 0)
-            errors.Add("Timeout must be greater than 0 seconds");
+        // Validate timeout - must be between 1 and 3600 seconds (1 hour)
+        if (step.TimeoutSeconds < 1)
+        {
+            errors.Add("Timeout must be at least 1 second");
+        }
 
-        if (step.TimeoutSeconds > 86400)
-            errors.Add("Timeout cannot exceed 86400 seconds (24 hours)");
+        if (step.TimeoutSeconds > 3600)
+        {
+            errors.Add("Timeout cannot exceed 3600 seconds (1 hour)");
+        }
 
-        // Validate retry configuration
+        // Validate retry configuration - MaxRetries: 0-10, RetryDelayMilliseconds: 0-3600000
         if (step.MaxRetries < 0)
+        {
             errors.Add("Max retries cannot be negative");
-
-        if (step.MaxRetries > 100)
-            errors.Add("Max retries cannot exceed 100");
+        }
+        else if (step.MaxRetries > 10)
+        {
+            errors.Add("Max retries cannot exceed 10");
+        }
 
         if (step.RetryDelayMilliseconds < 0)
+        {
             errors.Add("Retry delay cannot be negative");
-
-        if (step.RetryDelayMilliseconds > 3600000)
+        }
+        else if (step.RetryDelayMilliseconds > 3600000)
+        {
             errors.Add("Retry delay cannot exceed 3600000 milliseconds (1 hour)");
+        }
 
         // Validate compensation URL if compensable
-        if (step.IsCompensable && string.IsNullOrWhiteSpace(step.CompensationUrl))
-            errors.Add("Compensation URL is required for compensable steps");
+        if (step.IsCompensable)
+        {
+            if (string.IsNullOrWhiteSpace(step.CompensationUrl))
+            {
+                errors.Add("Compensation URL is required for compensable steps");
+            }
+            else if (!Uri.IsWellFormedUriString(step.CompensationUrl, UriKind.Absolute))
+            {
+                errors.Add("Compensation URL must be a valid absolute URI if provided");
+            }
+        }
         else if (!string.IsNullOrWhiteSpace(step.CompensationUrl) &&
-                !Uri.IsWellFormedUriString(step.CompensationUrl, UriKind.Absolute))
+                 !Uri.IsWellFormedUriString(step.CompensationUrl, UriKind.Absolute))
+        {
             errors.Add("Compensation URL must be a valid absolute URI if provided");
+        }
 
-        // Validate order
-        if (step.Order <= 0)
-            errors.Add("Step order must be greater than 0");
+        // Validate order - must be greater than 0
+        if (step.Order < 1)
+        {
+            errors.Add("Step order must be at least 1");
+        }
 
         return errors.AsReadOnly();
     }
