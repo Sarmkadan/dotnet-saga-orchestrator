@@ -2,15 +2,14 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System.Globalization;
 
 namespace SagaOrchestrator.Core.Extensions;
 
 /// <summary>
-/// Validation extension methods for collections.
-/// Provides validation utilities to check collection state and content.
+/// Provides extension methods for validating collections and dictionaries.
 /// </summary>
 public static class CollectionExtensionsValidation
 {
@@ -45,7 +44,7 @@ public static class CollectionExtensionsValidation
         if (typeof(T) == typeof(string))
         {
             var stringCollection = source.Cast<string>()!;
-            var emptyStrings = stringCollection.Where(s => !string.IsNullOrWhiteSpace(s) && string.IsNullOrEmpty(s)).ToList();
+            var emptyStrings = stringCollection.Where(s => string.IsNullOrEmpty(s)).ToList();
             var whitespaceStrings = stringCollection.Where(s => s is not null && string.IsNullOrWhiteSpace(s)).ToList();
 
             if (emptyStrings.Count > 0)
@@ -58,19 +57,35 @@ public static class CollectionExtensionsValidation
                 problems.Add($"Collection contains {whitespaceStrings.Count} whitespace-only string(s)");
             }
         }
-        else if (typeof(T) == typeof(int) || typeof(T) == typeof(long) || typeof(T) == typeof(double) || typeof(T) == typeof(float))
+        else if (typeof(T) == typeof(int) || typeof(T) == typeof(long) || typeof(T) == typeof(double) || typeof(T) == typeof(decimal))
         {
             var numericCollection = source.Cast<object>()!;
-            var defaultValues = numericCollection.Where(x => x is not null && x.Equals(default(T))).ToList();
+            var defaultValues = numericCollection.Where(x => x is not null && EqualityComparer<object>.Default.Equals(x, default(T))).ToList();
 
             if (defaultValues.Count > 0)
             {
                 problems.Add($"Collection contains {defaultValues.Count} default/zero value(s)");
             }
         }
-        else if (typeof(T) == typeof(DateTime) || typeof(T) == typeof(DateTimeOffset))
+        else if (typeof(T) == typeof(DateTime))
         {
-            var dateCollection = source.Cast<DateTimeOffset>()!;
+            var dateCollection = source.Cast<DateTime>();
+            var defaultDates = dateCollection.Where(d => d == default).ToList();
+            var minDates = dateCollection.Where(d => d == DateTime.MinValue).ToList();
+
+            if (defaultDates.Count > 0)
+            {
+                problems.Add($"Collection contains {defaultDates.Count} default date(s) (DateTime.MinValue)");
+            }
+
+            if (minDates.Count > 0)
+            {
+                problems.Add($"Collection contains {minDates.Count} minimum date(s) (DateTime.MinValue)");
+            }
+        }
+        else if (typeof(T) == typeof(DateTimeOffset))
+        {
+            var dateCollection = source.Cast<DateTimeOffset>();
             var defaultDates = dateCollection.Where(d => d == default).ToList();
             var minDates = dateCollection.Where(d => d == DateTimeOffset.MinValue).ToList();
 
@@ -182,7 +197,7 @@ public static class CollectionExtensionsValidation
         if (problems.Count > 0)
         {
             throw new ArgumentException(
-                $"Collection is invalid:{Environment.NewLine}  - {string.Join($"{Environment.NewLine}  - ", problems)}");
+                $"Collection is invalid:{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", problems)}");
         }
     }
 
@@ -203,7 +218,7 @@ public static class CollectionExtensionsValidation
         if (problems.Count > 0)
         {
             throw new ArgumentException(
-                $"Dictionary is invalid:{Environment.NewLine}  - {string.Join($"{Environment.NewLine}  - ", problems)}");
+                $"Dictionary is invalid:{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", problems)}");
         }
     }
 }
