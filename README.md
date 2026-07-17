@@ -1194,6 +1194,45 @@ var updateResult = await sagaRepository.UpdateAsync(nonExistentSaga);
 Console.WriteLine($"Update non-existent saga result: {updateResult?.Id ?? "null (saga not found)}");
 ```
 
+## SagaDebuggerServiceExtensions
+
+The `SagaDebuggerServiceExtensions` class provides extension methods for the `IServiceCollection` interface to register saga debugging services with the dependency injection container. These extensions simplify the configuration of saga debugging capabilities, including snapshot capture, breakpoint management, and timeline analysis for distributed saga debugging scenarios.
+
+### Usage Example
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using SagaOrchestrator.Infrastructure.Debugging;
+
+// Example 1: Register saga debugger services with default configuration
+var services = new ServiceCollection();
+services.AddSagaDebuggerServices();
+
+// Example 2: Register saga debugger services with custom configuration
+services.AddSagaDebuggerServices(options =>
+{
+    options.IsEnabled = true;
+    options.MaxSnapshotsPerSaga = 200;
+    options.AutoCaptureOnStepTransition = true;
+    options.AutoCaptureOnCompensation = true;
+    options.AutoCaptureOnTerminalState = true;
+    options.MaxBreakpointsPerSaga = 50;
+    options.IncludeStepPayloads = true;
+    options.IncludeSagaMetadata = true;
+    options.EnableTimeTravel = true;
+});
+
+// Example 3: Access the registered services
+var serviceProvider = services.BuildServiceProvider();
+var debuggerService = serviceProvider.GetRequiredService<ISagaDebuggerService>();
+var snapshotService = serviceProvider.GetRequiredService<ISagaSnapshotService>();
+var breakpointService = serviceProvider.GetRequiredService<ISagaBreakpointService>();
+
+Console.WriteLine($"Debugger service registered: {debuggerService != null}");
+Console.WriteLine($"Snapshot service registered: {snapshotService != null}");
+Console.WriteLine($"Breakpoint service registered: {breakpointService != null}");
+```
+
 ## InMemoryCompensationTransactionRepository
 
 The `InMemoryCompensationTransactionRepository` provides an in-memory implementation of `ICompensationTransactionRepository` for storing and retrieving compensation transactions during saga execution. It maintains all compensation transactions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
