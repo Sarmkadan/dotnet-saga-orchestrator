@@ -118,6 +118,7 @@ public static class SagaDebuggerServiceExtensions
     /// <returns>A formatted timeline summary string.</returns>
     /// <exception cref="ArgumentNullException">Thrown if sagaId is null or whitespace.</exception>
     /// <exception cref="KeyNotFoundException">Thrown if the saga is not found.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if timeline is null.</exception>
     public static async Task<string> GetTimelineSummaryAsync(
         this SagaDebuggerService debugger,
         string sagaId,
@@ -127,6 +128,8 @@ public static class SagaDebuggerServiceExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(sagaId);
 
         var timeline = await debugger.GetTimelineAsync(sagaId, cancellationToken);
+        ArgumentNullException.ThrowIfNull(timeline);
+
         var latest = await debugger.GetLatestSnapshotAsync(sagaId, cancellationToken);
 
         var parts = new List<string>();
@@ -140,14 +143,14 @@ public static class SagaDebuggerServiceExtensions
         {
             parts.Add(string.Empty);
             parts.Add("Latest snapshot:");
-            parts.Add($"  Status: {latest.SagaStatus}");
-            parts.Add($"  Progress: {latest.ProgressPercent:F2}% ({latest.CompletedStepCount}/{latest.Steps.Count} steps)");
-            parts.Add($"  Trigger: {latest.Trigger}");
-            parts.Add($"  Captured: {latest.CapturedAt:u}");
+            parts.Add($" Status: {latest.SagaStatus}");
+            parts.Add($" Progress: {latest.ProgressPercent:F2}% ({latest.CompletedStepCount}/{latest.Steps.Count} steps)");
+            parts.Add($" Trigger: {latest.Trigger}");
+            parts.Add($" Captured: {latest.CapturedAt:u}");
 
             if (latest.FailureReason is not null)
             {
-                parts.Add($"  Failure: {latest.FailureReason}");
+                parts.Add($" Failure: {latest.FailureReason}");
             }
         }
 
@@ -242,8 +245,13 @@ public static class SagaDebuggerServiceExtensions
     /// <summary>
     /// Formats a snapshot into a concise human-readable summary.
     /// </summary>
+    /// <param name="snapshot">The snapshot to format.</param>
+    /// <returns>A formatted summary string.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if snapshot is null.</exception>
     private static string FormatSnapshotSummary(SagaDebugSnapshot snapshot)
     {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
         var parts = new List<string>();
         parts.Add($"Snapshot #{snapshot.SequenceNumber} - {snapshot.Trigger}");
         parts.Add($"Status: {snapshot.SagaStatus} | Progress: {snapshot.ProgressPercent:F2}%");
