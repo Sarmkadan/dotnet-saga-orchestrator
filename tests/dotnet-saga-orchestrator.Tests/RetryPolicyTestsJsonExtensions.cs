@@ -6,7 +6,7 @@ using SagaOrchestrator.Core.Utilities;
 namespace SagaOrchestrator.Tests;
 
 /// <summary>
-/// Provides System.Text.Json serialization extensions for RetryPolicy.
+/// Provides System.Text.Json serialization extensions for RetryPolicy instances in test contexts.
 /// </summary>
 public static class RetryPolicyTestsJsonExtensions
 {
@@ -23,7 +23,7 @@ public static class RetryPolicyTestsJsonExtensions
     /// <param name="value">The RetryPolicy instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the RetryPolicy instance.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
     public static string ToJson(this RetryPolicy value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -40,7 +40,7 @@ public static class RetryPolicyTestsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A RetryPolicy instance, or null if deserialization fails.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
     public static RetryPolicy? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -66,25 +66,25 @@ public static class RetryPolicyTestsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized RetryPolicy instance, or null if deserialization fails.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out RetryPolicy? value)
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        value = null;
-
         if (string.IsNullOrWhiteSpace(json))
         {
+            value = null;
             return false;
         }
 
         try
         {
             value = JsonSerializer.Deserialize<RetryPolicy>(json, _jsonSerializerOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
+            value = null;
             return false;
         }
     }
