@@ -48,22 +48,23 @@ public static class DebuggerOptionsExtensions
     /// <returns>The effective maximum number of snapshots for the specified saga.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="options"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is <c>null</c> or empty.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="options"/>.MaxSnapshotsPerSaga is less than 1.</exception>
     public static int GetMaxSnapshotsForSaga(this DebuggerOptions options, string sagaId)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentException.ThrowIfNullOrEmpty(sagaId, nameof(sagaId));
+        ArgumentOutOfRangeException.ThrowIfLessThan(options.MaxSnapshotsPerSaga, 1);
 
         // Use consistent hashing to distribute snapshots across sagas
         // This ensures that different sagas get different limits while maintaining determinism
-        var hashCode = StringComparer.OrdinalIgnoreCase.GetHashCode(sagaId);
-        var hash = Math.Abs(hashCode) % 100;
+        var hash = Math.Abs(StringComparer.OrdinalIgnoreCase.GetHashCode(sagaId)) % 100;
 
         // Apply a small variance (±20%) to the base limit based on saga ID
         // This prevents all sagas from hitting the limit at the same time
-        var variance = (int)Math.Round(options.MaxSnapshotsPerSaga * 0.20);
-        var effectiveLimit = Math.Max(1, options.MaxSnapshotsPerSaga + (hash - 50));
+        var effectiveLimit = options.MaxSnapshotsPerSaga + (hash - 50);
+        effectiveLimit = Math.Max(1, effectiveLimit);
 
-        return Math.Min(Math.Max(1, effectiveLimit), options.MaxSnapshotsPerSaga);
+        return Math.Min(effectiveLimit, options.MaxSnapshotsPerSaga);
     }
 
     /// <summary>
