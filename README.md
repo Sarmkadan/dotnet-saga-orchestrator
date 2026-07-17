@@ -239,6 +239,86 @@ bool isCompleted = await repository.AreAllStepsCompletedAsync(sagaId);
 var activeSteps = await repository.GetActiveStepsAsync(sagaId);
 ```
 
+## InMemorySagaRepositoryExtensions
+
+The `InMemorySagaRepositoryExtensions` class provides a collection of extension methods for the `InMemorySagaRepository` that simplify common saga management operations. These methods enable querying sagas by correlation ID, status, definition ID, or name, as well as performing counting operations, existence checks, and retrieving sagas based on specific conditions like timeouts or retry eligibility.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Enums;
+using SagaOrchestrator.Core.Domain.Models;
+using SagaOrchestrator.Data.Repositories;
+
+// Assuming repository is an instance of InMemorySagaRepository
+var repository = new InMemorySagaRepository();
+
+// Create a sample saga
+var saga = new Saga
+{
+    Id = "saga_abc123",
+    CorrelationId = "corr_order_456",
+    DefinitionId = "order_processing",
+    Name = "OrderProcessing",
+    Status = SagaStatus.Running,
+    CreatedAt = DateTime.UtcNow,
+    TimeoutSeconds = 300,
+    MaxRetries = 3,
+    RetryCount = 0
+};
+
+// Add the saga to the repository
+await repository.AddAsync(saga);
+
+// Retrieve sagas by correlation ID
+var foundSaga = await repository.GetByCorrelationIdAsync("corr_order_456");
+Console.WriteLine(foundSaga?.Id); // Output: saga_abc123
+
+// Check if saga exists by correlation ID
+bool exists = await repository.ExistsByCorrelationIdAsync("corr_order_456");
+Console.WriteLine(exists); // Output: True
+
+// Get sagas by status
+var runningSagas = await repository.GetByStatusAsync(SagaStatus.Running);
+Console.WriteLine(runningSagas.Count);
+
+// Search by definition ID
+var orderSagas = await repository.SearchByDefinitionIdAsync("order_processing");
+Console.WriteLine(orderSagas.Count);
+
+// Search by name
+var namedSagas = await repository.SearchByNameAsync("OrderProcessing");
+Console.WriteLine(namedSagas.Count);
+
+// Get timed out sagas
+var timedOut = await repository.GetTimedOutSagasAsync();
+Console.WriteLine(timedOut.Count);
+
+// Get retryable sagas
+var retryable = await repository.GetRetryableSagasAsync();
+Console.WriteLine(retryable.Count);
+
+// Get failed sagas after a specific date
+var recentFailures = await repository.GetFailedSagasAfterAsync(DateTime.UtcNow.AddDays(-1));
+Console.WriteLine(recentFailures.Count);
+
+// Count sagas by status
+int runningCount = await repository.CountByStatusAsync(SagaStatus.Running);
+Console.WriteLine(runningCount);
+
+// Count all sagas
+int totalCount = await repository.CountAllAsync();
+Console.WriteLine(totalCount);
+
+// Get completed sagas
+var completed = await repository.GetCompletedSagasAsync();
+Console.WriteLine(completed.Count);
+
+// Get failed sagas
+var failed = await repository.GetFailedSagasAsync();
+Console.WriteLine(failed.Count);
+```
+
 ## InMemoryCompensationTransactionRepositoryValidation
 
 The `InMemoryCompensationTransactionRepositoryValidation` class provides validation helpers for `InMemoryCompensationTransactionRepository` and `CompensationTransaction` instances. It offers methods to validate repository instances and compensation transactions, ensuring data integrity and proper state management during saga compensation workflows.
