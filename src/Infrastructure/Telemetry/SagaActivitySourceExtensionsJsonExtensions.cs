@@ -7,23 +7,10 @@ using System.Text.Json.Serialization;
 namespace SagaOrchestrator.Infrastructure.Telemetry;
 
 /// <summary>
-/// Provides System.Text.Json serialization extensions for <see cref="SagaActivitySourceExtensions"/>.
+/// Provides System.Text.Json serialization extensions for activity source telemetry data.
 /// </summary>
 public static class SagaActivitySourceExtensionsJsonExtensions
 {
-    /// <summary>
-    /// Marker type for SagaActivitySourceExtensions that can be serialized.
-    /// </summary>
-    public sealed class SagaActivitySourceExtensions
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SagaActivitySourceExtensions"/> marker type.
-        /// </summary>
-        public SagaActivitySourceExtensions()
-        {
-        }
-    }
-
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -33,13 +20,13 @@ public static class SagaActivitySourceExtensionsJsonExtensions
     };
 
     /// <summary>
-    /// Serializes a <see cref="SagaActivitySourceExtensions"/> marker instance to a JSON string.
+    /// Serializes an activity source telemetry object to a JSON string.
     /// </summary>
-    /// <param name="value">The value to serialize.</param>
+    /// <param name="value">The activity source telemetry object to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
-    /// <returns>A JSON string representation of the value.</returns>
+    /// <returns>A JSON string representation of the activity source telemetry object.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
-    public static string ToJson(this SagaActivitySourceExtensions value, bool indented = false)
+    public static string ToJson(this object value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -54,13 +41,16 @@ public static class SagaActivitySourceExtensionsJsonExtensions
     }
 
     /// <summary>
-    /// Deserializes a JSON string to a <see cref="SagaActivitySourceExtensions"/> marker instance.
+    /// Deserializes a JSON string to an activity source telemetry object.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized marker instance, or null if the JSON is null or empty.</returns>
+    /// <returns>The deserialized activity source telemetry object, or null if the JSON is null or empty.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
-    public static SagaActivitySourceExtensions? FromJson(string json)
+    public static object? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrWhiteSpace(json))
         {
             return null;
@@ -68,22 +58,25 @@ public static class SagaActivitySourceExtensionsJsonExtensions
 
         try
         {
-            return JsonSerializer.Deserialize<SagaActivitySourceExtensions>(json, _jsonSerializerOptions);
+            return JsonSerializer.Deserialize<object>(json, _jsonSerializerOptions);
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            return null;
+            throw new JsonException("Failed to deserialize JSON string to activity source telemetry object.", ex);
         }
     }
 
     /// <summary>
-    /// Attempts to deserialize a JSON string to a <see cref="SagaActivitySourceExtensions"/> marker instance.
+    /// Attempts to deserialize a JSON string to an activity source telemetry object.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized marker instance, or null if deserialization fails.</param>
+    /// <param name="value">The deserialized activity source telemetry object, or null if deserialization fails.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out SagaActivitySourceExtensions? value)
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
+    public static bool TryFromJson(string json, out object? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         value = null;
 
         if (string.IsNullOrWhiteSpace(json))
@@ -93,7 +86,7 @@ public static class SagaActivitySourceExtensionsJsonExtensions
 
         try
         {
-            value = JsonSerializer.Deserialize<SagaActivitySourceExtensions>(json, _jsonSerializerOptions);
+            value = JsonSerializer.Deserialize<object>(json, _jsonSerializerOptions);
             return true;
         }
         catch (JsonException)
