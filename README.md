@@ -441,6 +441,50 @@ Console.WriteLine($"Final result success: {finalResult.Success}");
 Console.WriteLine($"Final result message: {finalResult.Message}");
 ```
 
+## SagaResponseExtensions
+
+The `SagaResponseExtensions` class provides a set of extension methods for the `SagaResponse` DTO to simplify common tasks like checking saga status, calculating duration, and analyzing step progress. These helpers allow API consumers to easily query the state of a saga without writing repetitive logic for status checking or step filtering.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.DTOs;
+
+// Assuming 'response' is a populated SagaResponse object
+// e.g., fetched from a SagaOrchestrationService
+
+// Check saga status
+bool isSuccess = response.IsCompletedSuccessfully();
+bool isFailed = response.IsFailed();
+bool isInProgress = response.IsInProgress();
+
+Console.WriteLine($"Is success: {isSuccess}");
+Console.WriteLine($"Is failed: {isFailed}");
+
+// Get failure reason if applicable
+string? failureReason = response.GetFailureReasonOrDefault();
+Console.WriteLine($"Failure reason: {failureReason ?? "N/A"}");
+
+// Analyze timing
+long? duration = response.GetDurationMilliseconds();
+double? avgStepDuration = response.GetAverageStepDurationMilliseconds();
+Console.WriteLine($"Total duration: {duration}ms");
+
+// Get progress details
+int completionPercent = response.GetCompletionPercentage();
+string retryString = response.GetRetryCountString();
+Console.WriteLine($"Progress: {completionPercent}%");
+Console.WriteLine($"Retry status: {retryString}");
+
+// Filter steps
+var failedSteps = response.GetFailedSteps();
+var completedSteps = response.GetCompletedSteps();
+var inProgressSteps = response.GetInProgressSteps();
+var pendingSteps = response.GetPendingSteps();
+
+Console.WriteLine($"Steps - Completed: {completedSteps.Count}, Failed: {failedSteps.Count}");
+```
+
 ## TimeoutPolicy
 
 The `TimeoutPolicy` class encapsulates timeout configuration for sagas and saga steps. It provides methods for checking timeout conditions, calculating remaining time, and determining if sufficient time remains for operations. Timeout policies can be created using predefined factory methods (`CreateLenient`, `CreateStandard`, `CreateStrict`) or customized with a specific timeout duration.
