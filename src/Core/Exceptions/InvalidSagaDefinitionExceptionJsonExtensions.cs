@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SagaOrchestrator.Core.Exceptions;
 
@@ -9,10 +10,11 @@ namespace SagaOrchestrator.Core.Exceptions;
 /// </summary>
 public static class InvalidSagaDefinitionExceptionJsonExtensions
 {
-    private static readonly JsonSerializerOptions _options = new()
+    private static readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        // Preserve case‑insensitive matching for robustness.
+        WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNameCaseInsensitive = true
     };
 
@@ -24,13 +26,16 @@ public static class InvalidSagaDefinitionExceptionJsonExtensions
     /// If <c>true</c>, the resulting JSON will be formatted with indentation; otherwise it will be compact.
     /// </param>
     /// <returns>A JSON representation of <paramref name="value"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <c>null</c>.</exception>
     public static string ToJson(this InvalidSagaDefinitionException value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
 
         // If indentation is requested, clone the shared options and enable WriteIndented.
-        var options = indented ? new JsonSerializerOptions(_options) { WriteIndented = true } : _options;
+        var options = indented
+            ? new JsonSerializerOptions(_options) { WriteIndented = true }
+            : _options;
+
         return JsonSerializer.Serialize(value, options);
     }
 
@@ -38,12 +43,15 @@ public static class InvalidSagaDefinitionExceptionJsonExtensions
     /// Deserializes a JSON string into an <see cref="InvalidSagaDefinitionException"/> instance.
     /// </summary>
     /// <param name="json">The JSON representation of the exception.</param>
-    /// <returns>The deserialized <see cref="InvalidSagaDefinitionException"/>, or <c>null</c> if the JSON represents a null value.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <c>null</c>.</exception>
+    /// <returns>The deserialized <see cref="InvalidSagaDefinitionException"/>, or <c>null</c> if the JSON represents a null or empty value.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is <c>null</c>.</exception>
     public static InvalidSagaDefinitionException? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
-        return JsonSerializer.Deserialize<InvalidSagaDefinitionException>(json, _options);
+
+        return string.IsNullOrEmpty(json)
+            ? null
+            : JsonSerializer.Deserialize<InvalidSagaDefinitionException>(json, _options);
     }
 
     /// <summary>
@@ -55,10 +63,18 @@ public static class InvalidSagaDefinitionExceptionJsonExtensions
     /// otherwise, <c>null</c>.
     /// </param>
     /// <returns><c>true</c> if deserialization succeeded; otherwise, <c>false</c>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is <c>null</c>.</exception>
     public static bool TryFromJson(string json, out InvalidSagaDefinitionException? value)
     {
         ArgumentNullException.ThrowIfNull(json);
+
+        value = null;
+
+        if (string.IsNullOrEmpty(json))
+        {
+            return false;
+        }
+
         try
         {
             value = FromJson(json);
