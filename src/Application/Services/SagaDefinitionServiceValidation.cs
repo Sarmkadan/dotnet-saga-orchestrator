@@ -25,13 +25,7 @@ public static class SagaDefinitionServiceValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = new List<string>();
-
-        // SagaDefinitionService is a service class with no instance state to validate
-        // The service itself is always valid as long as it's not null
-        // All business logic validation is handled through the service's methods
-
-        return problems.AsReadOnly();
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -53,12 +47,10 @@ public static class SagaDefinitionServiceValidation
         ArgumentNullException.ThrowIfNull(value);
 
         var problems = Validate(value);
-        if (problems.Count == 0)
+        if (problems.Count > 0)
         {
-            return;
+            throw new ArgumentException(
+                $"SagaDefinitionService instance is not valid. Problems:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", problems)}");
         }
-
-        throw new ArgumentException(
-            $"SagaDefinitionService instance is not valid. Problems:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", problems)}");
     }
 }
