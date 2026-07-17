@@ -1712,6 +1712,46 @@ step.UpdatePayload(new Dictionary<string, object> { { "retryCount", 2 } }, overw
 Console.WriteLine($"Updated payload contains retryCount: {step.Payload.ContainsKey("retryCount")}"); // True
 ```
 
+## SagaStepBuilderExtensions
+
+The `SagaStepBuilderExtensions` class provides extension methods for configuring saga step behavior. These methods allow you to add descriptions, set HTTP methods, configure compensable actions, and define retry policies for saga steps during their construction.
+
+Example usage:
+```csharp
+using SagaOrchestrator.Core.Builders;
+using SagaOrchestrator.Core.Domain.Enums;
+
+// Create a saga step builder
+var builder = new SagaStepBuilder("Process Payment", "https://payment-service/api/charge");
+
+// Add description
+builder = builder.WithDescription("Charge customer payment method");
+
+// Set HTTP method
+builder = builder.WithHttpMethod(HttpMethod.Post);
+
+// Configure as compensable (will be rolled back on saga failure)
+builder = builder.WithCompensable("https://payment-service/api/refund", HttpMethod.Post);
+
+// Configure retry policy from definition
+builder = builder.WithRetryPolicyFromDefinition("paymentRetryPolicy");
+
+// Configure exponential backoff retry policy
+builder = builder.WithExponentialRetryPolicy(maxRetries: 5, initialDelayMs: 1000, maxDelayMs: 30000);
+
+// Configure linear retry policy
+builder = builder.WithLinearRetryPolicy(maxRetries: 3, delayMs: 2000);
+
+// Configure no retry policy
+builder = builder.WithNoRetryPolicy();
+
+// Add metadata
+builder = builder.WithMetadata(new Dictionary<string, object> { { "timeout", 30 } });
+
+// Build the step
+var step = builder.Build();
+```
+
 ## CacheKeyBuilderJsonExtensions
 
 The `CacheKeyBuilderJsonExtensions` class provides extension methods for serializing and deserializing cache keys to/from JSON format. It enables consistent cache key representation for debugging, logging, and inter-service communication scenarios where cache keys need to be transmitted or persisted as structured data.
