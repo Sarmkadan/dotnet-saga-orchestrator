@@ -16,7 +16,7 @@ namespace SagaOrchestrator.Tests;
 /// </summary>
 public static class StringExtensionsTestsJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
@@ -24,54 +24,36 @@ public static class StringExtensionsTestsJsonExtensions
     };
 
     /// <summary>
-    /// Serializes a StringExtensionsTests instance to JSON.
+    /// Serializes a <see cref="StringExtensionsTests"/> instance to JSON.
     /// </summary>
-    /// <param name="value">The StringExtensionsTests instance to serialize.</param>
+    /// <param name="value">The <see cref="StringExtensionsTests"/> instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
-    /// <returns>A JSON string representation of the StringExtensionsTests instance.</returns>
+    /// <returns>A JSON string representation of the <see cref="StringExtensionsTests"/> instance.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
-    public static string ToJson(this StringExtensionsTests value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
-            : _jsonSerializerOptions;
-
-        return JsonSerializer.Serialize(value, options);
-    }
+    public static string ToJson(this StringExtensionsTests value, bool indented = false) =>
+        JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true } : _jsonSerializerOptions);
 
     /// <summary>
-    /// Deserializes a JSON string to a StringExtensionsTests instance.
+    /// Deserializes a JSON string to a <see cref="StringExtensionsTests"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>A StringExtensionsTests instance, or null if deserialization fails.</returns>
+    /// <returns>A <see cref="StringExtensionsTests"/> instance, or <see langword="null"/> if deserialization fails.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
     public static StringExtensionsTests? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<StringExtensionsTests>(json, _jsonSerializerOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<StringExtensionsTests>(json, _jsonSerializerOptions);
     }
 
     /// <summary>
-    /// Attempts to deserialize a JSON string to a StringExtensionsTests instance.
+    /// Attempts to deserialize a JSON string to a <see cref="StringExtensionsTests"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized StringExtensionsTests instance, or null if deserialization fails.</param>
-    /// <returns>True if deserialization succeeds; otherwise, false.</returns>
+    /// <param name="value">The deserialized <see cref="StringExtensionsTests"/> instance, or <see langword="null"/> if deserialization fails.</param>
+    /// <returns><see langword="true"/> if deserialization succeeds; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
     public static bool TryFromJson(string json, out StringExtensionsTests? value)
     {
