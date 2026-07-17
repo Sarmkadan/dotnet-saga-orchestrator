@@ -22,7 +22,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>True if the saga is completed; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static bool IsCompleted(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -34,7 +34,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>True if the saga is in a terminal state; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static bool IsTerminal(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -46,7 +46,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>The duration in seconds, or null if not started.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static double? GetDurationSeconds(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -64,7 +64,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>The current step index to execute or compensate, or -1 if no steps exist.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static int GetCurrentStepIndex(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -92,7 +92,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>An enumerable of failed steps.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static IReadOnlyList<SagaStep> GetFailedSteps(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -104,7 +104,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>An enumerable of completed steps.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static IReadOnlyList<SagaStep> GetCompletedSteps(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -116,7 +116,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>True if there are pending steps; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static bool HasPendingSteps(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -129,7 +129,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>The delay in seconds, or 0 if no retry is needed.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static int GetRetryDelaySeconds(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -140,7 +140,7 @@ public static class SagaExtensions
         // Exponential backoff: base * 2^retry_count, with jitter
         var baseDelay = 5;
         var exponentialDelay = baseDelay * Math.Pow(2, saga.RetryCount - 1);
-        var jitter = new Random().Next(0, 5);
+        var jitter = Random.Shared.Next(0, 5);
         var totalDelay = exponentialDelay + jitter;
 
         return (int)Math.Min(totalDelay, int.MaxValue);
@@ -152,7 +152,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>The completion percentage (0-100).</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static int GetCompletionPercentage(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -170,7 +170,8 @@ public static class SagaExtensions
     /// <param name="saga">The saga instance.</param>
     /// <param name="key">The metadata key.</param>
     /// <param name="value">The metadata value.</param>
-    /// <exception cref="ArgumentNullException">Thrown when saga or key is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> or <paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is empty.</exception>
     public static void AddMetadata(this Saga saga, string key, object value)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -186,7 +187,8 @@ public static class SagaExtensions
     /// <param name="saga">The saga instance.</param>
     /// <param name="key">The metadata key.</param>
     /// <returns>The parsed value, or default(T) if not found or parsing fails.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga or key is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> or <paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="key"/> is empty.</exception>
     public static T? GetMetadata<T>(this Saga saga, string key)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -203,7 +205,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>True if the saga can be retried; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     public static bool CanRetry(this Saga saga)
     {
         ArgumentNullException.ThrowIfNull(saga);
@@ -215,7 +217,7 @@ public static class SagaExtensions
     /// </summary>
     /// <param name="saga">The saga instance.</param>
     /// <returns>The delay in seconds before the next retry attempt.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when saga is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when saga cannot be retried.</exception>
     public static int IncrementRetry(this Saga saga)
     {
