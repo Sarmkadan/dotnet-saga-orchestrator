@@ -14,11 +14,16 @@ namespace SagaOrchestrator.Data.Repositories;
 /// </summary>
 public static class InMemorySagaDefinitionRepositoryJsonExtensionsJsonExtensions
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
     };
+
+    /// <summary>
+    /// Gets the JSON serializer options used by the extension methods.
+    /// </summary>
+    private static JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptions;
 
     /// <summary>
     /// Serializes the InMemorySagaDefinitionRepository to a JSON string.
@@ -31,11 +36,9 @@ public static class InMemorySagaDefinitionRepositoryJsonExtensionsJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var options = indented
-            ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
-            : _jsonSerializerOptions;
-
-        return JsonSerializer.Serialize(value, options);
+        return JsonSerializer.Serialize(value, indented
+            ? new JsonSerializerOptions(JsonSerializerOptions) { WriteIndented = true }
+            : JsonSerializerOptions);
     }
 
     /// <summary>
@@ -48,17 +51,9 @@ public static class InMemorySagaDefinitionRepositoryJsonExtensionsJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-            return null;
-
-        try
-        {
-            return JsonSerializer.Deserialize<InMemorySagaDefinitionRepository>(json, _jsonSerializerOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<InMemorySagaDefinitionRepository>(json, JsonSerializerOptions);
     }
 
     /// <summary>
@@ -78,7 +73,7 @@ public static class InMemorySagaDefinitionRepositoryJsonExtensionsJsonExtensions
 
         try
         {
-            value = JsonSerializer.Deserialize<InMemorySagaDefinitionRepository>(json, _jsonSerializerOptions);
+            value = JsonSerializer.Deserialize<InMemorySagaDefinitionRepository>(json, JsonSerializerOptions);
             return true;
         }
         catch (JsonException)
