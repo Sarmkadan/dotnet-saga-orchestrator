@@ -17,20 +17,19 @@ public static class InfrastructureConfigurationValidation
     /// <summary>
     /// Validates the specified <see cref="InfrastructureConfiguration"/> instance.
     /// </summary>
+    /// <remarks>
+    /// This method performs null validation on the configuration instance.
+    /// Since <see cref="InfrastructureConfiguration"/> is a record with all non-nullable boolean properties
+    /// having default values of <see langword="true"/>, no additional validation is required.
+    /// </remarks>
     /// <param name="value">The configuration to validate.</param>
-    /// <returns>A list of validation problems; empty if the configuration is valid.</returns>
+    /// <returns>An empty list if the configuration is valid; otherwise a list of validation problems.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static IReadOnlyList<string> Validate(this InfrastructureConfiguration? value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = new List<string>();
-
-        // InfrastructureConfiguration is a record with all boolean properties
-        // No additional validation needed beyond null check since all properties are non-nullable booleans
-        // with default values of true
-
-        return problems.AsReadOnly();
+        return [];
     }
 
     /// <summary>
@@ -39,9 +38,7 @@ public static class InfrastructureConfigurationValidation
     /// <param name="value">The configuration to check.</param>
     /// <returns>True if the configuration is valid; otherwise, false.</returns>
     public static bool IsValid(this InfrastructureConfiguration? value)
-    {
-        return value?.Validate().Count == 0;
-    }
+        => value?.Validate().Count == 0;
 
     /// <summary>
     /// Ensures that the specified <see cref="InfrastructureConfiguration"/> is valid.
