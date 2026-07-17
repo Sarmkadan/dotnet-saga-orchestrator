@@ -43,7 +43,7 @@ public static class CircuitBreakerTestsExtensions
     }
 
     /// <summary>
-    /// Runs management and recovery tests.
+    /// Runs management and recovery tests for circuit breaker state management.
     /// </summary>
     /// <param name="instance">The test instance.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="instance"/> is null.</exception>
