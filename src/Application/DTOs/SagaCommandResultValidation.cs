@@ -1,11 +1,11 @@
 #nullable enable
 // =============================================================================
-// Author: [Your Name]
-// =============================================================================
+// Author: Vladyslav Zaiets | https://sarmkadan.com
+// CTO & Software Architect
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace SagaOrchestrator.Application.DTOs;
 
@@ -31,9 +31,9 @@ public static class SagaCommandResultValidation
             problems.Add("Message is required.");
         }
 
-        if (value.Timestamp == DateTime.MinValue || value.Timestamp == DateTime.MaxValue)
+        if (value.Timestamp.Kind != DateTimeKind.Utc || value.Timestamp == DateTime.MinValue || value.Timestamp == DateTime.MaxValue)
         {
-            problems.Add("Timestamp must be a valid date.");
+            problems.Add("Timestamp must be a valid UTC date.");
         }
 
         if (string.IsNullOrEmpty(value.RequestId))
@@ -41,7 +41,11 @@ public static class SagaCommandResultValidation
             problems.Add("RequestId is required.");
         }
 
-        if (value.Success && value.Errors.Count > 0)
+        if (value.Errors is null)
+        {
+            problems.Add("Errors collection must not be null.");
+        }
+        else if (value.Success && value.Errors.Count > 0)
         {
             problems.Add("Success cannot be true when there are errors.");
         }
@@ -67,9 +71,9 @@ public static class SagaCommandResultValidation
             problems.Add("Message is required.");
         }
 
-        if (value.Timestamp == DateTime.MinValue || value.Timestamp == DateTime.MaxValue)
+        if (value.Timestamp.Kind != DateTimeKind.Utc || value.Timestamp == DateTime.MinValue || value.Timestamp == DateTime.MaxValue)
         {
-            problems.Add("Timestamp must be a valid date.");
+            problems.Add("Timestamp must be a valid UTC date.");
         }
 
         if (string.IsNullOrEmpty(value.RequestId))
@@ -77,7 +81,11 @@ public static class SagaCommandResultValidation
             problems.Add("RequestId is required.");
         }
 
-        if (value.Success && value.Errors.Count > 0)
+        if (value.Errors is null)
+        {
+            problems.Add("Errors collection must not be null.");
+        }
+        else if (value.Success && value.Errors.Count > 0)
         {
             problems.Add("Success cannot be true when there are errors.");
         }
@@ -91,10 +99,7 @@ public static class SagaCommandResultValidation
     /// <param name="value">The instance to check.</param>
     /// <returns>true if valid; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    public static bool IsValid(this SagaCommandResult value)
-    {
-        return Validate(value).Count == 0;
-    }
+    public static bool IsValid(this SagaCommandResult value) => Validate(value).Count == 0;
 
     /// <summary>
     /// Checks if a <see cref="SagaCommandResult{T}"/> instance is valid.
@@ -103,10 +108,7 @@ public static class SagaCommandResultValidation
     /// <param name="value">The instance to check.</param>
     /// <returns>true if valid; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    public static bool IsValid<T>(this SagaCommandResult<T> value)
-    {
-        return Validate(value).Count == 0;
-    }
+    public static bool IsValid<T>(this SagaCommandResult<T> value) => Validate(value).Count == 0;
 
     /// <summary>
     /// Ensures a <see cref="SagaCommandResult"/> instance is valid.
