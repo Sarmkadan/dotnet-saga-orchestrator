@@ -1462,6 +1462,50 @@ Console.WriteLine($"Invalid correlation validation count: {invalidCorrelationVal
 
 The `InMemoryCompensationTransactionRepository` provides an in-memory implementation of `ICompensationTransactionRepository` for storing and retrieving compensation transactions during saga execution. It maintains all compensation transactions in a thread-safe dictionary, enabling fast CRUD operations without external dependencies. This implementation is ideal for testing, development environments, or scenarios where persistence is not required.
 
+## CacheKeyBuilderJsonExtensions
+
+The `CacheKeyBuilderJsonExtensions` class provides extension methods for serializing and deserializing cache keys to/from JSON format. It enables consistent cache key representation for debugging, logging, and inter-service communication scenarios where cache keys need to be transmitted or persisted as structured data.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Infrastructure.Caching;
+
+// Serialize a cache key to JSON string
+string cacheKey = "order_processing_saga_abc123";
+string jsonKey = cacheKey.ToJson();
+Console.WriteLine(jsonKey);
+// Output: {"key":"order_processing_saga_abc123"}
+
+// Serialize with pretty printing for debugging
+string prettyJson = cacheKey.ToJson(indented: true);
+Console.WriteLine(prettyJson);
+// Output: {
+//   "key": "order_processing_saga_abc123"
+// }
+
+// Deserialize a JSON string back to cache key
+string? deserializedKey = CacheKeyBuilderJsonExtensions.FromJson(jsonKey);
+Console.WriteLine(deserializedKey);
+// Output: order_processing_saga_abc123
+
+// Try to deserialize with error handling
+if (CacheKeyBuilderJsonExtensions.TryFromJson(jsonKey, out string? result))
+{
+    Console.WriteLine($"Successfully deserialized: {result}");
+}
+else
+{
+    Console.WriteLine("Failed to deserialize JSON");
+}
+
+// Handle invalid JSON gracefully
+string invalidJson = "{invalid: json}";
+string? invalidResult = CacheKeyBuilderJsonExtensions.FromJson(invalidJson);
+Console.WriteLine(invalidResult == null ? "null" : invalidResult);
+// Output: null
+```
+
 ## DebuggerOptions
 
 The `DebuggerOptions` class provides configuration for the distributed saga debugger, controlling snapshot capture behavior, breakpoint limits, and data inclusion policies. It can be loaded from `appsettings.json` under the `SagaDebugger` section or configured programmatically using the `DebuggerOptionsBuilder` fluent API. The debugger adds zero overhead when disabled, making it safe for production use.
