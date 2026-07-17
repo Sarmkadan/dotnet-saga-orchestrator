@@ -27,19 +27,19 @@ public static class StringExtensionsValidation
         var problems = new List<string>();
 
         // Validate IsNullOrEmpty
-        if (string.IsNullOrEmpty(value) is false)
+        if (value.IsNullOrEmpty() is false)
         {
-            problems.Add("IsNullOrEmpty method is not working correctly - should return true for null or empty strings");
+            problems.Add("IsNullOrEmpty method is not working correctly - should return false for non-null/empty strings");
         }
 
         // Validate IsNullOrWhiteSpace
-        if (string.IsNullOrWhiteSpace(value) is false)
+        if (value.IsNullOrWhiteSpace() is false)
         {
-            problems.Add("IsNullOrWhiteSpace method is not working correctly - should return true for null or whitespace strings");
+            problems.Add("IsNullOrWhiteSpace method is not working correctly - should return false for non-null/whitespace strings");
         }
 
         // Validate NullIfEmpty
-        var nullResult = StringExtensions.NullIfEmpty(string.Empty);
+        var nullResult = string.Empty.NullIfEmpty();
         if (nullResult is not null)
         {
             problems.Add("NullIfEmpty method is not working correctly - should return null for empty strings");
@@ -48,7 +48,7 @@ public static class StringExtensionsValidation
         // Validate ToTitleCase
         try
         {
-            var titleCaseResult = StringExtensions.ToTitleCase("test");
+            var titleCaseResult = "test".ToTitleCase();
             if (titleCaseResult != "Test")
             {
                 problems.Add("ToTitleCase method is not working correctly - expected 'Test' for input 'test'");
@@ -62,7 +62,7 @@ public static class StringExtensionsValidation
         // Validate ToCamelCase
         try
         {
-            var camelCaseResult = StringExtensions.ToCamelCase("TestString");
+            var camelCaseResult = "TestString".ToCamelCase();
             if (camelCaseResult != "testString")
             {
                 problems.Add("ToCamelCase method is not working correctly - expected 'testString' for input 'TestString'");
@@ -76,7 +76,7 @@ public static class StringExtensionsValidation
         // Validate ToSnakeCase
         try
         {
-            var snakeCaseResult = StringExtensions.ToSnakeCase("TestString");
+            var snakeCaseResult = "TestString".ToSnakeCase();
             if (snakeCaseResult != "test_string")
             {
                 problems.Add("ToSnakeCase method is not working correctly - expected 'test_string' for input 'TestString'");
@@ -90,7 +90,7 @@ public static class StringExtensionsValidation
         // Validate ToKebabCase
         try
         {
-            var kebabCaseResult = StringExtensions.ToKebabCase("TestString");
+            var kebabCaseResult = "TestString".ToKebabCase();
             if (kebabCaseResult != "test-string")
             {
                 problems.Add("ToKebabCase method is not working correctly - expected 'test-string' for input 'TestString'");
@@ -104,7 +104,7 @@ public static class StringExtensionsValidation
         // Validate Truncate
         try
         {
-            var truncateResult = StringExtensions.Truncate("Hello World", 5);
+            var truncateResult = "Hello World".Truncate(5);
             if (truncateResult != "Hello...")
             {
                 problems.Add("Truncate method is not working correctly - expected 'Hello...' for input 'Hello World' with maxLength 5");
@@ -118,7 +118,7 @@ public static class StringExtensionsValidation
         // Validate CountOccurrences
         try
         {
-            var countResult = StringExtensions.CountOccurrences("Hello World", "l");
+            var countResult = "Hello World".CountOccurrences("l");
             if (countResult != 3)
             {
                 problems.Add("CountOccurrences method is not working correctly - expected 3 for input 'Hello World' with substring 'l'");
@@ -132,7 +132,7 @@ public static class StringExtensionsValidation
         // Validate RemovePrefix
         try
         {
-            var removePrefixResult = StringExtensions.RemovePrefix("Hello World", "Hello ");
+            var removePrefixResult = "Hello World".RemovePrefix("Hello ");
             if (removePrefixResult != "World")
             {
                 problems.Add("RemovePrefix method is not working correctly - expected 'World' for input 'Hello World' with prefix 'Hello '");
@@ -146,7 +146,7 @@ public static class StringExtensionsValidation
         // Validate RemoveSuffix
         try
         {
-            var removeSuffixResult = StringExtensions.RemoveSuffix("Hello World", " World");
+            var removeSuffixResult = "Hello World".RemoveSuffix(" World");
             if (removeSuffixResult != "Hello")
             {
                 problems.Add("RemoveSuffix method is not working correctly - expected 'Hello' for input 'Hello World' with suffix ' World'");
@@ -160,7 +160,7 @@ public static class StringExtensionsValidation
         // Validate IsValidEmail
         try
         {
-            var isValidEmailResult = StringExtensions.IsValidEmail("test@example.com");
+            var isValidEmailResult = "test@example.com".IsValidEmail();
             if (isValidEmailResult is false)
             {
                 problems.Add("IsValidEmail method is not working correctly - expected true for valid email 'test@example.com'");
@@ -174,7 +174,7 @@ public static class StringExtensionsValidation
         // Validate IsValidUrl
         try
         {
-            var isValidUrlResult = StringExtensions.IsValidUrl("https://example.com");
+            var isValidUrlResult = "https://example.com".IsValidUrl();
             if (isValidUrlResult is false)
             {
                 problems.Add("IsValidUrl method is not working correctly - expected true for valid URL 'https://example.com'");
@@ -188,7 +188,7 @@ public static class StringExtensionsValidation
         // Validate ToSlug
         try
         {
-            var toSlugResult = StringExtensions.ToSlug("Hello World Test");
+            var toSlugResult = "Hello World Test".ToSlug();
             if (toSlugResult != "hello-world-test")
             {
                 problems.Add("ToSlug method is not working correctly - expected 'hello-world-test' for input 'Hello World Test'");
@@ -202,7 +202,7 @@ public static class StringExtensionsValidation
         // Validate Repeat
         try
         {
-            var repeatResult = StringExtensions.Repeat("abc", 3);
+            var repeatResult = "abc".Repeat(3);
             if (repeatResult != "abcabcabc")
             {
                 problems.Add("Repeat method is not working correctly - expected 'abcabcabc' for input 'abc' with count 3");
@@ -216,7 +216,7 @@ public static class StringExtensionsValidation
         // Validate SplitAndTrim
         try
         {
-            var splitResult = StringExtensions.SplitAndTrim("Hello, World, Test", ',');
+            var splitResult = "Hello, World, Test".SplitAndTrim(new char[] { ',' });
             if (splitResult.Length != 3 || splitResult[0] != "Hello" || splitResult[1] != "World" || splitResult[2] != "Test")
             {
                 problems.Add("SplitAndTrim method is not working correctly - expected array with 3 elements ['Hello', 'World', 'Test']");
