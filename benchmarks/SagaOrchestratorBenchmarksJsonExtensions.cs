@@ -9,9 +9,8 @@ namespace dotnet_saga_orchestrator.benchmarks
     /// </summary>
     public static class SagaOrchestratorBenchmarksJsonExtensions
     {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonNamingPolicy.CamelCase)
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false
         };
 
@@ -21,16 +20,17 @@ namespace dotnet_saga_orchestrator.benchmarks
         /// <param name="value">The <see cref="SagaOrchestratorBenchmarks"/> instance to serialize.</param>
         /// <param name="indented">Whether to include indentation in the JSON output.</param>
         /// <returns>The JSON string representation of the <paramref name="value"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <c>null</c>.</exception>
         public static string ToJson(this SagaOrchestratorBenchmarks value, bool indented = false)
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            if (indented)
+            var options = new JsonSerializerOptions(_jsonSerializerOptions)
             {
-                _jsonSerializerOptions.WriteIndented = true;
-            }
+                WriteIndented = indented
+            };
 
-            return JsonSerializer.Serialize(value, _jsonSerializerOptions);
+            return JsonSerializer.Serialize(value, options);
         }
 
         /// <summary>
@@ -38,6 +38,7 @@ namespace dotnet_saga_orchestrator.benchmarks
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized <see cref="SagaOrchestratorBenchmarks"/> instance, or <c>null</c> if the JSON is invalid.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="json"/> is <c>null</c>.</exception>
         public static SagaOrchestratorBenchmarks? FromJson(string json)
         {
             ArgumentNullException.ThrowIfNull(json);
@@ -58,6 +59,7 @@ namespace dotnet_saga_orchestrator.benchmarks
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">The deserialized <see cref="SagaOrchestratorBenchmarks"/> instance, or <c>null</c> if the JSON is invalid.</param>
         /// <returns><c>true</c> if the JSON was successfully deserialized, <c>false</c> otherwise.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="json"/> is <c>null</c>.</exception>
         public static bool TryFromJson(string json, out SagaOrchestratorBenchmarks? value)
         {
             ArgumentNullException.ThrowIfNull(json);
