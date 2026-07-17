@@ -1,8 +1,4 @@
 #nullable enable
-// =============================================================================
-// Author: Vladyslav Zaiets | https://sarmkadan.com
-// CTO & Software Architect
-// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +26,7 @@ public static class CompensationTransactionValidation
         // Validate Id
         if (string.IsNullOrWhiteSpace(value.Id))
             errors.Add("CompensationTransaction.Id must not be null or whitespace.");
-        else if (!IsValidGuidFormat(value.Id))
+        else if (!Guid.TryParse(value.Id, out _))
             errors.Add("CompensationTransaction.Id must be a valid GUID format.");
 
         // Validate SagaId
@@ -50,7 +46,7 @@ public static class CompensationTransactionValidation
             errors.Add("CompensationTransaction.Order must be a non-negative integer.");
 
         // Validate Status (should be a valid enum value)
-        if (!Enum.IsDefined(typeof(CompensationStatus), value.Status))
+        if (!Enum.IsDefined(value.Status))
             errors.Add("CompensationTransaction.Status must be a valid CompensationStatus value.");
 
         // Validate CompensationUrl
@@ -123,8 +119,10 @@ public static class CompensationTransactionValidation
     /// </summary>
     /// <param name="value">The compensation transaction to check.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static bool IsValid(this CompensationTransaction value)
     {
+        ArgumentNullException.ThrowIfNull(value);
         return value.Validate().Count == 0;
     }
 
@@ -134,10 +132,6 @@ public static class CompensationTransactionValidation
     /// <param name="value">The compensation transaction to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when the compensation transaction is invalid.</exception>
-    /// <remarks>
-    /// Calls the <see cref="Validate"/> method and throws an <see cref="ArgumentException"/> if any validation errors are found.
-    /// The exception message includes all validation errors separated by newlines.
-    /// </remarks>
     public static void EnsureValid(this CompensationTransaction value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -146,16 +140,5 @@ public static class CompensationTransactionValidation
         if (errors.Count > 0)
             throw new ArgumentException(
                 $"CompensationTransaction is invalid:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
-    }
-
-    /// <summary>
-    /// Checks if a string represents a valid GUID format.
-    /// </summary>
-    /// <param name="value">The string to check.</param>
-    /// <returns><see langword="true"/> if valid GUID format; otherwise, <see langword="false"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    private static bool IsValidGuidFormat(string value)
-    {
-        return Guid.TryParse(value, out _);
     }
 }
