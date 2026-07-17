@@ -19,7 +19,7 @@ public static class SagaExceptionValidation
     /// Validates the specified <see cref="SagaException"/> instance.
     /// </summary>
     /// <param name="value">The exception to validate.</param>
-    /// <returns>A list of validation problems; empty if the exception is valid.</returns>
+    /// <returns>A list of validation problems; empty if the exception is valid (no problems found).</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static IReadOnlyList<string> Validate([NotNull] this SagaException? value)
     {
@@ -29,17 +29,17 @@ public static class SagaExceptionValidation
 
         if (string.IsNullOrWhiteSpace(value.Message))
         {
-            problems.Add($"Message must be non-null and non-empty.");
+            problems.Add("Message must be non-null and non-empty.");
         }
 
-        if (!string.IsNullOrEmpty(value.SagaId) && string.IsNullOrWhiteSpace(value.SagaId))
+        if (value.SagaId is not null && string.IsNullOrWhiteSpace(value.SagaId))
         {
-            problems.Add($"SagaId must be non-null and non-empty when provided.");
+            problems.Add("SagaId must be non-null and non-empty when provided.");
         }
 
-        if (!string.IsNullOrEmpty(value.ErrorCode) && string.IsNullOrWhiteSpace(value.ErrorCode))
+        if (value.ErrorCode is not null && string.IsNullOrWhiteSpace(value.ErrorCode))
         {
-            problems.Add($"ErrorCode must be non-null and non-empty when provided.");
+            problems.Add("ErrorCode must be non-null and non-empty when provided.");
         }
 
         return problems;
@@ -69,7 +69,7 @@ public static class SagaExceptionValidation
 
         var problems = Validate(value);
 
-        if (problems.Count > 0)
+        if (problems is { Count: > 0 })
         {
             throw new ArgumentException(
                 $"SagaException is invalid. Problems: {string.Join(" ", problems)}",
