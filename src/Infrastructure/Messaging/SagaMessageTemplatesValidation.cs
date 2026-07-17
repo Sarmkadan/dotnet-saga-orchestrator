@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SagaOrchestrator.Infrastructure.Messaging;
 
@@ -14,7 +15,8 @@ namespace SagaOrchestrator.Infrastructure.Messaging;
 /// Provides validation helpers for <see cref="SagaMessageTemplates"/> message templates.
 /// Validates that message template parameters are within expected ranges and formats.
 /// </summary>
-public static class SagaMessageTemplatesValidation
+[ExcludeFromCodeCoverage]
+public sealed class SagaMessageTemplatesValidation
 {
     private const int MaxSagaNameLength = 200;
     private const int MaxStepNameLength = 100;
@@ -29,37 +31,35 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for SagaCreated.Format and SagaCreated.Detailed methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateSagaCreated(
-        string sagaId,
-        string sagaName,
-        string definitionId,
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="sagaName">The name of the saga.</param>
+    /// <param name="definitionId">The definition identifier.</param>
+    /// <param name="stepCount">The number of steps in the saga.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/>, <paramref name="sagaName"/>, or <paramref name="definitionId"/> is null.</exception>
+    public IReadOnlyList<string> ValidateSagaCreated(
+        [DisallowNull] string sagaId,
+        [DisallowNull] string sagaName,
+        [DisallowNull] string definitionId,
         int stepCount)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+        ArgumentNullException.ThrowIfNull(sagaName);
+        ArgumentNullException.ThrowIfNull(definitionId);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            errors.Add("Saga ID cannot be null or whitespace.");
-        }
-        else if (sagaId.Length > MaxSagaNameLength)
+        if (sagaId.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga ID length cannot exceed {MaxSagaNameLength} characters. Current: {sagaId.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(sagaName))
-        {
-            errors.Add("Saga name cannot be null or whitespace.");
-        }
-        else if (sagaName.Length > MaxSagaNameLength)
+        if (sagaName.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga name length cannot exceed {MaxSagaNameLength} characters. Current: {sagaName.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(definitionId))
-        {
-            errors.Add("Definition ID cannot be null or whitespace.");
-        }
-        else if (definitionId.Length > MaxDefinitionIdLength)
+        if (definitionId.Length > MaxDefinitionIdLength)
         {
             errors.Add($"Definition ID length cannot exceed {MaxDefinitionIdLength} characters. Current: {definitionId.Length}.");
         }
@@ -75,28 +75,29 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for StepStarted.Format and StepStarted.Detailed methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateStepStarted(
-        string sagaId,
-        string stepName,
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="stepName">The name of the step being started.</param>
+    /// <param name="stepOrder">The zero-based order of the step.</param>
+    /// <param name="totalSteps">The total number of steps in the saga.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/> or <paramref name="stepName"/> is null.</exception>
+    public IReadOnlyList<string> ValidateStepStarted(
+        [DisallowNull] string sagaId,
+        [DisallowNull] string stepName,
         int stepOrder,
         int totalSteps)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+        ArgumentNullException.ThrowIfNull(stepName);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            errors.Add("Saga ID cannot be null or whitespace.");
-        }
-        else if (sagaId.Length > MaxSagaNameLength)
+        if (sagaId.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga ID length cannot exceed {MaxSagaNameLength} characters. Current: {sagaId.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(stepName))
-        {
-            errors.Add("Step name cannot be null or whitespace.");
-        }
-        else if (stepName.Length > MaxStepNameLength)
+        if (stepName.Length > MaxStepNameLength)
         {
             errors.Add($"Step name length cannot exceed {MaxStepNameLength} characters. Current: {stepName.Length}.");
         }
@@ -110,9 +111,9 @@ public static class SagaMessageTemplatesValidation
         {
             errors.Add("Total steps must be positive.");
         }
-        else if (stepOrder > totalSteps)
+        else if (stepOrder >= totalSteps)
         {
-            errors.Add("Step order cannot exceed total steps.");
+            errors.Add("Step order must be less than total steps.");
         }
 
         return errors.AsReadOnly();
@@ -121,17 +122,19 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for StepCompleted.Format and StepCompleted.Detailed methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateStepCompleted(
-        string stepName,
+    /// <param name="stepName">The name of the completed step.</param>
+    /// <param name="durationMs">The duration of the step execution in milliseconds.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stepName"/> is null.</exception>
+    public IReadOnlyList<string> ValidateStepCompleted(
+        [DisallowNull] string stepName,
         long durationMs)
     {
+        ArgumentNullException.ThrowIfNull(stepName);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(stepName))
-        {
-            errors.Add("Step name cannot be null or whitespace.");
-        }
-        else if (stepName.Length > MaxStepNameLength)
+        if (stepName.Length > MaxStepNameLength)
         {
             errors.Add($"Step name length cannot exceed {MaxStepNameLength} characters. Current: {stepName.Length}.");
         }
@@ -147,38 +150,37 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for StepFailed.Format, StepFailed.WithRetry, and StepFailed.Detailed methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateStepFailed(
-        string sagaId,
-        string stepName,
-        string error,
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="stepName">The name of the failed step.</param>
+    /// <param name="error">The error message describing the failure.</param>
+    /// <param name="attemptNumber">The attempt number that failed.</param>
+    /// <param name="maxRetries">The maximum number of retry attempts allowed.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/>, <paramref name="stepName"/>, or <paramref name="error"/> is null.</exception>
+    public IReadOnlyList<string> ValidateStepFailed(
+        [DisallowNull] string sagaId,
+        [DisallowNull] string stepName,
+        [DisallowNull] string error,
         int attemptNumber,
         int maxRetries = 0)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+        ArgumentNullException.ThrowIfNull(stepName);
+        ArgumentNullException.ThrowIfNull(error);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            errors.Add("Saga ID cannot be null or whitespace.");
-        }
-        else if (sagaId.Length > MaxSagaNameLength)
+        if (sagaId.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga ID length cannot exceed {MaxSagaNameLength} characters. Current: {sagaId.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(stepName))
-        {
-            errors.Add("Step name cannot be null or whitespace.");
-        }
-        else if (stepName.Length > MaxStepNameLength)
+        if (stepName.Length > MaxStepNameLength)
         {
             errors.Add($"Step name length cannot exceed {MaxStepNameLength} characters. Current: {stepName.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(error))
-        {
-            errors.Add("Error message cannot be null or whitespace.");
-        }
-        else if (error.Length > MaxErrorMessageLength)
+        if (error.Length > MaxErrorMessageLength)
         {
             errors.Add($"Error message length cannot exceed {MaxErrorMessageLength} characters. Current: {error.Length}.");
         }
@@ -198,29 +200,31 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for SagaCompleted.Format and SagaCompleted.Detailed methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateSagaCompleted(
-        string sagaId,
-        string sagaName,
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="sagaName">The name of the completed saga.</param>
+    /// <param name="durationMs">The total duration of the saga execution in milliseconds.</param>
+    /// <param name="completedSteps">The number of steps that completed successfully.</param>
+    /// <param name="totalSteps">The total number of steps in the saga.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/> or <paramref name="sagaName"/> is null.</exception>
+    public IReadOnlyList<string> ValidateSagaCompleted(
+        [DisallowNull] string sagaId,
+        [DisallowNull] string sagaName,
         long durationMs,
         int completedSteps,
         int totalSteps)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+        ArgumentNullException.ThrowIfNull(sagaName);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            errors.Add("Saga ID cannot be null or whitespace.");
-        }
-        else if (sagaId.Length > MaxSagaNameLength)
+        if (sagaId.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga ID length cannot exceed {MaxSagaNameLength} characters. Current: {sagaId.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(sagaName))
-        {
-            errors.Add("Saga name cannot be null or whitespace.");
-        }
-        else if (sagaName.Length > MaxSagaNameLength)
+        if (sagaName.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga name length cannot exceed {MaxSagaNameLength} characters. Current: {sagaName.Length}.");
         }
@@ -250,46 +254,41 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for SagaFailed.Format and SagaFailed.Detailed methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateSagaFailed(
-        string sagaId,
-        string sagaName,
-        string failedStepName,
-        string error)
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="sagaName">The name of the saga.</param>
+    /// <param name="failedStepName">The name of the step that failed.</param>
+    /// <param name="error">The error message describing the failure.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/>, <paramref name="sagaName"/>, <paramref name="failedStepName"/>, or <paramref name="error"/> is null.</exception>
+    public IReadOnlyList<string> ValidateSagaFailed(
+        [DisallowNull] string sagaId,
+        [DisallowNull] string sagaName,
+        [DisallowNull] string failedStepName,
+        [DisallowNull] string error)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+        ArgumentNullException.ThrowIfNull(sagaName);
+        ArgumentNullException.ThrowIfNull(failedStepName);
+        ArgumentNullException.ThrowIfNull(error);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            errors.Add("Saga ID cannot be null or whitespace.");
-        }
-        else if (sagaId.Length > MaxSagaNameLength)
+        if (sagaId.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga ID length cannot exceed {MaxSagaNameLength} characters. Current: {sagaId.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(sagaName))
-        {
-            errors.Add("Saga name cannot be null or whitespace.");
-        }
-        else if (sagaName.Length > MaxSagaNameLength)
+        if (sagaName.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga name length cannot exceed {MaxSagaNameLength} characters. Current: {sagaName.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(failedStepName))
-        {
-            errors.Add("Failed step name cannot be null or whitespace.");
-        }
-        else if (failedStepName.Length > MaxStepNameLength)
+        if (failedStepName.Length > MaxStepNameLength)
         {
             errors.Add($"Failed step name length cannot exceed {MaxStepNameLength} characters. Current: {failedStepName.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(error))
-        {
-            errors.Add("Error message cannot be null or whitespace.");
-        }
-        else if (error.Length > MaxErrorMessageLength)
+        if (error.Length > MaxErrorMessageLength)
         {
             errors.Add($"Error message length cannot exceed {MaxErrorMessageLength} characters. Current: {error.Length}.");
         }
@@ -300,27 +299,27 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for CompensationStarted.Format and CompensationStarted.Detailed methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateCompensationStarted(
-        string sagaId,
-        string strategy,
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="strategy">The compensation strategy being used.</param>
+    /// <param name="stepsToCompensate">The number of steps to compensate.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/> or <paramref name="strategy"/> is null.</exception>
+    public IReadOnlyList<string> ValidateCompensationStarted(
+        [DisallowNull] string sagaId,
+        [DisallowNull] string strategy,
         int stepsToCompensate)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+        ArgumentNullException.ThrowIfNull(strategy);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            errors.Add("Saga ID cannot be null or whitespace.");
-        }
-        else if (sagaId.Length > MaxSagaNameLength)
+        if (sagaId.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga ID length cannot exceed {MaxSagaNameLength} characters. Current: {sagaId.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(strategy))
-        {
-            errors.Add("Compensation strategy cannot be null or whitespace.");
-        }
-        else if (strategy.Length > MaxStrategyLength)
+        if (strategy.Length > MaxStrategyLength)
         {
             errors.Add($"Compensation strategy length cannot exceed {MaxStrategyLength} characters. Current: {strategy.Length}.");
         }
@@ -336,21 +335,19 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for CompensationCompleted.Format and CompensationCompleted.Detailed methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateCompensationCompleted(
-        string sagaId,
+    /// <param name="sagaId">The saga identifier.</param>
+    /// <param name="compensatedSteps">The number of steps successfully compensated.</param>
+    /// <param name="durationMs">The duration of the compensation process in milliseconds.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/> is null.</exception>
+    public IReadOnlyList<string> ValidateCompensationCompleted(
+        [DisallowNull] string sagaId,
         int compensatedSteps,
         long durationMs)
     {
-        var errors = new List<string>();
+        ArgumentNullException.ThrowIfNull(sagaId);
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            errors.Add("Saga ID cannot be null or whitespace.");
-        }
-        else if (sagaId.Length > MaxSagaNameLength)
-        {
-            errors.Add($"Saga ID length cannot exceed {MaxSagaNameLength} characters. Current: {sagaId.Length}.");
-        }
+        var errors = new List<string>();
 
         if (compensatedSteps < 0)
         {
@@ -368,27 +365,27 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for SagaTimeout.Format and SagaTimeout.StepTimeout methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateSagaTimeout(
-        string sagaName,
-        string stepName,
+    /// <param name="sagaName">The name of the saga.</param>
+    /// <param name="stepName">The name of the timed-out step.</param>
+    /// <param name="timeoutSeconds">The timeout duration in seconds.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaName"/> or <paramref name="stepName"/> is null.</exception>
+    public IReadOnlyList<string> ValidateSagaTimeout(
+        [DisallowNull] string sagaName,
+        [DisallowNull] string stepName,
         int timeoutSeconds)
     {
+        ArgumentNullException.ThrowIfNull(sagaName);
+        ArgumentNullException.ThrowIfNull(stepName);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaName))
-        {
-            errors.Add("Saga name cannot be null or whitespace.");
-        }
-        else if (sagaName.Length > MaxSagaNameLength)
+        if (sagaName.Length > MaxSagaNameLength)
         {
             errors.Add($"Saga name length cannot exceed {MaxSagaNameLength} characters. Current: {sagaName.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(stepName))
-        {
-            errors.Add("Step name cannot be null or whitespace.");
-        }
-        else if (stepName.Length > MaxStepNameLength)
+        if (stepName.Length > MaxStepNameLength)
         {
             errors.Add($"Step name length cannot exceed {MaxStepNameLength} characters. Current: {stepName.Length}.");
         }
@@ -404,22 +401,24 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for DefinitionInvalid.Format, DefinitionInvalid.InvalidStep, and related methods.
     /// </summary>
-    public static IReadOnlyList<string> ValidateDefinitionInvalid(
-        string reason,
-        string stepName = null)
+    /// <param name="reason">The reason why the definition is invalid.</param>
+    /// <param name="stepName">Optional step name associated with the invalid definition.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reason"/> is null.</exception>
+    public IReadOnlyList<string> ValidateDefinitionInvalid(
+        [DisallowNull] string reason,
+        string? stepName = null)
     {
+        ArgumentNullException.ThrowIfNull(reason);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(reason))
-        {
-            errors.Add("Reason cannot be null or whitespace.");
-        }
-        else if (reason.Length > MaxReasonLength)
+        if (reason.Length > MaxReasonLength)
         {
             errors.Add($"Reason length cannot exceed {MaxReasonLength} characters. Current: {reason.Length}.");
         }
 
-        if (stepName != null && stepName.Length > MaxStepNameLength)
+        if (stepName is not null && stepName.Length > MaxStepNameLength)
         {
             errors.Add($"Step name length cannot exceed {MaxStepNameLength} characters. Current: {stepName.Length}.");
         }
@@ -430,17 +429,19 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for ServiceHealth method.
     /// </summary>
-    public static IReadOnlyList<string> ValidateServiceHealth(
-        string serviceName,
+    /// <param name="serviceName">The name of the service being checked.</param>
+    /// <param name="isHealthy">Whether the service is healthy.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="serviceName"/> is null.</exception>
+    public IReadOnlyList<string> ValidateServiceHealth(
+        [DisallowNull] string serviceName,
         bool isHealthy)
     {
+        ArgumentNullException.ThrowIfNull(serviceName);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(serviceName))
-        {
-            errors.Add("Service name cannot be null or whitespace.");
-        }
-        else if (serviceName.Length > MaxServiceNameLength)
+        if (serviceName.Length > MaxServiceNameLength)
         {
             errors.Add($"Service name length cannot exceed {MaxServiceNameLength} characters. Current: {serviceName.Length}.");
         }
@@ -451,27 +452,27 @@ public static class SagaMessageTemplatesValidation
     /// <summary>
     /// Validates parameters for WebhookDelivery method.
     /// </summary>
-    public static IReadOnlyList<string> ValidateWebhookDelivery(
-        string url,
-        string eventType,
+    /// <param name="url">The webhook URL.</param>
+    /// <param name="eventType">The type of event being delivered.</param>
+    /// <param name="success">Whether the delivery was successful.</param>
+    /// <returns>A list of validation errors; empty if validation passes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="url"/> or <paramref name="eventType"/> is null.</exception>
+    public IReadOnlyList<string> ValidateWebhookDelivery(
+        [DisallowNull] string url,
+        [DisallowNull] string eventType,
         bool success)
     {
+        ArgumentNullException.ThrowIfNull(url);
+        ArgumentNullException.ThrowIfNull(eventType);
+
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(url))
-        {
-            errors.Add("URL cannot be null or whitespace.");
-        }
-        else if (url.Length > MaxUrlLength)
+        if (url.Length > MaxUrlLength)
         {
             errors.Add($"URL length cannot exceed {MaxUrlLength} characters. Current: {url.Length}.");
         }
 
-        if (string.IsNullOrWhiteSpace(eventType))
-        {
-            errors.Add("Event type cannot be null or whitespace.");
-        }
-        else if (eventType.Length > MaxEventTypeLength)
+        if (eventType.Length > MaxEventTypeLength)
         {
             errors.Add($"Event type length cannot exceed {MaxEventTypeLength} characters. Current: {eventType.Length}.");
         }
