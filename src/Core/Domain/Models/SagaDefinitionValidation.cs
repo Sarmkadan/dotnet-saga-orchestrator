@@ -24,7 +24,7 @@ public static class SagaDefinitionValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var errors = new List<string>();
+        var errors = new List<string>(8);
 
         // Validate Id
         if (string.IsNullOrWhiteSpace(value.Id))
@@ -43,7 +43,7 @@ public static class SagaDefinitionValidation
         }
 
         // Validate Description
-        if (value.Description != null && value.Description.Length > 2048)
+        if (value.Description?.Length > 2048)
         {
             errors.Add("SagaDefinition.Description cannot exceed 2048 characters.");
         }
@@ -133,15 +133,15 @@ public static class SagaDefinitionValidation
             {
                 if (step.Order > 0)
                 {
-                    orderCounts[step.Order] = orderCounts.GetValueOrDefault(step.Order) + 1;
+                    orderCounts[step.Order] = orderCounts.GetValueOrDefault(step.Order, 0) + 1;
                 }
             }
 
-            foreach (var kvp in orderCounts)
+            foreach (var (order, count) in orderCounts)
             {
-                if (kvp.Value > 1)
+                if (count > 1)
                 {
-                    errors.Add($"Multiple steps have Order {kvp.Key}. Each step must have a unique order.");
+                    errors.Add($"Multiple steps have Order {order}. Each step must have a unique order.");
                 }
             }
 
@@ -182,7 +182,8 @@ public static class SagaDefinitionValidation
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static bool IsValid(this SagaDefinition value)
     {
-        return SagaDefinitionValidation.Validate(value).Count == 0;
+        var validationErrors = SagaDefinitionValidation.Validate(value);
+        return validationErrors.Count == 0;
     }
 
     /// <summary>
@@ -199,7 +200,7 @@ public static class SagaDefinitionValidation
         if (errors.Count > 0)
         {
             throw new ArgumentException(
-                $"SagaDefinition is invalid. Validation errors: {string.Join(" ", errors)}",
+                $"SagaDefinition is invalid. Validation errors: {string.Join(", ", errors)}",
                 nameof(value));
         }
     }
