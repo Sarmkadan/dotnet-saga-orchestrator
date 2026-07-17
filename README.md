@@ -207,3 +207,81 @@ bool isCompleted = await repository.AreAllStepsCompletedAsync(sagaId);
 // Get active steps
 var activeSteps = await repository.GetActiveStepsAsync(sagaId);
 ```
+
+## InMemoryCompensationTransactionRepositoryValidation
+
+The `InMemoryCompensationTransactionRepositoryValidation` class provides validation helpers for `InMemoryCompensationTransactionRepository` and `CompensationTransaction` instances. It offers methods to validate repository instances and compensation transactions, ensuring data integrity and proper state management during saga compensation workflows.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Enums;
+using SagaOrchestrator.Data.Repositories;
+
+// Create a compensation transaction
+var transaction = new CompensationTransaction
+{
+    Id = "comp_abc123",
+    SagaId = "saga_xyz789",
+    StepId = "step_123",
+    StepName = "RefundPayment",
+    Order = 1,
+    Status = CompensationStatus.Pending,
+    CompensationUrl = "https://api.example.com/compensate/refund",
+    InitiatedAt = DateTime.UtcNow,
+    TimeoutSeconds = 300,
+    MaxRetries = 3,
+    RetryCount = 0,
+    RequestPayload = new Dictionary<string, object> { { "orderId", 123 } }
+};
+
+// Validate the transaction
+var validationErrors = transaction.Validate();
+if (validationErrors.Count > 0)
+{
+    Console.WriteLine("Validation errors found:");
+    foreach (var error in validationErrors)
+    {
+        Console.WriteLine($"- {error}");
+    }
+}
+else
+{
+    Console.WriteLine("Transaction is valid!");
+}
+
+// Check if transaction is valid
+bool isValid = transaction.IsValid();
+Console.WriteLine($"Is valid: {isValid}");
+
+// Ensure transaction is valid (throws if invalid)
+try
+{
+    transaction.EnsureValid();
+    Console.WriteLine("Transaction passed validation!");
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Validation failed: {ex.Message}");
+}
+
+// Validate a repository instance
+var repository = new InMemoryCompensationTransactionRepository();
+var repositoryErrors = repository.Validate();
+Console.WriteLine($"Repository validation errors: {repositoryErrors.Count}");
+
+// Check repository validity
+bool isRepositoryValid = repository.IsValid();
+Console.WriteLine($"Repository is valid: {isRepositoryValid}");
+
+// Ensure repository is valid
+try
+{
+    repository.EnsureValid();
+    Console.WriteLine("Repository passed validation!");
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Repository validation failed: {ex.Message}");
+}
+```
