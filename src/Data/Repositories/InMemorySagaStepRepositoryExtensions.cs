@@ -2,11 +2,10 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using SagaOrchestrator.Core.Domain.Enums;
@@ -18,6 +17,9 @@ namespace SagaOrchestrator.Data.Repositories;
 /// Extension methods for <see cref="InMemorySagaStepRepository"/> providing
 /// additional query and utility operations.
 /// </summary>
+/// <remarks>
+/// This class is <see langword="sealed"/> to prevent inheritance.
+/// </remarks>
 public static class InMemorySagaStepRepositoryExtensions
 {
     /// <summary>
@@ -27,7 +29,8 @@ public static class InMemorySagaStepRepositoryExtensions
     /// <param name="sagaId">The saga identifier.</param>
     /// <param name="status">The status to filter by.</param>
     /// <returns>A list of matching saga steps, ordered by execution order.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when sagaId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is empty.</exception>
     public static async Task<IReadOnlyList<SagaStep>> GetBySagaIdAndStatusAsync(
         this InMemorySagaStepRepository repository,
         string sagaId,
@@ -45,7 +48,8 @@ public static class InMemorySagaStepRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="sagaId">The saga identifier.</param>
     /// <returns>The next pending step, or null if none exists.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when sagaId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is empty.</exception>
     public static async Task<SagaStep?> GetNextPendingStepAsync(
         this InMemorySagaStepRepository repository,
         string sagaId)
@@ -65,7 +69,8 @@ public static class InMemorySagaStepRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="sagaId">The saga identifier.</param>
     /// <returns>A list of retryable failed steps, ordered by execution order.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when sagaId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is empty.</exception>
     public static async Task<IReadOnlyList<SagaStep>> GetRetryableFailedStepsAsync(
         this InMemorySagaStepRepository repository,
         string sagaId)
@@ -86,7 +91,8 @@ public static class InMemorySagaStepRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="sagaId">The saga identifier.</param>
     /// <returns>A list of timed out steps, ordered by execution order.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when sagaId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is empty.</exception>
     public static async Task<IReadOnlyList<SagaStep>> GetTimedOutStepsAsync(
         this InMemorySagaStepRepository repository,
         string sagaId)
@@ -107,7 +113,8 @@ public static class InMemorySagaStepRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="sagaId">The saga identifier.</param>
     /// <returns>The highest order number, or 0 if no steps exist for the saga.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when sagaId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is empty.</exception>
     public static async Task<int> GetMaxOrderForSagaAsync(
         this InMemorySagaStepRepository repository,
         string sagaId)
@@ -115,7 +122,7 @@ public static class InMemorySagaStepRepositoryExtensions
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
 
         var steps = await repository.GetBySagaIdAsync(sagaId);
-        return steps.Count > 0 ? steps.Max(s => s.Order) : 0;
+        return steps.MaxBy(s => s.Order)?.Order ?? 0;
     }
 
     /// <summary>
@@ -124,7 +131,8 @@ public static class InMemorySagaStepRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="sagaId">The saga identifier.</param>
     /// <returns>True if all steps are completed; otherwise false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when sagaId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is empty.</exception>
     public static async Task<bool> AreAllStepsCompletedAsync(
         this InMemorySagaStepRepository repository,
         string sagaId)
@@ -132,7 +140,7 @@ public static class InMemorySagaStepRepositoryExtensions
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
 
         var steps = await repository.GetBySagaIdAsync(sagaId);
-        return steps.Count > 0 && steps.All(s => s.Status == SagaStepStatus.Completed);
+        return steps.All(s => s.Status == SagaStepStatus.Completed);
     }
 
     /// <summary>
@@ -141,7 +149,8 @@ public static class InMemorySagaStepRepositoryExtensions
     /// <param name="repository">The repository instance.</param>
     /// <param name="sagaId">The saga identifier.</param>
     /// <returns>A list of active steps, ordered by execution order.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when sagaId is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="sagaId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is empty.</exception>
     public static async Task<IReadOnlyList<SagaStep>> GetActiveStepsAsync(
         this InMemorySagaStepRepository repository,
         string sagaId)
