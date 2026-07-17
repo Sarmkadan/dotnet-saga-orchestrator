@@ -31,7 +31,7 @@ public static class InMemorySagaRepositoryValidation
         if (value is null)
         {
             problems.Add("InMemorySagaRepository instance is null.");
-            return problems;
+            return problems.AsReadOnly();
         }
 
         // Note: InMemorySagaRepository is a simple wrapper around Dictionary<string, Saga>
@@ -46,18 +46,18 @@ public static class InMemorySagaRepositoryValidation
     /// </summary>
     /// <param name="value">The repository instance to check.</param>
     /// <returns><c>true</c> if the instance has no validation problems; otherwise <c>false</c>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
-    public static bool IsValid(this InMemorySagaRepository value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-        return !value.Validate().Any();
-    }
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="value"/> is <c>null</c>.
+    /// </exception>
+    public static bool IsValid(this InMemorySagaRepository value) => !value.Validate().Any();
 
     /// <summary>
     /// Ensures that the <see cref="InMemorySagaRepository"/> instance is valid.
     /// </summary>
     /// <param name="value">The repository instance to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="value"/> is <c>null</c>.
+    /// </exception>
     /// <exception cref="ArgumentException">
     /// Thrown when one or more validation problems are found. The exception message contains a semicolon-separated list of problems.
     /// </exception>
