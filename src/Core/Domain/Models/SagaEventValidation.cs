@@ -7,13 +7,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace SagaOrchestrator.Core.Domain.Models;
 
 /// <summary>
 /// Provides validation helpers for <see cref="SagaEvent"/> instances.
 /// </summary>
+/// <remarks>
+/// This static class offers extension methods for validating <see cref="SagaEvent"/> objects
+/// against domain constraints including length limits, timestamp validity, and required fields.
+/// </remarks>
 public static class SagaEventValidation
 {
     /// <summary>
@@ -98,7 +101,7 @@ public static class SagaEventValidation
             errors.Add("SagaEvent.Severity must be a valid EventSeverity value.");
         }
 
-        // Validate Data
+        // Validate Data - ensure dictionary is initialized
         if (value.Data is null)
         {
             errors.Add("SagaEvent.Data dictionary cannot be null.");
@@ -139,10 +142,7 @@ public static class SagaEventValidation
     /// <param name="value">The saga event to check.</param>
     /// <returns><see langword="true"/> if the event is valid; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static bool IsValid(this SagaEvent value)
-    {
-        return value.Validate().Count == 0;
-    }
+    public static bool IsValid(this SagaEvent value) => value.Validate().Count == 0;
 
     /// <summary>
     /// Ensures that the specified <see cref="SagaEvent"/> instance is valid.
