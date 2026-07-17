@@ -1695,6 +1695,51 @@ Console.WriteLine(invalidResult == null ? "null" : invalidResult);
 // Output: null
 ```
 
+## SagaEventExtensions
+
+The `SagaEventExtensions` record provides configuration and metadata for saga event processing, filtering, and enrichment. It controls which events are processed based on severity, event types, and custom tags, while also managing retry behavior, logging, and event lifecycle settings.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Core.Domain.Models;
+using System.Collections.Generic;
+
+// Example 1: Create default configuration
+var defaultExtensions = SagaEventExtensions.CreateDefault();
+Console.WriteLine($"Default MinSeverity: {defaultExtensions.MinSeverity}");
+Console.WriteLine($"Default MaxRetryCount: {defaultExtensions.MaxRetryCount}");
+Console.WriteLine($"Default EnableEnrichment: {defaultExtensions.EnableEnrichment}");
+
+// Example 2: Create custom configuration with specific settings
+var customExtensions = new SagaEventExtensions
+{
+    MinSeverity = EventSeverity.Warning,
+    RetryErrors = true,
+    MaxRetryCount = 5,
+    EnableEnrichment = false,
+    Tags = new HashSet<string> { "high-priority", "critical" },
+    IncludeEventTypes = new HashSet<string> { "SagaFailed", "CompensationStarted" },
+    ExcludeEventTypes = new HashSet<string> { "Debug" },
+    EnableLogging = false,
+    MaxEventAgeHours = 48
+};
+
+Console.WriteLine($"Custom MinSeverity: {customExtensions.MinSeverity}");
+Console.WriteLine($"Custom MaxRetryCount: {customExtensions.MaxRetryCount}");
+Console.WriteLine($"Custom Tags Count: {customExtensions.Tags.Count}");
+Console.WriteLine($"Custom IncludeEventTypes Count: {customExtensions.IncludeEventTypes.Count}");
+
+// Example 3: Create minimal configuration
+var minimalExtensions = new SagaEventExtensions
+{
+    MinSeverity = EventSeverity.Error,
+    RetryErrors = true
+};
+
+Console.WriteLine($"Minimal configuration created with MinSeverity: {minimalExtensions.MinSeverity}");
+```
+
 ## SagaExtensions
 
 The `SagaExtensions` class provides extension methods for the `Saga` class to simplify common saga operations like checking status, retrieving step information, managing metadata, and handling retries.
