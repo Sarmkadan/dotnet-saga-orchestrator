@@ -1,6 +1,8 @@
 #nullable enable
 
 using System.Globalization;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace SagaOrchestrator.Tests;
 
@@ -21,6 +23,9 @@ public static class SagaIntegrationTestsValidation
         ArgumentNullException.ThrowIfNull(value);
 
         var problems = new List<string>();
+
+        ValidateServiceProvider(value, problems);
+        ValidateTestMethods(value, problems);
 
         return problems.AsReadOnly();
     }
@@ -54,8 +59,72 @@ public static class SagaIntegrationTestsValidation
 
         throw new ArgumentException(
             $"SagaIntegrationTests validation failed:{Environment.NewLine}- {
-                string.Join($"{Environment.NewLine}- ", problems)
+            string.Join($"{Environment.NewLine}- ", problems)
             }",
             nameof(value));
+    }
+
+    private static void ValidateServiceProvider(SagaIntegrationTests tests, List<string> problems)
+    {
+        try
+        {
+            var createServiceProviderMethod = typeof(SagaIntegrationTests).GetMethod(
+                "CreateServiceProvider",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            if (createServiceProviderMethod is null)
+            {
+                problems.Add("CreateServiceProvider method not found on SagaIntegrationTests.");
+                return;
+            }
+
+            var provider = (IServiceProvider?)createServiceProviderMethod.Invoke(tests, null);
+            if (provider is null)
+            {
+                problems.Add("Service provider creation returned null.");
+            }
+        }
+        catch (Exception ex) when (ex is not ArgumentNullException)
+        {
+            problems.Add($"Service provider creation failed: {ex.Message}");
+        }
+    }
+
+    private static void ValidateTestMethods(SagaIntegrationTests tests, List<string> problems)
+    {
+        var testMethods = tests.GetType()
+            .GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
+            .Where(m => m.GetCustomAttributes(typeof(FactAttribute), false).Length > 0)
+            .ToList();
+
+        if (testMethods.Count == 0)
+        {
+            problems.Add("No test methods with [Fact] attribute found.");
+        }
+
+        foreach (var method in testMethods)
+        {
+            ValidateTestMethod(method, problems);
+        }
+    }
+
+    private static void ValidateTestMethod(System.Reflection.MethodInfo method, List<string> problems)
+    {
+        if (method.ReturnType != typeof(void) &&
+            method.ReturnType != typeof(Task) &&
+            method.ReturnType != typeof(ValueTask))
+        {
+            problems.Add($"Test method '{method.Name}' has invalid return type '{method.ReturnType.Name}'. Expected void, Task, or ValueTask.");
+        }
+
+        if (method.GetParameters().Length > 0)
+        {
+            problems.Add($"Test method '{method.Name}' should not have parameters.");
+        }
+
+        if (!method.IsPublic)
+        {
+            problems.Add($"Test method '{method.Name}' must be public.");
+        }
     }
 }
