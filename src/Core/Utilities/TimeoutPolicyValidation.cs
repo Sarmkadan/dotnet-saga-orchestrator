@@ -52,10 +52,9 @@ public static class TimeoutPolicyValidation
     /// </summary>
     /// <param name="value">The timeout policy to check.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static bool IsValid(this TimeoutPolicy? value)
-    {
-        return value?.Validate().Count == 0;
-    }
+        => value?.Validate().Count == 0;
 
     /// <summary>
     /// Ensures that a <see cref="TimeoutPolicy"/> instance is valid.
