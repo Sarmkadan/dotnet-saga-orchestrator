@@ -46,7 +46,6 @@ public static class SagaJsonExtensions
     public static Saga? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
-
         return JsonSerializer.Deserialize<Saga>(json, JsonOptions);
     }
 
@@ -68,7 +67,7 @@ public static class SagaJsonExtensions
         }
         catch (JsonException)
         {
-            value = default;
+            value = null;
             return false;
         }
     }
