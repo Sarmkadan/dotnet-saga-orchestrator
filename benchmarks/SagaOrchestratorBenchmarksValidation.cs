@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using SagaOrchestrator.Benchmarks;
 
 namespace SagaOrchestrator.Benchmarks
 {
@@ -60,8 +58,10 @@ namespace SagaOrchestrator.Benchmarks
         /// </summary>
         /// <param name="value">The instance to check.</param>
         /// <returns>True if valid; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
         public static bool IsValid(this SagaOrchestratorBenchmarks value)
         {
+            ArgumentNullException.ThrowIfNull(value);
             return value.Validate().Count == 0;
         }
 
