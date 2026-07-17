@@ -51,7 +51,9 @@ public static class DebuggerOptionsValidation
     /// Determines whether the specified <see cref="DebuggerOptions"/> instance is valid.
     /// </summary>
     /// <param name="value">The options instance to check.</param>
-    /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
+    /// <returns>
+    /// <see langword="true"/> if the instance is non-null and valid; otherwise, <see langword="false"/>.
+    /// </returns>
     public static bool IsValid(this DebuggerOptions? value)
     {
         return value is not null && Validate(value).Count == 0;
