@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using SagaOrchestrator.Application.Services;
@@ -30,7 +29,7 @@ public static class SagaEventPublisherExtensions
     /// <param name="severity">Event severity level</param>
     /// <param name="data">Additional event data</param>
     /// <returns>A task representing the publish operation</returns>
-    /// <exception cref="ArgumentNullException">Thrown if sagaId or eventName is null</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is <see langword="null"/>, or if <paramref name="sagaId"/> or <paramref name="eventName"/> is <see langword="null"/></exception>
     public static async Task PublishAsync(
         this SagaEventPublisher publisher,
         string sagaId,
@@ -39,8 +38,9 @@ public static class SagaEventPublisherExtensions
         EventSeverity severity = EventSeverity.Information,
         Dictionary<string, object>? data = null)
     {
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(sagaId);
-        ArgumentNullException.ThrowIfNull(eventName);
+        ArgumentException.ThrowIfNullOrEmpty(eventName);
 
         var sagaEvent = new SagaEvent
         {
@@ -53,7 +53,7 @@ public static class SagaEventPublisherExtensions
             Timestamp = DateTime.UtcNow
         };
 
-        if (data != null)
+        if (data?.Count > 0)
         {
             foreach (var kvp in data)
             {
@@ -61,7 +61,7 @@ public static class SagaEventPublisherExtensions
             }
         }
 
-        await publisher.PublishAsync(sagaEvent);
+        await publisher.PublishAsync(sagaEvent).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public static class SagaEventPublisherExtensions
     /// <param name="severity">Event severity level</param>
     /// <param name="data">Additional event data</param>
     /// <returns>A task representing the publish operation</returns>
-    /// <exception cref="ArgumentNullException">Thrown if sagaId, stepId, stepName, or eventName is null</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is <see langword="null"/>, or if sagaId, stepId, stepName, or eventName is <see langword="null"/></exception>
     public static async Task PublishStepEventAsync(
         this SagaEventPublisher publisher,
         string sagaId,
@@ -87,10 +87,11 @@ public static class SagaEventPublisherExtensions
         EventSeverity severity = EventSeverity.Information,
         Dictionary<string, object>? data = null)
     {
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(sagaId);
         ArgumentNullException.ThrowIfNull(stepId);
         ArgumentNullException.ThrowIfNull(stepName);
-        ArgumentNullException.ThrowIfNull(eventName);
+        ArgumentException.ThrowIfNullOrEmpty(eventName);
 
         var sagaEvent = new SagaEvent
         {
@@ -105,7 +106,7 @@ public static class SagaEventPublisherExtensions
             Timestamp = DateTime.UtcNow
         };
 
-        if (data != null)
+        if (data?.Count > 0)
         {
             foreach (var kvp in data)
             {
@@ -113,7 +114,7 @@ public static class SagaEventPublisherExtensions
             }
         }
 
-        await publisher.PublishAsync(sagaEvent);
+        await publisher.PublishAsync(sagaEvent).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -145,10 +146,7 @@ public static class SagaEventPublisherExtensions
         int count,
         string? sagaId = null)
     {
-        if (count < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count), "Count must be greater than or equal to 1");
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(count, 1);
 
         var allEvents = publisher.GetAllEvents(sagaId);
         return allEvents
@@ -164,11 +162,12 @@ public static class SagaEventPublisherExtensions
     /// <param name="publisher">The event publisher instance</param>
     /// <param name="sagaId">The saga identifier</param>
     /// <returns>Dictionary containing event statistics</returns>
-    /// <exception cref="ArgumentNullException">Thrown if sagaId is null</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is <see langword="null"/>, or if <paramref name="sagaId"/> is <see langword="null"/></exception>
     public static Dictionary<string, object> GetEventStatistics(
         this SagaEventPublisher publisher,
         string sagaId)
     {
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(sagaId);
 
         var events = publisher.GetSagaEvents(sagaId);
@@ -200,13 +199,14 @@ public static class SagaEventPublisherExtensions
     /// <param name="sagaId">Optional saga identifier filter</param>
     /// <param name="indentJson">Whether to format JSON with indentation</param>
     /// <returns>A task representing the export operation</returns>
-    /// <exception cref="ArgumentNullException">Thrown if filePath is null</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is <see langword="null"/>, or if <paramref name="filePath"/> is <see langword="null"/></exception>
     public static async Task ExportEventsAsync(
         this SagaEventPublisher publisher,
         string filePath,
         string? sagaId = null,
         bool indentJson = true)
     {
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(filePath);
 
         var events = publisher.GetAllEvents(sagaId);
@@ -218,7 +218,8 @@ public static class SagaEventPublisherExtensions
         };
 
         var json = System.Text.Json.JsonSerializer.Serialize(events, options);
-        await System.IO.File.WriteAllTextAsync(filePath, json, System.Text.Encoding.UTF8);
+        await System.IO.File.WriteAllTextAsync(filePath, json, System.Text.Encoding.UTF8)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -244,13 +245,14 @@ public static class SagaEventPublisherExtensions
     /// <param name="eventType">The event type to subscribe to</param>
     /// <param name="handler">The event handler</param>
     /// <returns>A disposable that can be used to unsubscribe</returns>
-    /// <exception cref="ArgumentNullException">Thrown if eventType or handler is null</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is <see langword="null"/>, or if <paramref name="eventType"/> or <paramref name="handler"/> is <see langword="null"/></exception>
     public static IDisposable SubscribeToType(
         this SagaEventPublisher publisher,
         string eventType,
         Func<SagaEvent, Task> handler)
     {
-        ArgumentNullException.ThrowIfNull(eventType);
+        ArgumentNullException.ThrowIfNull(publisher);
+        ArgumentException.ThrowIfNullOrEmpty(eventType);
         ArgumentNullException.ThrowIfNull(handler);
 
         // Create a wrapper handler that filters by event type
@@ -258,7 +260,7 @@ public static class SagaEventPublisherExtensions
         {
             if (sagaEvent.EventType.Equals(eventType, StringComparison.OrdinalIgnoreCase))
             {
-                await handler(sagaEvent);
+                await handler(sagaEvent).ConfigureAwait(false);
             }
         };
 
@@ -275,12 +277,13 @@ public static class SagaEventPublisherExtensions
     /// <param name="severity">The minimum severity level to subscribe to</param>
     /// <param name="handler">The event handler</param>
     /// <returns>A disposable that can be used to unsubscribe</returns>
-    /// <exception cref="ArgumentNullException">Thrown if handler is null</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is <see langword="null"/>, or if <paramref name="handler"/> is <see langword="null"/></exception>
     public static IDisposable SubscribeToSeverity(
         this SagaEventPublisher publisher,
         EventSeverity severity,
         Func<SagaEvent, Task> handler)
     {
+        ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(handler);
 
         // Create a wrapper handler that filters by severity
@@ -288,7 +291,7 @@ public static class SagaEventPublisherExtensions
         {
             if (sagaEvent.Severity >= severity)
             {
-                await handler(sagaEvent);
+                await handler(sagaEvent).ConfigureAwait(false);
             }
         };
 
