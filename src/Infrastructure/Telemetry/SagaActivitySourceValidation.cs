@@ -7,12 +7,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace SagaOrchestrator.Infrastructure.Telemetry;
 
 /// <summary>
-/// Validation helpers for SagaActivitySource method parameters.
+/// Provides validation methods for SagaActivitySource operation parameters.
+/// Contains utility methods to validate saga start, completion, step execution, and compensation operations.
 /// </summary>
 public static class SagaActivitySourceValidation
 {
@@ -23,7 +23,8 @@ public static class SagaActivitySourceValidation
     /// <param name="definitionId">The saga definition identifier.</param>
     /// <param name="correlationId">Optional correlation identifier.</param>
     /// <returns>List of validation problems; empty if valid.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if required parameters are null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/> or <paramref name="definitionId"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="sagaId"/> or <paramref name="definitionId"/> is empty or whitespace.</exception>
     public static IReadOnlyList<string> Validate(string sagaId, string definitionId, string? correlationId = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
@@ -31,17 +32,7 @@ public static class SagaActivitySourceValidation
 
         var problems = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            problems.Add("Saga identifier cannot be whitespace or empty.");
-        }
-
-        if (string.IsNullOrWhiteSpace(definitionId))
-        {
-            problems.Add("Saga definition identifier cannot be whitespace or empty.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(correlationId) && string.IsNullOrWhiteSpace(correlationId))
+        if (correlationId is not null && string.IsNullOrWhiteSpace(correlationId))
         {
             problems.Add("Correlation identifier cannot be whitespace or empty.");
         }
@@ -50,29 +41,20 @@ public static class SagaActivitySourceValidation
     }
 
     /// <summary>
-    /// Validates a saga completion operation.
+    /// Validates parameters for completing a saga.
     /// </summary>
     /// <param name="sagaId">The saga identifier.</param>
     /// <param name="finalStatus">The final saga status.</param>
     /// <param name="totalSteps">Total number of steps in the saga.</param>
-    /// <returns>List of validation problems; empty if valid.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if required parameters are null.</exception>
+    /// <returns>List of validation problems; empty if all parameters are valid.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/> or <paramref name="finalStatus"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="sagaId"/> or <paramref name="finalStatus"/> is empty or whitespace.</exception>
     public static IReadOnlyList<string> Validate(string sagaId, string finalStatus, int totalSteps)
     {
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
         ArgumentException.ThrowIfNullOrEmpty(finalStatus);
 
         var problems = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            problems.Add("Saga identifier cannot be whitespace or empty.");
-        }
-
-        if (string.IsNullOrWhiteSpace(finalStatus))
-        {
-            problems.Add("Final status cannot be whitespace or empty.");
-        }
 
         if (totalSteps < 0)
         {
@@ -83,7 +65,7 @@ public static class SagaActivitySourceValidation
     }
 
     /// <summary>
-    /// Validates a step start operation.
+    /// Validates parameters for starting a step.
     /// </summary>
     /// <param name="sagaId">The saga identifier.</param>
     /// <param name="stepId">The step identifier.</param>
@@ -91,7 +73,8 @@ public static class SagaActivitySourceValidation
     /// <param name="order">The step order/index.</param>
     /// <param name="attempt">The attempt number (1-based).</param>
     /// <returns>List of validation problems; empty if valid.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if required parameters are null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/>, <paramref name="stepId"/>, or <paramref name="stepName"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="sagaId"/>, <paramref name="stepId"/>, or <paramref name="stepName"/> is empty or whitespace.</exception>
     public static IReadOnlyList<string> Validate(string sagaId, string stepId, string stepName, int order, int attempt = 1)
     {
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
@@ -99,21 +82,6 @@ public static class SagaActivitySourceValidation
         ArgumentException.ThrowIfNullOrEmpty(stepName);
 
         var problems = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            problems.Add("Saga identifier cannot be whitespace or empty.");
-        }
-
-        if (string.IsNullOrWhiteSpace(stepId))
-        {
-            problems.Add("Step identifier cannot be whitespace or empty.");
-        }
-
-        if (string.IsNullOrWhiteSpace(stepName))
-        {
-            problems.Add("Step name cannot be whitespace or empty.");
-        }
 
         if (order < 0)
         {
@@ -129,14 +97,15 @@ public static class SagaActivitySourceValidation
     }
 
     /// <summary>
-    /// Validates a compensation start operation.
+    /// Validates parameters for starting a compensation.
     /// </summary>
     /// <param name="sagaId">The saga identifier.</param>
     /// <param name="compensationId">The compensation transaction identifier.</param>
     /// <param name="stepName">The name of the step being compensated.</param>
     /// <param name="stepOrder">The order of the step being compensated.</param>
     /// <returns>List of validation problems; empty if valid.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if required parameters are null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="sagaId"/>, <paramref name="compensationId"/>, or <paramref name="stepName"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="sagaId"/>, <paramref name="compensationId"/>, or <paramref name="stepName"/> is empty or whitespace.</exception>
     public static IReadOnlyList<string> Validate(string sagaId, string compensationId, string stepName, int stepOrder)
     {
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
@@ -144,21 +113,6 @@ public static class SagaActivitySourceValidation
         ArgumentException.ThrowIfNullOrEmpty(stepName);
 
         var problems = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(sagaId))
-        {
-            problems.Add("Saga identifier cannot be whitespace or empty.");
-        }
-
-        if (string.IsNullOrWhiteSpace(compensationId))
-        {
-            problems.Add("Compensation identifier cannot be whitespace or empty.");
-        }
-
-        if (string.IsNullOrWhiteSpace(stepName))
-        {
-            problems.Add("Step name cannot be whitespace or empty.");
-        }
 
         if (stepOrder < 0)
         {
@@ -169,16 +123,14 @@ public static class SagaActivitySourceValidation
     }
 
     /// <summary>
-    /// Checks if the saga start parameters are valid.
+    /// Determines whether the saga start parameters are valid.
     /// </summary>
     /// <param name="sagaId">The saga identifier.</param>
     /// <param name="definitionId">The saga definition identifier.</param>
     /// <param name="correlationId">Optional correlation identifier.</param>
     /// <returns>True if valid; otherwise false.</returns>
-    public static bool IsValid(string sagaId, string definitionId, string? correlationId = null)
-    {
-        return Validate(sagaId, definitionId, correlationId).Count == 0;
-    }
+    public static bool IsValid(string sagaId, string definitionId, string? correlationId = null) =>
+        Validate(sagaId, definitionId, correlationId).Count == 0;
 
     /// <summary>
     /// Checks if the saga completion parameters are valid.
@@ -187,10 +139,8 @@ public static class SagaActivitySourceValidation
     /// <param name="finalStatus">The final saga status.</param>
     /// <param name="totalSteps">Total number of steps in the saga.</param>
     /// <returns>True if valid; otherwise false.</returns>
-    public static bool IsValid(string sagaId, string finalStatus, int totalSteps)
-    {
-        return Validate(sagaId, finalStatus, totalSteps).Count == 0;
-    }
+    public static bool IsValid(string sagaId, string finalStatus, int totalSteps) =>
+        Validate(sagaId, finalStatus, totalSteps).Count == 0;
 
     /// <summary>
     /// Checks if the step start parameters are valid.
@@ -201,10 +151,8 @@ public static class SagaActivitySourceValidation
     /// <param name="order">The step order/index.</param>
     /// <param name="attempt">The attempt number (1-based).</param>
     /// <returns>True if valid; otherwise false.</returns>
-    public static bool IsValid(string sagaId, string stepId, string stepName, int order, int attempt = 1)
-    {
-        return Validate(sagaId, stepId, stepName, order, attempt).Count == 0;
-    }
+    public static bool IsValid(string sagaId, string stepId, string stepName, int order, int attempt = 1) =>
+        Validate(sagaId, stepId, stepName, order, attempt).Count == 0;
 
     /// <summary>
     /// Checks if the compensation start parameters are valid.
@@ -214,10 +162,8 @@ public static class SagaActivitySourceValidation
     /// <param name="stepName">The name of the step being compensated.</param>
     /// <param name="stepOrder">The order of the step being compensated.</param>
     /// <returns>True if valid; otherwise false.</returns>
-    public static bool IsValid(string sagaId, string compensationId, string stepName, int stepOrder)
-    {
-        return Validate(sagaId, compensationId, stepName, stepOrder).Count == 0;
-    }
+    public static bool IsValid(string sagaId, string compensationId, string stepName, int stepOrder) =>
+        Validate(sagaId, compensationId, stepName, stepOrder).Count == 0;
 
     /// <summary>
     /// Ensures that saga start parameters are valid, throwing an exception if not.
