@@ -5,17 +5,18 @@ using System.Text.Json.Serialization;
 namespace SagaOrchestrator.Application.DTOs;
 
 /// <summary>
-/// Provides JSON serialization and deserialization helpers for the <see cref="CreateSagaRequest"/> class.
+/// Provides JSON serialization and deserialization extensions for the <see cref="CreateSagaRequest"/> class.
 /// </summary>
 public static class CreateSagaRequestJsonExtensions
 {
     /// <summary>
-    /// Configured JSON serializer options with camelCase naming policy.
+    /// Configured JSON serializer options with camelCase naming policy and null value handling.
     /// </summary>
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
+        WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
     /// <summary>
