@@ -5,7 +5,7 @@ using SagaOrchestrator.Tests;
 namespace SagaOrchestrator.Tests;
 
 /// <summary>
-/// Provides extension methods for <see cref="StringExtensionsTests"/>.
+/// Provides extension methods for <see cref="StringExtensionsTests"/> test helpers.
 /// </summary>
 public static class StringExtensionsTestsExtensions
 {
@@ -34,17 +34,19 @@ public static class StringExtensionsTestsExtensions
     /// Returns a collection of sample inputs based on the specified scenario.
     /// </summary>
     /// <param name="tests">The test class instance.</param>
-    /// <param name="scenario">The test scenario.</param>
+    /// <param name="scenario">The test scenario. Must not be null or empty.</param>
     /// <returns>An <see cref="IEnumerable{T}"/> of sample strings.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="tests"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="tests"/> or <paramref name="scenario"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="scenario"/> is empty.</exception>
     public static IEnumerable<string> GetSampleInputs(this StringExtensionsTests tests, string scenario)
     {
         ArgumentNullException.ThrowIfNull(tests);
+        ArgumentException.ThrowIfNullOrEmpty(scenario);
 
         return scenario switch
         {
-            "PascalCase" => new List<string> { "OrderProcessing", "SagaOrchestrator" },
-            "SingleWord" => new List<string> { "Saga", "A" },
+            "PascalCase" => new[] { "OrderProcessing", "SagaOrchestrator" },
+            "SingleWord" => new[] { "Saga", "A" },
             _ => Array.Empty<string>()
         };
     }
