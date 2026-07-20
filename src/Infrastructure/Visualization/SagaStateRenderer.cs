@@ -69,7 +69,7 @@ public class SagaStateRenderer : ISagaStateRenderer
 
             if (snapshot.Nodes.Count == 0)
             {
-                sb.AppendLine("  (no steps defined)");
+                sb.AppendLine(" (no steps defined)");
                 return sb.ToString();
             }
 
@@ -83,10 +83,10 @@ public class SagaStateRenderer : ISagaStateRenderer
                 var detail = BuildNodeDetail(node);
                 var paddedName = (node.Name ?? "Unknown").PadRight(nameWidth);
 
-                sb.AppendLine($"  [{icon}] {node.Index,2}. {paddedName}  {detail}");
+                sb.AppendLine($" [{icon}] {node.Index,2}. {paddedName} {detail}");
 
                 if (i < snapshot.Nodes.Count - 1)
-                    sb.AppendLine("       |");
+                    sb.AppendLine(" |");
             }
 
             return sb.ToString();
@@ -110,20 +110,20 @@ public class SagaStateRenderer : ISagaStateRenderer
             var separator = new string('=', 60);
 
             sb.AppendLine(separator);
-            sb.AppendLine($"  {snapshot.SagaName}");
+            sb.AppendLine($" {snapshot.SagaName}");
             sb.AppendLine(separator);
-            sb.AppendLine($"  Saga ID      : {snapshot.SagaId}");
-            sb.AppendLine($"  Correlation  : {snapshot.CorrelationId}");
-            sb.AppendLine($"  Status       : {snapshot.Status}");
-            sb.AppendLine($"  Progress     : {RenderProgressBar(snapshot)}");
-            sb.AppendLine($"  Elapsed      : {FormatElapsed(snapshot.ElapsedMs)}");
-            sb.AppendLine($"  Captured At  : {snapshot.CapturedAt:O}");
+            sb.AppendLine($" Saga ID : {snapshot.SagaId}");
+            sb.AppendLine($" Correlation : {snapshot.CorrelationId}");
+            sb.AppendLine($" Status : {snapshot.Status}");
+            sb.AppendLine($" Progress : {RenderProgressBar(snapshot)}");
+            sb.AppendLine($" Elapsed : {FormatElapsed(snapshot.ElapsedMs)}");
+            sb.AppendLine($" Captured At : {snapshot.CapturedAt:O}");
 
             if (!string.IsNullOrWhiteSpace(snapshot.FailureReason))
-                sb.AppendLine($"  Failure      : {snapshot.FailureReason}");
+                sb.AppendLine($" Failure : {snapshot.FailureReason}");
 
             sb.AppendLine();
-            sb.AppendLine("  Steps:");
+            sb.AppendLine(" Steps:");
             sb.AppendLine(new string('-', 60));
             sb.Append(RenderStateDiagram(snapshot));
             sb.AppendLine(separator);
@@ -137,16 +137,92 @@ public class SagaStateRenderer : ISagaStateRenderer
         }
     }
 
+    /// <summary>Renders a Graphviz DOT digraph of the saga steps.</summary>
+    /// <param name="saga">The saga to render.</param>
+    /// <returns>Graphviz DOT text representation of the saga.</returns>
+    public string RenderDot(SagaOrchestrator.Core.Domain.Models.Saga saga)
+    {
+        if (saga == null)
+            throw new ArgumentNullException(nameof(saga));
+
+        try
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("digraph Saga {");
+            sb.AppendLine("    rankdir=LR;");
+            sb.AppendLine("    node [shape=box, style=filled, fontname=Arial, fontsize=10];");
+            sb.AppendLine("    edge [fontname=Arial, fontsize=8];");
+            sb.AppendLine();
+
+            // Add nodes
+            foreach (var step in saga.Steps)
+            {
+                // Convert SagaStepStatus to string status
+                var status = step.Status.ToString();
+                var color = status switch
+                {
+                    "Failed" => "red",
+                    "Compensated" => "orange",
+                    _ => "#e5e5e5"
+                };
+
+                var shape = status switch
+                {
+                    "Compensated" => "ellipse",
+                    _ => "box"
+                };
+
+                sb.AppendLine($"    node_{step.Id} [label=\"{EscapeDot(step.Name)}\",");
+                sb.AppendLine($"        shape={shape},");
+                sb.AppendLine($"        style=\"filled\",");
+                sb.AppendLine($"        fillcolor=\"{color}\",");
+                sb.AppendLine($"        tooltip=\"Step {step.Order}: {step.Name}\\nStatus: {status}\"");
+                sb.AppendLine("    ]");
+            }
+
+            sb.AppendLine();
+
+            // Add edges in execution order
+            for (int i = 0; i < saga.Steps.Count - 1; i++)
+            {
+                var fromStep = saga.Steps[i];
+                var toStep = saga.Steps[i + 1];
+                sb.AppendLine($"    node_{fromStep.Id} -> node_{toStep.Id} [label=\"exec\", arrowhead=normal];");
+            }
+
+            sb.AppendLine("}");
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to render DOT for saga {SagaId}", saga.Id);
+            return "// DOT rendering failed";
+        }
+    }
+
+    private static string EscapeDot(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text ?? string.Empty;
+
+        // Escape special DOT characters
+        return text
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"")
+            .Replace("\n", " ")
+            .Replace("\r", " ");
+    }
+
     private static string GetStatusIcon(string status) => status switch
     {
-        "Completed"      => "✓",
-        "Executing"      => "►",
-        "Failed"         => "✗",
-        "Compensated"    => "↩",
-        "WaitingForRetry"=> "⟳",
-        "TimedOut"       => "⏱",
-        "Skipped"        => "–",
-        _                => "○"
+        "Completed" => "✓",
+        "Executing" => "►",
+        "Failed" => "✗",
+        "Compensated" => "↩",
+        "WaitingForRetry" => "⟳",
+        "TimedOut" => "⏱",
+        "Skipped" => "–",
+        _ => "○"
     };
 
     private static string BuildNodeDetail(VisualizationNode node)
@@ -167,7 +243,7 @@ public class SagaStateRenderer : ISagaStateRenderer
             parts.Add(truncated);
         }
 
-        return string.Join("  |  ", parts);
+        return string.Join(" | ", parts);
     }
 
     private static string FormatDurationMs(double ms) =>
