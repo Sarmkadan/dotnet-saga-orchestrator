@@ -87,31 +87,31 @@ public static class SagaOptionsValidation
         if (policies.DefaultStepTimeoutSeconds <= 0)
         {
             errors.Add(
-                $"TimeoutPolicies.DefaultStepTimeoutSeconds must be positive, but was {policies.DefaultStepTimeoutSeconds}.");
+                $"TimeoutPolicies.DefaultStepTimeoutSeconds must be greater than 0, but was {policies.DefaultStepTimeoutSeconds}.");
         }
 
         if (policies.DefaultSagaTimeoutSeconds <= 0)
         {
             errors.Add(
-                $"TimeoutPolicies.DefaultSagaTimeoutSeconds must be positive, but was {policies.DefaultSagaTimeoutSeconds}.");
+                $"TimeoutPolicies.DefaultSagaTimeoutSeconds must be greater than 0, but was {policies.DefaultSagaTimeoutSeconds}.");
         }
 
         if (policies.MaxStepTimeoutSeconds <= 0)
         {
             errors.Add(
-                $"TimeoutPolicies.MaxStepTimeoutSeconds must be positive, but was {policies.MaxStepTimeoutSeconds}.");
+                $"TimeoutPolicies.MaxStepTimeoutSeconds must be greater than 0, but was {policies.MaxStepTimeoutSeconds}.");
         }
 
         if (policies.MaxSagaTimeoutSeconds <= 0)
         {
             errors.Add(
-                $"TimeoutPolicies.MaxSagaTimeoutSeconds must be positive, but was {policies.MaxSagaTimeoutSeconds}.");
+                $"TimeoutPolicies.MaxSagaTimeoutSeconds must be greater than 0, but was {policies.MaxSagaTimeoutSeconds}.");
         }
 
         if (policies.CompensationTimeoutSeconds <= 0)
         {
             errors.Add(
-                $"TimeoutPolicies.CompensationTimeoutSeconds must be positive, but was {policies.CompensationTimeoutSeconds}.");
+                $"TimeoutPolicies.CompensationTimeoutSeconds must be greater than 0, but was {policies.CompensationTimeoutSeconds}.");
         }
 
         if (policies.DefaultStepTimeoutSeconds > policies.MaxStepTimeoutSeconds)
@@ -207,19 +207,19 @@ public static class SagaOptionsValidation
         if (policies.SagaCacheExpirationMinutes <= 0)
         {
             errors.Add(
-                $"CachePolicies.SagaCacheExpirationMinutes must be positive, but was {policies.SagaCacheExpirationMinutes}.");
+                $"CachePolicies.SagaCacheExpirationMinutes must be greater than 0, but was {policies.SagaCacheExpirationMinutes}.");
         }
 
         if (policies.DefinitionCacheExpirationMinutes <= 0)
         {
             errors.Add(
-                $"CachePolicies.DefinitionCacheExpirationMinutes must be positive, but was {policies.DefinitionCacheExpirationMinutes}.");
+                $"CachePolicies.DefinitionCacheExpirationMinutes must be greater than 0, but was {policies.DefinitionCacheExpirationMinutes}.");
         }
 
         if (policies.HealthCheckCacheExpirationSeconds <= 0)
         {
             errors.Add(
-                $"CachePolicies.HealthCheckCacheExpirationSeconds must be positive, but was {policies.HealthCheckCacheExpirationSeconds}.");
+                $"CachePolicies.HealthCheckCacheExpirationSeconds must be greater than 0, but was {policies.HealthCheckCacheExpirationSeconds}.");
         }
 
         if (policies.MaxCacheSize < 0)
@@ -246,19 +246,19 @@ public static class SagaOptionsValidation
         if (policies.TimeoutWorkerIntervalSeconds <= 0)
         {
             errors.Add(
-                $"WorkerPolicies.TimeoutWorkerIntervalSeconds must be positive, but was {policies.TimeoutWorkerIntervalSeconds}.");
+                $"WorkerPolicies.TimeoutWorkerIntervalSeconds must be greater than 0, but was {policies.TimeoutWorkerIntervalSeconds}.");
         }
 
         if (policies.CompensationWorkerIntervalSeconds <= 0)
         {
             errors.Add(
-                $"WorkerPolicies.CompensationWorkerIntervalSeconds must be positive, but was {policies.CompensationWorkerIntervalSeconds}.");
+                $"WorkerPolicies.CompensationWorkerIntervalSeconds must be greater than 0, but was {policies.CompensationWorkerIntervalSeconds}.");
         }
 
         if (policies.EventProcessingWorkerIntervalSeconds <= 0)
         {
             errors.Add(
-                $"WorkerPolicies.EventProcessingWorkerIntervalSeconds must be positive, but was {policies.EventProcessingWorkerIntervalSeconds}.");
+                $"WorkerPolicies.EventProcessingWorkerIntervalSeconds must be greater than 0, but was {policies.EventProcessingWorkerIntervalSeconds}.");
         }
 
         if (policies.MaxEventsToKeep < 0)
@@ -285,7 +285,7 @@ public static class SagaOptionsValidation
         if (policies.WebhookTimeoutSeconds <= 0)
         {
             errors.Add(
-                $"WebhookPolicies.WebhookTimeoutSeconds must be positive, but was {policies.WebhookTimeoutSeconds}.");
+                $"WebhookPolicies.WebhookTimeoutSeconds must be greater than 0, but was {policies.WebhookTimeoutSeconds}.");
         }
 
         if (policies.MaxWebhookRetries < 0)
@@ -303,7 +303,7 @@ public static class SagaOptionsValidation
         if (policies.MaxWebhookPayloadBytes <= 0)
         {
             errors.Add(
-                $"WebhookPolicies.MaxWebhookPayloadBytes must be positive, but was {policies.MaxWebhookPayloadBytes}.");
+                $"WebhookPolicies.MaxWebhookPayloadBytes must be greater than 0, but was {policies.MaxWebhookPayloadBytes}.");
         }
 
         return errors.AsReadOnly();
