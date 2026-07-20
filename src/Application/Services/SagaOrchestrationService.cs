@@ -149,6 +149,7 @@ public class SagaOrchestrationService
             return nextStep;
 
         // Execute the step
+    nextStep.AttemptCount++;
         nextStep.Start();
         await _stepRepository.UpdateAsync(nextStep);
 

@@ -117,6 +117,8 @@ public class SagaStepResponse
 
     [JsonPropertyName("retryCount")]
     public int RetryCount { get; set; }
+    [JsonPropertyName("attemptCount")]
+    public int AttemptCount { get; set; }
 
     [JsonPropertyName("duration")]
     public TimeSpan? Duration
@@ -146,6 +148,7 @@ public class SagaStepResponse
             ServiceName = step.ServiceUrl,
             StartedAt = step.StartedAt,
             CompletedAt = step.CompletedAt,
+    AttemptCount = step.AttemptCount,
             ErrorMessage = step.ErrorMessage,
             RetryCount = step.RetryCount
         };

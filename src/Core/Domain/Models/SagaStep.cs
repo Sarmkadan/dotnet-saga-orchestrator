@@ -70,6 +70,10 @@ public class SagaStep
     [JsonPropertyName("errorMessage")]
     public string? ErrorMessage { get; set; }
 
+
+    /// <summary>Gets or sets the number of execution attempts made for this step (including initial attempt).</summary>
+    [JsonPropertyName("attemptCount")]
+    public int AttemptCount { get; set; }
     /// <summary>Gets or sets the number of retry attempts made for this step.</summary>
     [JsonPropertyName("retryCount")]
     public int RetryCount { get; set; }
@@ -94,6 +98,7 @@ public class SagaStep
     {
         Id = Guid.NewGuid().ToString();
         Status = SagaStepStatus.Pending;
+        AttemptCount = 0;
     }
 
     /// <summary>
