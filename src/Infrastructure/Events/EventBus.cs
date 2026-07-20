@@ -74,14 +74,40 @@ public class EventBus : IEventBus
         if (handlers == null || handlers.Count == 0)
             return;
 
-        // Execute all handlers
+        // Execute all handlers, ensuring one faulty handler does not stop others
         var tasks = new List<Task>();
         foreach (var handler in handlers.Cast<Func<T, Task>>())
         {
-            tasks.Add(handler(@event));
+            try
+            {
+                var task = handler(@event);
+                // Guard against a handler that throws synchronously instead of returning a faulted Task
+                if (task == null)
+                {
+                    tasks.Add(Task.CompletedTask);
+                }
+                else
+                {
+                    tasks.Add(task);
+                }
+            }
+            catch
+            {
+                // Swallow synchronous exceptions so other handlers can continue
+                // Optionally log the exception here
+                tasks.Add(Task.CompletedTask);
+            }
         }
 
-        await Task.WhenAll(tasks);
+        // Await all tasks, ignoring any exceptions they may produce
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch
+        {
+            // Exceptions are intentionally ignored to keep the bus resilient
+        }
     }
 
     public IReadOnlyList<DomainEvent> GetEventHistory()
