@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SagaOrchestrator.Configuration;
 using SagaOrchestrator.Core.Domain.Enums;
 using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Exceptions;
@@ -26,15 +27,18 @@ public class CompensationService
     private readonly ICompensationTransactionRepository _compensationRepository;
     private readonly ISagaRepository _sagaRepository;
     private readonly ISagaStepRepository _stepRepository;
+    private readonly SagaOptions _sagaOptions;
 
     public CompensationService(
         ICompensationTransactionRepository compensationRepository,
         ISagaRepository sagaRepository,
-        ISagaStepRepository stepRepository)
+        ISagaStepRepository stepRepository,
+        SagaOptions? sagaOptions = null)
     {
         _compensationRepository = compensationRepository ?? throw new ArgumentNullException(nameof(compensationRepository));
         _sagaRepository = sagaRepository ?? throw new ArgumentNullException(nameof(sagaRepository));
         _stepRepository = stepRepository ?? throw new ArgumentNullException(nameof(stepRepository));
+        _sagaOptions = sagaOptions ?? new SagaOptions();
     }
 
     /// <summary>
@@ -61,6 +65,7 @@ public class CompensationService
             var compensation = new CompensationTransaction();
             compensation.Initialize(saga.Id, step.Id, step.Name, step.Order, step.CompensationUrl);
             compensation.SetRequestPayload(step.Response);
+            compensation.TimeoutSeconds = _sagaOptions.TimeoutPolicies.CompensationTimeoutSeconds;
 
             await _compensationRepository.CreateAsync(compensation);
         }
@@ -99,7 +104,7 @@ public class CompensationService
             return null;
         }
 
-        // Execute compensation
+        // Execute compensation with timeout
         nextCompensation.Start();
         await _compensationRepository.UpdateAsync(nextCompensation);
 
@@ -108,8 +113,25 @@ public class CompensationService
 
         try
         {
-            var result = await SimulateCompensationCallAsync(nextCompensation, cancellationToken);
+            // Create timeout cancellation token
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(_sagaOptions.TimeoutPolicies.CompensationTimeoutSeconds));
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+            var result = await SimulateCompensationCallAsync(nextCompensation, linkedCts.Token);
             nextCompensation.Complete(result);
+
+            await _compensationRepository.UpdateAsync(nextCompensation);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Timeout occurred
+            SagaActivitySource.RecordCompensationFailure(compActivity, $"Compensation timed out after {_sagaOptions.TimeoutPolicies.CompensationTimeoutSeconds} seconds");
+            nextCompensation.Fail($"Compensation timed out after {_sagaOptions.TimeoutPolicies.CompensationTimeoutSeconds} seconds");
+
+            if (nextCompensation.CanRetry())
+            {
+                nextCompensation.PrepareForRetry();
+            }
 
             await _compensationRepository.UpdateAsync(nextCompensation);
         }
