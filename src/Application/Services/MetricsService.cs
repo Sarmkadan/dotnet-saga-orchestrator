@@ -5,6 +5,7 @@
 // =============================================================================
 
 using Microsoft.Extensions.Logging;
+using SagaOrchestrator.Application.DTOs;
 using SagaOrchestrator.Data.Repositories;
 
 namespace SagaOrchestrator.Application.Services;
@@ -18,6 +19,7 @@ public interface IMetricsService
     Task<SagaMetrics> GetMetricsAsync();
     Task<StepMetrics> GetStepMetricsAsync(string stepName);
     Task<PerformanceStats> GetPerformanceStatsAsync();
+    Task<MetricsSummary> GetSummaryAsync();
 }
 
 public class MetricsService : IMetricsService
@@ -82,7 +84,7 @@ public class MetricsService : IMetricsService
             var failed = allSteps.Count(s => s.Status.ToString() == "Failed");
             var avgDuration = allSteps.Where(s => s.Status.ToString() == "Completed").Any()
                 ? allSteps.Where(s => s.Status.ToString() == "Completed")
-                    .Average(s => ((s.CompletedAt ?? DateTime.UtcNow) - (s.StartedAt ?? DateTime.UtcNow)).TotalMilliseconds)
+                .Average(s => ((s.CompletedAt ?? DateTime.UtcNow) - (s.StartedAt ?? DateTime.UtcNow)).TotalMilliseconds)
                 : 0;
 
             return new StepMetrics
@@ -135,6 +137,46 @@ public class MetricsService : IMetricsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating performance stats");
+            throw;
+        }
+    }
+
+    public async Task<MetricsSummary> GetSummaryAsync()
+    {
+        try
+        {
+            var allSagas = await _sagaRepository.GetAllAsync();
+            var completedSagas = allSagas.Where(s => s.Status.ToString() == "Completed").ToList();
+
+            var byStatus = new Dictionary<string, int>
+            {
+                { "Completed", allSagas.Count(s => s.Status.ToString() == "Completed") },
+                { "Failed", allSagas.Count(s => s.Status.ToString() == "Failed") },
+                { "Running", allSagas.Count(s => s.Status.ToString() == "Running") },
+                { "Compensated", allSagas.Count(s => s.Status.ToString() == "Compensated") },
+                { "Pending", allSagas.Count(s => s.Status.ToString() == "Pending") }
+            };
+
+            var avgDuration = completedSagas.Any()
+                ? completedSagas.Average(s => ((s.CompletedAt ?? DateTime.UtcNow) - s.CreatedAt).TotalSeconds)
+                : 0;
+
+            var compensationRate = allSagas.Count > 0
+                ? (double)allSagas.Count(s => s.Status.ToString() == "Compensated") / allSagas.Count * 100
+                : 0;
+
+            return new MetricsSummary
+            {
+                TotalSagas = allSagas.Count,
+                ByStatus = byStatus,
+                AverageDurationSeconds = avgDuration,
+                CompensationRate = compensationRate,
+                Timestamp = DateTime.UtcNow
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating metrics summary");
             throw;
         }
     }
