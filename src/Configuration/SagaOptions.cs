@@ -30,6 +30,7 @@ public class TimeoutPolicies
     public int MaxStepTimeoutSeconds { get; set; } = 3600;
     public int MaxSagaTimeoutSeconds { get; set; } = 86400;
     public int CompensationTimeoutSeconds { get; set; } = 120;
+    public int StaleSagaTimeoutSeconds { get; set; } = 3600;
 }
 
 public class RetryPolicies
@@ -93,6 +94,12 @@ public class SagaOptionsBuilder
         return this;
     }
 
+public SagaOptionsBuilder WithStaleSagaTimeout(int seconds)
+{
+    _options.TimeoutPolicies.StaleSagaTimeoutSeconds = seconds.GreaterThan(0, nameof(seconds));
+    return this;
+}
+
     public SagaOptionsBuilder WithDefaultMaxRetries(int retries)
     {
         _options.RetryPolicies.DefaultMaxRetries = retries.GreaterThanOrEqual(0, nameof(retries));
@@ -154,6 +161,9 @@ public class SagaOptionsBuilder
 
         if (_options.TimeoutPolicies.DefaultSagaTimeoutSeconds > _options.TimeoutPolicies.MaxSagaTimeoutSeconds)
             throw new InvalidOperationException("Default saga timeout cannot exceed max timeout");
+
+        if (_options.TimeoutPolicies.StaleSagaTimeoutSeconds > _options.TimeoutPolicies.MaxSagaTimeoutSeconds)
+            throw new InvalidOperationException("Stale saga timeout cannot exceed max timeout");
 
         if (_options.RetryPolicies.DefaultMaxRetries > _options.RetryPolicies.MaxRetries)
             throw new InvalidOperationException("Default max retries cannot exceed maximum allowed retries");

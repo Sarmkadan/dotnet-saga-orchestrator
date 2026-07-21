@@ -202,3 +202,11 @@ public class CompensationCompletedEvent : DomainEvent
     public int CompensatedSteps { get; set; }
     public long DurationMs { get; set; }
 }
+
+public class SagaStaleEvent : DomainEvent
+{
+    public string SagaId { get; set; } = string.Empty;
+    public string SagaName { get; set; } = string.Empty;
+    public long StaleDurationSeconds { get; set; }
+    public DateTime StaleAt { get; set; }
+}
