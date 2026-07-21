@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Exceptions;
 using SagaOrchestrator.Data.Repositories;
+using SagaOrchestrator.Infrastructure.Serialization;
 
 namespace SagaOrchestrator.Application.Services;
 
@@ -21,10 +22,12 @@ namespace SagaOrchestrator.Application.Services;
 public class SagaDefinitionService
 {
     private readonly ISagaDefinitionRepository _repository;
+    private readonly ISagaSerializer _serializer;
 
-    public SagaDefinitionService(ISagaDefinitionRepository repository)
+    public SagaDefinitionService(ISagaDefinitionRepository repository, ISagaSerializer serializer)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
     }
 
     /// <summary>
@@ -347,6 +350,120 @@ public class SagaDefinitionService
         {
             throw new DotnetSagaOrchestratorException("Error cloning saga definition", ex);
         }
+    }
+
+    /// <summary>
+    /// Exports a saga definition to JSON string
+    /// </summary>
+    /// <param name="definitionId">The ID of the saga definition to export</param>
+    /// <returns>JSON string representation of the saga definition</returns>
+    public async Task<string> ExportDefinitionToJsonAsync(string definitionId)
+    {
+        if (string.IsNullOrWhiteSpace(definitionId))
+            throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
+
+        SagaDefinition definition;
+        try
+        {
+            definition = await _repository.GetByIdAsync(definitionId)
+                ?? throw new SagaException($"Definition '{definitionId}' not found");
+        }
+        catch (Exception ex) when (!(ex is SagaException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga definition for export", ex);
+        }
+
+        return _serializer.Serialize(definition);
+    }
+
+    /// <summary>
+    /// Imports a saga definition from JSON string and creates it in the repository
+    /// </summary>
+    /// <param name="json">JSON string representation of the saga definition</param>
+    /// <param name="overwriteIfExists">Whether to overwrite if a definition with the same name already exists</param>
+    /// <returns>The created or updated saga definition</returns>
+    public async Task<SagaDefinition> ImportDefinitionFromJsonAsync(string json, bool overwriteIfExists = false)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            throw new ArgumentException("JSON content must be provided", nameof(json));
+
+        SagaDefinition? definition;
+        try
+        {
+            definition = _serializer.Deserialize<SagaDefinition>(json);
+            if (definition == null)
+                throw new DotnetSagaOrchestratorException("Failed to deserialize saga definition from JSON");
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error deserializing saga definition from JSON", ex);
+        }
+
+        if (string.IsNullOrWhiteSpace(definition.Name))
+            throw new DotnetSagaOrchestratorException("Imported saga definition must have a name");
+
+        // Check if definition with same name already exists
+        var existingDefinition = await _repository.GetByNameAsync(definition.Name);
+        if (existingDefinition != null)
+        {
+            if (!overwriteIfExists)
+                throw new DotnetSagaOrchestratorException(
+                    $"A saga definition with name '{definition.Name}' already exists. Set overwriteIfExists=true to replace it.");
+
+            // Update existing definition
+            definition.Id = existingDefinition.Id;
+            definition.CreatedAt = existingDefinition.CreatedAt;
+            definition.Version = existingDefinition.Version + 1;
+        }
+        else
+        {
+            // Create new definition with default values
+            definition.Id = Guid.NewGuid().ToString();
+            definition.CreatedAt = DateTime.UtcNow;
+            definition.Version = 1;
+        }
+
+        // Ensure steps have proper order
+        for (int i = 0; i < definition.Steps.Count; i++)
+        {
+            definition.Steps[i].Order = i + 1;
+        }
+
+        try
+        {
+            var result = await _repository.UpdateAsync(definition) ?? await _repository.CreateAsync(definition);
+            if (result == null)
+                throw new SagaException("Failed to import saga definition");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            throw new DotnetSagaOrchestratorException("Error saving imported saga definition", ex);
+        }
+    }
+
+    /// <summary>
+    /// Exports a saga definition to indented JSON string for better readability
+    /// </summary>
+    /// <param name="definitionId">The ID of the saga definition to export</param>
+    /// <returns>Indented JSON string representation of the saga definition</returns>
+    public async Task<string> ExportDefinitionToJsonIndentedAsync(string definitionId)
+    {
+        if (string.IsNullOrWhiteSpace(definitionId))
+            throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
+
+        SagaDefinition definition;
+        try
+        {
+            definition = await _repository.GetByIdAsync(definitionId)
+                ?? throw new SagaException($"Definition '{definitionId}' not found");
+        }
+        catch (Exception ex) when (!(ex is SagaException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga definition for export", ex);
+        }
+
+        return _serializer.SerializeIndented(definition);
     }
 }
 

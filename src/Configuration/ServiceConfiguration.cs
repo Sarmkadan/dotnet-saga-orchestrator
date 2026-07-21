@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using SagaOrchestrator.Application.Services;
 using SagaOrchestrator.Data.Repositories;
 using SagaOrchestrator.Infrastructure.Logging;
+using SagaOrchestrator.Infrastructure.Serialization;
 
 namespace SagaOrchestrator.Configuration;
 
@@ -39,6 +40,7 @@ public static class ServiceConfiguration
 
         // Register services
         services.AddSingleton<ISagaLogger, SagaLogger>();
+        services.AddSingleton<ISagaSerializer, SagaJsonSerializer>();
         services.AddSingleton<SagaDefinitionService>();
         services.AddSingleton<CompensationService>();
         services.AddSingleton<SagaOrchestrationService>();
