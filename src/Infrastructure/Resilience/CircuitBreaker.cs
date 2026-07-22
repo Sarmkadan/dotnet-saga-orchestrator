@@ -7,6 +7,8 @@
 using System.Collections.Concurrent;
 using SagaOrchestrator.Core.Extensions;
 
+using System.Threading;
+
 namespace SagaOrchestrator.Infrastructure.Resilience;
 
 /// <summary>
@@ -174,8 +176,19 @@ public class CircuitBreaker : ICircuitBreaker
                 return false;
             }
 
-            // HalfOpen - allow one request
-            return true;
+            // HalfOpen - allow only one request at a time
+            if (metrics.State == CircuitBreakerState.HalfOpen)
+            {
+                // Use Interlocked to atomically check and set the execution flag
+                // This ensures only one thread can execute the probe request
+                if (Interlocked.CompareExchange(ref metrics.ExecutionInProgress, 1, 0) == 0)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            return false;
         }
     }
 
@@ -189,6 +202,9 @@ public class CircuitBreaker : ICircuitBreaker
                 metrics.SuccessCount++;
                 if (metrics.State == CircuitBreakerState.HalfOpen)
                     metrics.State = CircuitBreakerState.Closed;
+
+                // Reset the execution flag when probe succeeds
+                metrics.ExecutionInProgress = 0;
             }
         }
     }
@@ -205,6 +221,7 @@ public class CircuitBreaker : ICircuitBreaker
 
             metrics.FailureCount++;
             metrics.LastFailureTime = DateTime.UtcNow;
+            metrics.ExecutionInProgress = 0; // Reset execution flag on failure
 
             if (metrics.FailureCount >= _failureThreshold)
                 metrics.State = CircuitBreakerState.Open;
@@ -220,6 +237,7 @@ public class CircuitBreaker : ICircuitBreaker
         public int SuccessCount { get; set; }
         public DateTime LastFailureTime { get; set; }
         public DateTime LastAccessedAt { get; set; } = DateTime.UtcNow;
+        public int ExecutionInProgress;
     }
 
     /// <summary>
