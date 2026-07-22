@@ -371,6 +371,74 @@ public class SagaDefinitionValidatorTests
         var exception = await act.Should().ThrowAsync<InvalidSagaDefinitionException>();
         exception.Which.Message.Should().Match("*is invalid*");
     }
+
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> throws NullReferenceException when the saga definition is null.
+    /// The validator does not explicitly check for null definition parameter.
+    /// </summary>
+    [Fact]
+    public async Task ValidateAndGetErrorsAsync_NullDefinition_Throws()
+    {
+        var validator = new SagaDefinitionValidator();
+        SagaDefinition? definition = null;
+
+        var act = () => validator.ValidateAndGetErrorsAsync(definition!);
+
+        await act.Should().ThrowAsync<NullReferenceException>();
+    }
+
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> returns an error when the saga has empty steps list.
+    /// </summary>
+    [Fact]
+    public async Task ValidateAndGetErrorsAsync_EmptySteps_ReturnsError()
+    {
+        var validator = new SagaDefinitionValidator();
+        var definition = new SagaDefinition("OrderSaga", "description")
+        {
+            Steps = new List<SagaStepDefinition>()
+        };
+
+        var errors = await validator.ValidateAndGetErrorsAsync(definition);
+
+        errors.Should().ContainMatch("*at least one step*");
+    }
+
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAndGetErrorsAsync(SagaDefinition)"/> does not return errors for duplicate step names.
+    /// The validator does not check for duplicate step names, only duplicate order numbers.
+    /// </summary>
+    [Fact]
+    public async Task ValidateAndGetErrorsAsync_DuplicateStepNames_NoErrorsReturned()
+    {
+        var validator = new SagaDefinitionValidator();
+        var step1 = CreateValidStep("DuplicateStep");
+        var step2 = CreateValidStep("DuplicateStep");
+        step2.Order = 2;
+
+        var definition = new SagaDefinition("OrderSaga", "description")
+        {
+            Steps = new List<SagaStepDefinition> { step1, step2 }
+        };
+
+        var errors = await validator.ValidateAndGetErrorsAsync(definition);
+
+        errors.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Tests that <see cref="SagaDefinitionValidator.ValidateAsync(SagaDefinition)"/> does not throw when validating a valid saga definition.
+    /// </summary>
+    [Fact]
+    public async Task ValidateAsync_ValidDefinition_DoesNotThrow()
+    {
+        var validator = new SagaDefinitionValidator();
+        var definition = CreateValidDefinition();
+
+        var act = () => validator.ValidateAsync(definition);
+
+        await act.Should().NotThrowAsync();
+    }
 }
 
 /// <summary>
