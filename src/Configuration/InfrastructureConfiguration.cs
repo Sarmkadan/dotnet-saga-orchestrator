@@ -59,6 +59,7 @@ public sealed record InfrastructureConfiguration(
         {
             services.AddSingleton<global::SagaOrchestrator.Infrastructure.Events.IEventBus, global::SagaOrchestrator.Infrastructure.Events.EventBus>();
             services.AddSingleton<global::SagaOrchestrator.Infrastructure.Events.ISagaEventObserver, global::SagaOrchestrator.Infrastructure.Events.SagaEventObserver>();
+            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Events.CompositeSagaEventObserver>();
         }
 
         if (EnableFormatting)

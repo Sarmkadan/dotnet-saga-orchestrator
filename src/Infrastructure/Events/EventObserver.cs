@@ -1,4 +1,5 @@
 #nullable enable
+
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -13,14 +14,9 @@ namespace SagaOrchestrator.Infrastructure.Events;
 /// Observer pattern implementation for saga domain events.
 /// Subscribes to events and triggers side effects like webhook delivery.
 /// </summary>
-public interface ISagaEventObserver
-{
-    Task OnSagaCreatedAsync(SagaCreatedEvent @event);
-    Task OnSagaCompletedAsync(SagaCompletedEvent @event);
-    Task OnSagaFailedAsync(SagaFailedEvent @event);
-    Task OnCompensationStartedAsync(CompensationStartedEvent @event);
-}
-
+/// <remarks>
+/// Implements the <see cref="ISagaEventObserver"/> contract with proper error isolation and async handling.
+/// </remarks>
 public class SagaEventObserver : ISagaEventObserver
 {
     private readonly IWebhookHandler _webhookHandler;
@@ -37,8 +33,20 @@ public class SagaEventObserver : ISagaEventObserver
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task OnSagaCreatedAsync(SagaCreatedEvent @event)
+    /// <summary>
+    /// Called when a saga is created.
+    /// </summary>
+    /// <param name="@event">The saga created event.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <remarks>
+    /// Implements error isolation by catching and logging any exceptions from webhook delivery.
+    /// The method returns <see cref="ValueTask"/> to allow callers to choose awaited or fire-and-forget execution.
+    /// </remarks>
+    public async ValueTask OnSagaCreatedAsync(SagaCreatedEvent @event)
     {
+        ArgumentNullException.ThrowIfNull(@event);
+
         _logger.LogInformation("Saga created event observed | SagaId: {SagaId}", @event.SagaId);
 
         var subscriptions = _webhookHandler.GetSubscriptions();
@@ -50,7 +58,7 @@ public class SagaEventObserver : ISagaEventObserver
         {
             try
             {
-                await _webhookHandler.SendWebhookAsync(webhook.Url, @event);
+                await _webhookHandler.SendWebhookAsync(webhook.Url, @event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -59,8 +67,20 @@ public class SagaEventObserver : ISagaEventObserver
         }
     }
 
-    public async Task OnSagaCompletedAsync(SagaCompletedEvent @event)
+    /// <summary>
+    /// Called when a saga completes successfully.
+    /// </summary>
+    /// <param name="@event">The saga completed event.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <remarks>
+    /// Implements error isolation by catching and logging any exceptions from webhook delivery.
+    /// The method returns <see cref="ValueTask"/> to allow callers to choose awaited or fire-and-forget execution.
+    /// </remarks>
+    public async ValueTask OnSagaCompletedAsync(SagaCompletedEvent @event)
     {
+        ArgumentNullException.ThrowIfNull(@event);
+
         _logger.LogInformation("Saga completed event observed | SagaId: {SagaId}", @event.SagaId);
 
         var subscriptions = _webhookHandler.GetSubscriptions();
@@ -72,7 +92,7 @@ public class SagaEventObserver : ISagaEventObserver
         {
             try
             {
-                await _webhookHandler.SendWebhookAsync(webhook.Url, @event);
+                await _webhookHandler.SendWebhookAsync(webhook.Url, @event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -81,8 +101,20 @@ public class SagaEventObserver : ISagaEventObserver
         }
     }
 
-    public async Task OnSagaFailedAsync(SagaFailedEvent @event)
+    /// <summary>
+    /// Called when a saga fails.
+    /// </summary>
+    /// <param name="@event">The saga failed event.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <remarks>
+    /// Implements error isolation by catching and logging any exceptions from webhook delivery.
+    /// The method returns <see cref="ValueTask"/> to allow callers to choose awaited or fire-and-forget execution.
+    /// </remarks>
+    public async ValueTask OnSagaFailedAsync(SagaFailedEvent @event)
     {
+        ArgumentNullException.ThrowIfNull(@event);
+
         _logger.LogError("Saga failed event observed | SagaId: {SagaId}, Error: {Error}",
             @event.SagaId, @event.ErrorMessage);
 
@@ -95,7 +127,7 @@ public class SagaEventObserver : ISagaEventObserver
         {
             try
             {
-                await _webhookHandler.SendWebhookAsync(webhook.Url, @event);
+                await _webhookHandler.SendWebhookAsync(webhook.Url, @event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -104,8 +136,20 @@ public class SagaEventObserver : ISagaEventObserver
         }
     }
 
-    public async Task OnCompensationStartedAsync(CompensationStartedEvent @event)
+    /// <summary>
+    /// Called when compensation starts for a saga.
+    /// </summary>
+    /// <param name="@event">The compensation started event.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <remarks>
+    /// Implements error isolation by catching and logging any exceptions from webhook delivery.
+    /// The method returns <see cref="ValueTask"/> to allow callers to choose awaited or fire-and-forget execution.
+    /// </remarks>
+    public async ValueTask OnCompensationStartedAsync(CompensationStartedEvent @event)
     {
+        ArgumentNullException.ThrowIfNull(@event);
+
         _logger.LogWarning("Compensation started event observed | SagaId: {SagaId}, Strategy: {Strategy}",
             @event.SagaId, @event.CompensationStrategy);
 
@@ -118,7 +162,7 @@ public class SagaEventObserver : ISagaEventObserver
         {
             try
             {
-                await _webhookHandler.SendWebhookAsync(webhook.Url, @event);
+                await _webhookHandler.SendWebhookAsync(webhook.Url, @event).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
