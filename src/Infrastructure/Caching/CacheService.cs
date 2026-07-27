@@ -4,6 +4,12 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace SagaOrchestrator.Infrastructure.Caching;
 
 /// <summary>
@@ -18,122 +24,115 @@ public interface ICacheService
     Task ClearAsync();
     Task<bool> ExistsAsync(string key);
     int GetCacheSize();
+
+    /// <summary>
+    /// Gets or creates a value in the cache with stampede protection.
+    /// </summary>
+    Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null);
+
+    /// <summary>
+    /// Gets the cache hit and miss counters.
+    /// </summary>
+    (long Hits, long Misses) GetMetrics();
 }
 
-public class CacheService : ICacheService
+public class CacheService : ICacheService, IDisposable
 {
     private readonly Dictionary<string, CacheEntry> _cache;
     private readonly ReaderWriterLockSlim _lock;
     private readonly Timer _cleanupTimer;
+    private readonly SemaphoreSlim[] _locks;
+    private readonly Random _random;
+    private long _hits;
+    private long _misses;
 
     public CacheService()
     {
         _cache = new();
         _lock = new();
+        _locks = Enumerable.Range(0, 32).Select(_ => new SemaphoreSlim(1, 1)).ToArray();
+        _random = new Random();
         // Cleanup expired entries every 5 minutes
         _cleanupTimer = new Timer(CleanupExpiredEntries, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
     }
 
+    private SemaphoreSlim GetLock(string key) => _locks[Math.Abs(key.GetHashCode()) % _locks.Length];
+
     public async Task<T?> GetAsync<T>(string key)
     {
-        return await Task.Run(() =>
+        _lock.EnterReadLock();
+        try
         {
-            _lock.EnterReadLock();
-            try
+            if (_cache.TryGetValue(key, out var entry))
             {
-                if (_cache.TryGetValue(key, out var entry))
+                if (entry.IsExpired())
                 {
-                    if (entry.IsExpired())
-                    {
-                        _lock.ExitReadLock();
-                        _lock.EnterWriteLock();
-                        try
-                        {
-                            _cache.Remove(key);
-                            return default;
-                        }
-                        finally
-                        {
-                            _lock.ExitWriteLock();
-                        }
-                    }
-                    return (T?)entry.Value;
+                    Interlocked.Increment(ref _misses);
+                    return default;
                 }
-                return default;
+                Interlocked.Increment(ref _hits);
+                return (T?)entry.Value;
             }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-        });
+            Interlocked.Increment(ref _misses);
+            return default;
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
     }
 
     public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null)
     {
-        await Task.Run(() =>
+        _lock.EnterWriteLock();
+        try
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                var expiryTime = expiration.HasValue
-                    ? DateTime.UtcNow.Add(expiration.Value)
-                    : DateTime.UtcNow.AddHours(1); // Default 1 hour
-
-                _cache[key] = new CacheEntry(value, expiryTime);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-        });
+            var expiryTime = CalculateExpiry(expiration);
+            _cache[key] = new CacheEntry(value, expiryTime);
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
     }
 
     public async Task RemoveAsync(string key)
     {
-        await Task.Run(() =>
+        _lock.EnterWriteLock();
+        try
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                _cache.Remove(key);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-        });
+            _cache.Remove(key);
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
     }
 
     public async Task ClearAsync()
     {
-        await Task.Run(() =>
+        _lock.EnterWriteLock();
+        try
         {
-            _lock.EnterWriteLock();
-            try
-            {
-                _cache.Clear();
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-        });
+            _cache.Clear();
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
     }
 
     public async Task<bool> ExistsAsync(string key)
     {
-        return await Task.Run(() =>
+        _lock.EnterReadLock();
+        try
         {
-            _lock.EnterReadLock();
-            try
-            {
-                return _cache.ContainsKey(key) && !_cache[key].IsExpired();
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-        });
+            return _cache.ContainsKey(key) && !_cache[key].IsExpired();
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
     }
 
     public int GetCacheSize()
@@ -147,6 +146,51 @@ public class CacheService : ICacheService
         {
             _lock.ExitReadLock();
         }
+    }
+
+    public async Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        string stringKey = key.ToString();
+
+        // 1. Try get
+        T? cached = await GetAsync<T>(stringKey);
+        if (cached != null) return cached;
+
+        // 2. Lock and re-check (Double-checked locking pattern)
+        var semaphore = GetLock(stringKey);
+        await semaphore.WaitAsync();
+        try
+        {
+            cached = await GetAsync<T>(stringKey);
+            if (cached != null) return cached;
+
+            // 3. Factory call
+            T value = await factory();
+
+            // 4. Set
+            await SetAsync(stringKey, value, expiration);
+            return value;
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    public (long Hits, long Misses) GetMetrics()
+    {
+        return (Interlocked.Read(ref _hits), Interlocked.Read(ref _misses));
+    }
+
+    private DateTime CalculateExpiry(TimeSpan? expiration)
+    {
+        var ttl = expiration ?? TimeSpan.FromHours(1);
+        // Add jitter: 0-5s
+        var jitter = TimeSpan.FromMilliseconds(_random.Next(0, 5000));
+        return DateTime.UtcNow.Add(ttl).Add(jitter);
     }
 
     private void CleanupExpiredEntries(object? state)
@@ -163,11 +207,6 @@ public class CacheService : ICacheService
             {
                 _cache.Remove(key);
             }
-
-            if (expiredKeys.Count > 0)
-            {
-                System.Diagnostics.Debug.WriteLine($"Cleaned up {expiredKeys.Count} expired cache entries");
-            }
         }
         finally
         {
@@ -179,6 +218,7 @@ public class CacheService : ICacheService
     {
         _cleanupTimer?.Dispose();
         _lock?.Dispose();
+        foreach (var s in _locks) s.Dispose();
     }
 
     private class CacheEntry
