@@ -7,6 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +21,7 @@ namespace SagaOrchestrator.Infrastructure.Caching;
 public interface ICacheService
 {
     Task<T?> GetAsync<T>(string key);
-    Task SetAsync<T>(string key, T value, TimeSpan? expiration = null);
+    Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null);
     Task RemoveAsync(string key);
     Task ClearAsync();
     Task<bool> ExistsAsync(string key);
@@ -28,7 +30,7 @@ public interface ICacheService
     /// <summary>
     /// Gets or creates a value in the cache with stampede protection.
     /// </summary>
-    Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null);
+    Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null);
 
     /// <summary>
     /// Gets the cache hit and miss counters.
@@ -36,6 +38,10 @@ public interface ICacheService
     (long Hits, long Misses) GetMetrics();
 }
 
+/// <summary>
+/// In-memory caching service with TTL support and expiration policies.
+/// Provides thread-safe cache operations for saga and definition caching.
+/// </summary>
 public class CacheService : ICacheService, IDisposable
 {
     private readonly Dictionary<string, CacheEntry> _cache;
@@ -45,8 +51,17 @@ public class CacheService : ICacheService, IDisposable
     private readonly Random _random;
     private long _hits;
     private long _misses;
+    private readonly int _defaultMaxKeyLength;
+    private readonly int _defaultMaxValueSize;
+    private readonly int _defaultMaxCacheSize;
 
-    public CacheService()
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CacheService"/> class.
+    /// </summary>
+    /// <param name="defaultMaxKeyLength">Default maximum key length in characters.</param>
+    /// <param name="defaultMaxValueSize">Default maximum value size in bytes (serialized JSON).</param>
+    /// <param name="defaultMaxCacheSize">Default maximum number of items in the cache.</param>
+    public CacheService(int defaultMaxKeyLength = 250, int defaultMaxValueSize = 102400, int defaultMaxCacheSize = 1000)
     {
         _cache = new();
         _lock = new();
@@ -54,12 +69,18 @@ public class CacheService : ICacheService, IDisposable
         _random = new Random();
         // Cleanup expired entries every 5 minutes
         _cleanupTimer = new Timer(CleanupExpiredEntries, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+        _defaultMaxKeyLength = defaultMaxKeyLength;
+        _defaultMaxValueSize = defaultMaxValueSize;
+        _defaultMaxCacheSize = defaultMaxCacheSize;
     }
 
     private SemaphoreSlim GetLock(string key) => _locks[Math.Abs(key.GetHashCode()) % _locks.Length];
 
+    /// <inheritdoc />
     public async Task<T?> GetAsync<T>(string key)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
         _lock.EnterReadLock();
         try
         {
@@ -82,11 +103,59 @@ public class CacheService : ICacheService, IDisposable
         }
     }
 
-    public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null)
+    /// <inheritdoc />
+    public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
+        var effectiveMaxKeyLength = maxKeyLength ?? _defaultMaxKeyLength;
+        var effectiveMaxValueSize = maxValueSize ?? _defaultMaxValueSize;
+        var effectiveMaxCacheSize = maxCacheSize ?? _defaultMaxCacheSize;
+
+        if (key.Length > effectiveMaxKeyLength)
+        {
+            throw new ArgumentException($"Key length exceeds maximum allowed length of {effectiveMaxKeyLength}.", nameof(key));
+        }
+
+        if (effectiveMaxValueSize > 0 && value != null)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(value);
+                var byteCount = Encoding.UTF8.GetByteCount(json);
+                if (byteCount > effectiveMaxValueSize)
+                {
+                    throw new ArgumentException($"Value size ({byteCount} bytes) exceeds maximum allowed size of {effectiveMaxValueSize} bytes.", nameof(value));
+                }
+            }
+            catch (NotSupportedException)
+            {
+                // If serialization fails, we cannot determine the size, so we skip the size check.
+                // This can happen for types that are not serializable by System.Text.Json.
+                // In a production system, you might want to handle this differently.
+            }
+        }
+
         _lock.EnterWriteLock();
         try
         {
+            // Enforce maximum cache size by removing entries if necessary
+            if (_cache.Count >= effectiveMaxCacheSize)
+            {
+                // Try to remove an expired entry first
+                var expiredKey = _cache.FirstOrDefault(kvp => kvp.Value.IsExpired()).Key;
+                if (!string.IsNullOrEmpty(expiredKey))
+                {
+                    _cache.Remove(expiredKey);
+                }
+                else
+                {
+                    // If no expired entries, remove the first entry (arbitrary choice)
+                    var firstKey = _cache.Keys.First();
+                    _cache.Remove(firstKey);
+                }
+            }
+
             var expiryTime = CalculateExpiry(expiration);
             _cache[key] = new CacheEntry(value, expiryTime);
         }
@@ -96,8 +165,11 @@ public class CacheService : ICacheService, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public async Task RemoveAsync(string key)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
         _lock.EnterWriteLock();
         try
         {
@@ -109,6 +181,7 @@ public class CacheService : ICacheService, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public async Task ClearAsync()
     {
         _lock.EnterWriteLock();
@@ -122,8 +195,11 @@ public class CacheService : ICacheService, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExistsAsync(string key)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
         _lock.EnterReadLock();
         try
         {
@@ -135,6 +211,7 @@ public class CacheService : ICacheService, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public int GetCacheSize()
     {
         _lock.EnterReadLock();
@@ -148,7 +225,8 @@ public class CacheService : ICacheService, IDisposable
         }
     }
 
-    public async Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null)
+    /// <inheritdoc />
+    public async Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null)
     {
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(factory);
@@ -171,7 +249,7 @@ public class CacheService : ICacheService, IDisposable
             T value = await factory();
 
             // 4. Set
-            await SetAsync(stringKey, value, expiration);
+            await SetAsync(stringKey, value, expiration, maxKeyLength, maxValueSize, maxCacheSize);
             return value;
         }
         finally
@@ -180,6 +258,7 @@ public class CacheService : ICacheService, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public (long Hits, long Misses) GetMetrics()
     {
         return (Interlocked.Read(ref _hits), Interlocked.Read(ref _misses));
