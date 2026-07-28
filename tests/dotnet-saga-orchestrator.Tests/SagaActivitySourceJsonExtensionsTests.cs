@@ -1,3 +1,5 @@
+using System;
+using System.Text.Json;
 using Xunit;
 using FluentAssertions;
 using SagaOrchestrator.Infrastructure.Telemetry;
@@ -17,6 +19,33 @@ public class SagaActivitySourceJsonExtensionsTests
 
         // Assert
         result.Should().Be("{\"name\":\"test-activity\"}");
+    }
+
+    [Fact]
+    public void ToJson_EmptyString_ReturnsJsonWithEmptyName()
+    {
+        // Arrange
+        string name = string.Empty;
+
+        // Act
+        string result = SagaActivitySourceJsonExtensions.ToJson(name);
+
+        // Assert
+        result.Should().Be("{\"name\":\"\"}");
+    }
+
+    [Fact]
+    public void ToJson_IndentedTrue_ReturnsPrettyJson()
+    {
+        // Arrange
+        string name = "pretty";
+
+        // Act
+        string result = SagaActivitySourceJsonExtensions.ToJson(name, indented: true);
+
+        // Assert
+        result.Should().Contain("\n");
+        result.Should().Be("{\n  \"name\": \"pretty\"\n}");
     }
 
     [Fact]
@@ -47,7 +76,7 @@ public class SagaActivitySourceJsonExtensionsTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("null")]
-    public void FromJson_EmptyOrNullJson_ReturnsNull(string json)
+    public void FromJson_EmptyOrWhitespace_ReturnsNull(string json)
     {
         // Act
         var result = SagaActivitySourceJsonExtensions.FromJson(json);
@@ -57,7 +86,30 @@ public class SagaActivitySourceJsonExtensionsTests
     }
 
     [Fact]
-    public void TryFromJson_ValidJson_ReturnsTrue()
+    public void FromJson_NullString_ReturnsNull()
+    {
+        // Act
+        var result = SagaActivitySourceJsonExtensions.FromJson(null!);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void FromJson_InvalidJson_ThrowsJsonException()
+    {
+        // Arrange
+        string json = "invalid-json";
+
+        // Act
+        Action act = () => SagaActivitySourceJsonExtensions.FromJson(json);
+
+        // Assert
+        act.Should().Throw<JsonException>();
+    }
+
+    [Fact]
+    public void TryFromJson_ValidJson_ReturnsTrueAndTelemetry()
     {
         // Arrange
         string json = "{\"name\":\"test-activity\"}";
@@ -83,5 +135,42 @@ public class SagaActivitySourceJsonExtensionsTests
         // Assert
         success.Should().BeFalse();
         result.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("null")]
+    public void TryFromJson_EmptyOrWhitespace_ReturnsFalse(string json)
+    {
+        // Act
+        bool success = SagaActivitySourceJsonExtensions.TryFromJson(json, out var result);
+
+        // Assert
+        success.Should().BeFalse();
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void TryFromJson_NullString_ThrowsArgumentNullException()
+    {
+        // Act
+        Action act = () => SagaActivitySourceJsonExtensions.TryFromJson(null!, out _);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Telemetry_NamePropertyCanBeSetAndRead()
+    {
+        // Arrange
+        var telemetry = new SagaActivitySourceJsonExtensions.SagaActivitySourceTelemetry();
+
+        // Act
+        telemetry.Name = "custom-name";
+
+        // Assert
+        telemetry.Name.Should().Be("custom-name");
     }
 }
