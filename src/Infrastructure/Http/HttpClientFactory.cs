@@ -33,6 +33,8 @@ public class HttpClientFactory : IHttpClientFactory
 
     public HttpClient CreateClient(string name, HttpClientConfiguration config)
     {
+        ArgumentNullException.ThrowIfNull(config);
+        config.Validate();
         if (_cachedClients.TryGetValue(name, out var client))
             return client;
 
@@ -89,6 +91,20 @@ public class HttpClientConfiguration
     /// Defaults to <see cref="PolicyOptions"/> defaults when not overridden.
     /// </summary>
     public PolicyOptions Policy { get; set; } = new();
+
+    /// <summary>
+    /// Validates the configuration.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown when validation fails.</exception>
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(BaseUrl))
+            throw new ArgumentException("BaseUrl cannot be empty.", nameof(BaseUrl));
+        if (TimeoutSeconds <= 0)
+            throw new ArgumentException("TimeoutSeconds must be greater than zero.", nameof(TimeoutSeconds));
+        if (Policy.MaxRetries < 0)
+            throw new ArgumentException("MaxRetries cannot be negative.", nameof(Policy.MaxRetries));
+    }
 }
 
 /// <summary>
