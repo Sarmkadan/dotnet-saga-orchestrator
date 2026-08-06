@@ -22,7 +22,7 @@ public interface IRequestContext
 
 public class RequestContext : IRequestContext
 {
-    public string CorrelationId { get; }
+    public string CorrelationId { get; set; }
     public string? UserId { get; set; }
     public string? TenantId { get; set; }
     public DateTime StartTime { get; }
