@@ -4,6 +4,7 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SagaOrchestrator.Core.Extensions;
 
@@ -25,14 +26,13 @@ public interface IServiceRegistry
 
 public class ServiceRegistry : IServiceRegistry
 {
-    private readonly Dictionary<string, ServiceDescriptor> _services;
+    private readonly ConcurrentDictionary<string, ServiceDescriptor> _services;
     private readonly ILogger<ServiceRegistry> _logger;
-    private readonly object _lock = new();
 
     public ServiceRegistry(ILogger<ServiceRegistry> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _services = new();
+        _services = new ConcurrentDictionary<string, ServiceDescriptor>();
     }
 
     public async Task RegisterServiceAsync(ServiceDescriptor service)
@@ -42,10 +42,7 @@ public class ServiceRegistry : IServiceRegistry
 
         await Task.Run(() =>
         {
-            lock (_lock)
-            {
-                _services[service.Name] = service;
-            }
+            _services[service.Name] = service;
         });
 
         _logger.LogInformation("Service registered | Name: {ServiceName}, Url: {Url}",
@@ -56,11 +53,8 @@ public class ServiceRegistry : IServiceRegistry
     {
         return await Task.Run(() =>
         {
-            lock (_lock)
-            {
-                _services.TryGetValue(name, out var service);
-                return service;
-            }
+            _services.TryGetValue(name, out var service);
+            return service;
         });
     }
 
@@ -68,10 +62,7 @@ public class ServiceRegistry : IServiceRegistry
     {
         return await Task.Run(() =>
         {
-            lock (_lock)
-            {
-                return _services.Values.ToList();
-            }
+            return _services.Values.ToList();
         });
     }
 
@@ -85,17 +76,31 @@ public class ServiceRegistry : IServiceRegistry
     {
         await Task.Run(() =>
         {
-            lock (_lock)
+            bool updated = false;
+            while (!updated)
             {
-                if (_services.TryGetValue(name, out var service))
+                if (!_services.TryGetValue(name, out var currentService))
                 {
-                    service.IsHealthy = isHealthy;
-                    service.LastHealthCheckTime = DateTime.UtcNow;
-
-                    _logger.LogInformation("Service health updated | Name: {ServiceName}, Healthy: {IsHealthy}",
-                        name, isHealthy);
+                    // Service not found, exit
+                    return;
                 }
+                var updatedService = new ServiceDescriptor
+                {
+                    Name = currentService.Name,
+                    Url = currentService.Url,
+                    ApiKey = currentService.ApiKey,
+                    Timeout = currentService.Timeout,
+                    MaxRetries = currentService.MaxRetries,
+                    IsHealthy = isHealthy,
+                    RegisteredAt = currentService.RegisteredAt,
+                    LastHealthCheckTime = DateTime.UtcNow,
+                    Metadata = new Dictionary<string, string>(currentService.Metadata)
+                };
+                updated = _services.TryUpdate(name, updatedService, currentService);
             }
+
+            _logger.LogInformation("Service health updated | Name: {ServiceName}, Healthy: {IsHealthy}",
+                name, isHealthy);
         });
     }
 
@@ -103,10 +108,7 @@ public class ServiceRegistry : IServiceRegistry
     {
         await Task.Run(() =>
         {
-            lock (_lock)
-            {
-                _services.Remove(name);
-            }
+            _services.TryRemove(name, out _);
         });
 
         _logger.LogInformation("Service unregistered | Name: {ServiceName}", name);
