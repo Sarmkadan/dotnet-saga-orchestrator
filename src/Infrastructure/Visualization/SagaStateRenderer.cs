@@ -52,9 +52,23 @@ public class SagaStateRenderer : ISagaStateRenderer
             throw new ArgumentNullException(nameof(snapshot));
 
         var filled = (int)Math.Round(snapshot.ProgressPercent / 100 * ProgressBarWidth);
-        var bar = new string('█', filled) + new string('░', ProgressBarWidth - filled);
-
-        return $"[{bar}] {snapshot.ProgressPercent:F1}% ({snapshot.CompletedSteps}/{snapshot.TotalSteps} steps)";
+        var sb = new StringBuilder(60); // Capacity estimate: [20-bar] [5-percent] [12-steps-text] etc.
+        sb.Append('[');
+        for (var i = 0; i < filled; i++) sb.Append('█');
+        for (var i = 0; i < ProgressBarWidth - filled; i++) sb.Append('░');
+        sb.Append(']');
+        sb.Append(' ');
+        sb.Append(snapshot.ProgressPercent.ToString("F1"));
+        sb.Append('%');
+        sb.Append(' ');
+        sb.Append('(');
+        sb.Append(snapshot.CompletedSteps);
+        sb.Append('/');
+        sb.Append(snapshot.TotalSteps);
+        sb.Append(')');
+        sb.Append(' ');
+        sb.Append("steps");
+        return sb.ToString();
     }
 
     /// <inheritdoc />
