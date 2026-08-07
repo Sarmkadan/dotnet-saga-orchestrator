@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using SagaOrchestrator.Core.Domain.Enums;
 using SagaOrchestrator.Core.Domain.Models;
@@ -21,13 +22,23 @@ public class InMemorySagaRepository : ISagaRepository
     private readonly Dictionary<string, Saga> _sagas = new();
     private readonly object _lockObject = new();
 
+    private Saga CopySaga(Saga saga)
+    {
+        if (saga == null) return null;
+        var options = new JsonSerializerOptions { WriteIndented = false };
+        var json = JsonSerializer.Serialize(saga, options);
+        return JsonSerializer.Deserialize<Saga>(json);
+    }
+
     public async Task<Saga?> GetByIdAsync(string id)
     {
         await Task.Yield();
 
         lock (_lockObject)
         {
-            return _sagas.TryGetValue(id, out var saga) ? saga : null;
+            if (_sagas.TryGetValue(id, out var saga))
+                return CopySaga(saga);
+            return null;
         }
     }
 
@@ -37,7 +48,8 @@ public class InMemorySagaRepository : ISagaRepository
 
         lock (_lockObject)
         {
-            return _sagas.Values.FirstOrDefault(s => s.CorrelationId == correlationId);
+            var saga = _sagas.Values.FirstOrDefault(s => s.CorrelationId == correlationId);
+            return CopySaga(saga);
         }
     }
 
@@ -94,7 +106,7 @@ public class InMemorySagaRepository : ISagaRepository
 
         lock (_lockObject)
         {
-            return new List<Saga>(_sagas.Values);
+            return _sagas.Values.Select(CopySaga).ToList();
         }
     }
 
@@ -104,7 +116,7 @@ public class InMemorySagaRepository : ISagaRepository
 
         lock (_lockObject)
         {
-            return _sagas.Values.Where(s => s.Status == status).ToList();
+            return _sagas.Values.Where(s => s.Status == status).Select(CopySaga).ToList();
         }
     }
 
@@ -139,7 +151,7 @@ public class InMemorySagaRepository : ISagaRepository
                 results = results.Where(s => s.StartedAt <= toDate);
             }
 
-            return results.ToList();
+            return results.Select(CopySaga).ToList();
         }
     }
 }
