@@ -118,7 +118,7 @@ public class Saga
     /// </summary>
     public void Start()
     {
-        if (Status != SagaStatus.Initialized)
+        if (!SagaStatus.Initialized.CanTransitionTo(SagaStatus.Running))
             throw new InvalidOperationException($"Cannot start saga in {Status} status");
 
         Status = SagaStatus.Running;
@@ -130,6 +130,9 @@ public class Saga
     /// </summary>
     public void Complete()
     {
+        if (!Status.CanTransitionTo(SagaStatus.Completed))
+            throw new InvalidOperationException($"Cannot complete saga in {Status} status");
+
         Status = SagaStatus.Completed;
         CompletedAt = DateTime.UtcNow;
     }
@@ -150,7 +153,7 @@ public class Saga
     /// </summary>
     public void BeginCompensation()
     {
-        if (Status != SagaStatus.Failed)
+        if (!Status.CanTransitionTo(SagaStatus.Compensating))
             throw new InvalidOperationException("Can only compensate failed sagas");
 
         Status = SagaStatus.Compensating;
