@@ -20,17 +20,17 @@ namespace SagaOrchestrator.Infrastructure.Caching;
 /// </summary>
 public interface ICacheService
 {
-    Task<T?> GetAsync<T>(string key);
-    Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null);
-    Task RemoveAsync(string key);
-    Task ClearAsync();
-    Task<bool> ExistsAsync(string key);
+    Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default);
+    Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default);
+    Task RemoveAsync(string key, CancellationToken cancellationToken = default);
+    Task ClearAsync(CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
     int GetCacheSize();
 
     /// <summary>
     /// Gets or creates a value in the cache with stampede protection.
     /// </summary>
-    Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null);
+    Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the cache hit and miss counters.
@@ -77,9 +77,10 @@ public class CacheService : ICacheService, IDisposable
     private SemaphoreSlim GetLock(string key) => _locks[Math.Abs(key.GetHashCode()) % _locks.Length];
 
     /// <inheritdoc />
-    public async Task<T?> GetAsync<T>(string key)
+    public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
+        cancellationToken.ThrowIfCancellationRequested();
 
         _lock.EnterReadLock();
         try
@@ -104,9 +105,10 @@ public class CacheService : ICacheService, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null)
+    public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var effectiveMaxKeyLength = maxKeyLength ?? _defaultMaxKeyLength;
         var effectiveMaxValueSize = maxValueSize ?? _defaultMaxValueSize;
@@ -166,9 +168,10 @@ public class CacheService : ICacheService, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task RemoveAsync(string key)
+    public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
+        cancellationToken.ThrowIfCancellationRequested();
 
         _lock.EnterWriteLock();
         try
@@ -182,8 +185,10 @@ public class CacheService : ICacheService, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task ClearAsync()
+    public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         _lock.EnterWriteLock();
         try
         {
@@ -196,9 +201,10 @@ public class CacheService : ICacheService, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task<bool> ExistsAsync(string key)
+    public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
+        cancellationToken.ThrowIfCancellationRequested();
 
         _lock.EnterReadLock();
         try
@@ -226,30 +232,31 @@ public class CacheService : ICacheService, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null)
+    public async Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(factory);
+        cancellationToken.ThrowIfCancellationRequested();
 
         string stringKey = key.ToString();
 
         // 1. Try get
-        T? cached = await GetAsync<T>(stringKey);
+        T? cached = await GetAsync<T>(stringKey, cancellationToken);
         if (cached != null) return cached;
 
         // 2. Lock and re-check (Double-checked locking pattern)
         var semaphore = GetLock(stringKey);
-        await semaphore.WaitAsync();
+        await semaphore.WaitAsync(cancellationToken);
         try
         {
-            cached = await GetAsync<T>(stringKey);
+            cached = await GetAsync<T>(stringKey, cancellationToken);
             if (cached != null) return cached;
 
             // 3. Factory call
             T value = await factory();
 
             // 4. Set
-            await SetAsync(stringKey, value, expiration, maxKeyLength, maxValueSize, maxCacheSize);
+            await SetAsync(stringKey, value, expiration, maxKeyLength, maxValueSize, maxCacheSize, cancellationToken);
             return value;
         }
         finally
