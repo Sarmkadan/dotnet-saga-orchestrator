@@ -42,6 +42,9 @@ public class CompensationWorker : BackgroundService
             try
             {
                 await ProcessCompensationsAsync(stoppingToken);
+                if (stoppingToken.IsCancellationRequested)
+                    break;
+
                 await Task.Delay(_checkInterval, stoppingToken);
             }
             catch (OperationCanceledException)
