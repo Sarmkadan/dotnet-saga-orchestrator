@@ -56,14 +56,23 @@ public class SagaJsonSerializer : ISagaSerializer
         }
     }
 
-    public string Serialize<T>(T obj) =>
-        JsonSerializer.Serialize(obj, _options);
+    public string Serialize<T>(T? obj)
+        {
+            ArgumentNullException.ThrowIfNull(obj);
+            return JsonSerializer.Serialize(obj, _options);
+        }
 
-    public T? Deserialize<T>(string json) =>
-        JsonSerializer.Deserialize<T>(json, _options);
+    public T? Deserialize<T>(string json)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(json);
+            return JsonSerializer.Deserialize<T>(json, _options);
+        }
 
-    public string SerializeIndented<T>(T obj) =>
-        JsonSerializer.Serialize(obj, _indentedOptions);
+    public string SerializeIndented<T>(T obj)
+        {
+            ArgumentNullException.ThrowIfNull(obj);
+            return JsonSerializer.Serialize(obj, _indentedOptions);
+        }
 }
 
 public class SagaStatusConverter : JsonConverter<SagaStatus>
