@@ -27,6 +27,8 @@ public class TokenBucketRateLimiter : IRateLimiter
 
     public async Task<bool> AllowAsync(string key, int requestsPerSecond)
     {
+        // Argument null/empty guard for reference-type parameter
+        ArgumentException.ThrowIfNullOrEmpty(key);
         key = key.NotNullOrEmpty(nameof(key));
         requestsPerSecond.GreaterThan(0, nameof(requestsPerSecond));
 
@@ -47,6 +49,8 @@ public class TokenBucketRateLimiter : IRateLimiter
 
     public async Task<RateLimitStatus> GetStatusAsync(string key)
     {
+        // Argument null/empty guard for reference-type parameter
+        ArgumentException.ThrowIfNullOrEmpty(key);
         key = key.NotNullOrEmpty(nameof(key));
 
         return await Task.Run(() =>
@@ -70,6 +74,8 @@ public class TokenBucketRateLimiter : IRateLimiter
 
     public void Reset(string key)
     {
+        // Argument null/empty guard for reference-type parameter
+        ArgumentException.ThrowIfNullOrEmpty(key);
         key = key.NotNullOrEmpty(nameof(key));
 
         lock (_lock)
@@ -80,6 +86,8 @@ public class TokenBucketRateLimiter : IRateLimiter
 
     public async Task<bool> WaitAsync(string key, int permits, TimeSpan timeout, CancellationToken cancellationToken = default)
     {
+        // Argument null/empty guard for reference-type parameter
+        ArgumentException.ThrowIfNullOrEmpty(key);
         key = key.NotNullOrEmpty(nameof(key));
         permits.GreaterThan(0, nameof(permits));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero((int)timeout.TotalMilliseconds, nameof(timeout));
