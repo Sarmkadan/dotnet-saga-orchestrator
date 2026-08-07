@@ -14,11 +14,17 @@ public static class CacheKeyBuilder
 {
     private const string Delimiter = ":";
 
-    public static string BuildSagaKey(string sagaId) =>
-        $"saga{Delimiter}{sagaId}";
+    public static string BuildSagaKey(string sagaId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(sagaId));
+        return $"saga{Delimiter}{sagaId}";
+    }
 
-    public static string BuildDefinitionKey(string definitionId) =>
-        $"definition{Delimiter}{definitionId}";
+    public static string BuildDefinitionKey(string definitionId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(definitionId));
+        return $"definition{Delimiter}{definitionId}";
+    }
 
     public static string BuildAllSagasKey() =>
         $"sagas{Delimiter}all";
@@ -26,20 +32,35 @@ public static class CacheKeyBuilder
     public static string BuildAllDefinitionsKey() =>
         $"definitions{Delimiter}all";
 
-    public static string BuildSagasByStatusKey(string status) =>
-        $"sagas{Delimiter}status{Delimiter}{status}";
+    public static string BuildSagasByStatusKey(string status)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(status));
+        return $"sagas{Delimiter}status{Delimiter}{status}";
+    }
 
-    public static string BuildDefinitionByNameKey(string name) =>
-        $"definitions{Delimiter}name{Delimiter}{name}";
+    public static string BuildDefinitionByNameKey(string name)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(name));
+        return $"definitions{Delimiter}name{Delimiter}{name}";
+    }
 
-    public static string BuildCompensationKey(string sagaId) =>
-        $"compensation{Delimiter}{sagaId}";
+    public static string BuildCompensationKey(string sagaId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(sagaId));
+        return $"compensation{Delimiter}{sagaId}";
+    }
 
-    public static string BuildEventHistoryKey(string sagaId) =>
-        $"events{Delimiter}{sagaId}";
+    public static string BuildEventHistoryKey(string sagaId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(sagaId));
+        return $"events{Delimiter}{sagaId}";
+    }
 
-    public static string BuildServiceKey(string serviceName) =>
-        $"service{Delimiter}{serviceName}";
+    public static string BuildServiceKey(string serviceName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(serviceName));
+        return $"service{Delimiter}{serviceName}";
+    }
 
     public static string BuildHealthCheckKey() =>
         "health{Delimiter}check";
@@ -47,29 +68,51 @@ public static class CacheKeyBuilder
     public static string BuildMetricsKey() =>
         "metrics";
 
-    public static string BuildWebhookKey(string webhookId) =>
-        $"webhook{Delimiter}{webhookId}";
+    public static string BuildWebhookKey(string webhookId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(webhookId));
+        return $"webhook{Delimiter}{webhookId}";
+    }
 
-    public static string BuildRateLimitKey(string identifier, string resource) =>
-        $"ratelimit{Delimiter}{identifier}{Delimiter}{resource}";
+    public static string BuildRateLimitKey(string identifier, string resource)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(identifier));
+        ArgumentException.ThrowIfNullOrEmpty(nameof(resource));
+        return $"ratelimit{Delimiter}{identifier}{Delimiter}{resource}";
+    }
 
-    public static string BuildUserCacheKey(string userId) =>
-        $"user{Delimiter}{userId}";
+    public static string BuildUserCacheKey(string userId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(userId));
+        return $"user{Delimiter}{userId}";
+    }
 
-    public static string BuildSessionKey(string sessionId) =>
-        $"session{Delimiter}{sessionId}";
+    public static string BuildSessionKey(string sessionId)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(sessionId));
+        return $"session{Delimiter}{sessionId}";
+    }
 
     public static string GenerateTempKey() =>
         $"temp{Delimiter}{Guid.NewGuid()}";
 
-    public static bool IsSagaKey(string key) =>
-        key.StartsWith($"saga{Delimiter}");
+    public static bool IsSagaKey(string key)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(key));
+        return key.StartsWith($"saga{Delimiter}");
+    }
 
-    public static bool IsDefinitionKey(string key) =>
-        key.StartsWith($"definition{Delimiter}");
+    public static bool IsDefinitionKey(string key)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(key));
+        return key.StartsWith($"definition{Delimiter}");
+    }
 
-    public static string ExtractIdFromKey(string key) =>
-        key.Contains(Delimiter) ? key.Split(Delimiter).Last() : key;
+    public static string ExtractIdFromKey(string key)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(nameof(key));
+        return key.Contains(Delimiter) ? key.Split(Delimiter).Last() : key;
+    }
 
     public static Dictionary<string, string> GetAllPrefixes() =>
         new()
