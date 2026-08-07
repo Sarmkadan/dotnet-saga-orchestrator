@@ -1,0 +1,1 @@
+Moved magic timeout numbers in src/Core/Utilities/TimeoutPolicy.cs to src/Configuration/SagaOptions.cs with validated defaults.

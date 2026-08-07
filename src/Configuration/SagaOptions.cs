@@ -31,6 +31,21 @@ public class TimeoutPolicies
     public int MaxSagaTimeoutSeconds { get; set; } = 86400;
     public int CompensationTimeoutSeconds { get; set; } = 120;
     public int StaleSagaTimeoutSeconds { get; set; } = 3600;
+
+    /// <summary>
+    /// Gets the lenient timeout value (5 minutes)
+    /// </summary>
+    public int LenientTimeoutSeconds => 300;
+
+    /// <summary>
+    /// Gets the standard timeout value (1 minute)
+    /// </summary>
+    public int StandardTimeoutSeconds => 60;
+
+    /// <summary>
+    /// Gets the strict timeout value (10 seconds)
+    /// </summary>
+    public int StrictTimeoutSeconds => 10;
 }
 
 public class RetryPolicies
