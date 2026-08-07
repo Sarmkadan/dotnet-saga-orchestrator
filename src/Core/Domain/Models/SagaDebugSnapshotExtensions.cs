@@ -1,9 +1,14 @@
+#nullable enable
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
-// CTO & Software Architect
+// Extension methods for SagaDebugSnapshot
 // =============================================================================
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 
 namespace SagaOrchestrator.Core.Domain.Models;
@@ -16,28 +21,79 @@ public static class SagaDebugSnapshotExtensions
     /// <summary>
     /// Serializes the snapshot to a JSON string.
     /// </summary>
+    /// <param name="snapshot">The snapshot to serialize.</param>
+    /// <returns>Indented JSON representation of the snapshot.</returns>
     public static string ToJson(this SagaDebugSnapshot snapshot)
     {
-        return JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
+        if (snapshot is null) throw new ArgumentNullException(nameof(snapshot));
+
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+        };
+
+        return JsonSerializer.Serialize(snapshot, options);
     }
 
     /// <summary>
-    /// Compares this snapshot against another and returns a list of changed field names.
+    /// Compares two snapshots and returns the names of the fields that differ.
+    /// The comparison is shallow for simple properties and sequence‑based for collections.
     /// </summary>
+    /// <param name="snapshot">The snapshot to compare (the "left" side).</param>
+    /// <param name="other">The snapshot to compare against (the "right" side).</param>
+    /// <returns>A collection of property names whose values differ.</returns>
     public static IEnumerable<string> DiffAgainst(this SagaDebugSnapshot snapshot, SagaDebugSnapshot other)
     {
-        var differences = new List<string>();
+        if (snapshot is null) throw new ArgumentNullException(nameof(snapshot));
+        if (other is null) throw new ArgumentNullException(nameof(other));
 
-        if (snapshot.SagaStatus != other.SagaStatus) differences.Add(nameof(snapshot.SagaStatus));
-        if (snapshot.Trigger != other.Trigger) differences.Add(nameof(snapshot.Trigger));
-        if (snapshot.FailureReason != other.FailureReason) differences.Add(nameof(snapshot.FailureReason));
-        if (snapshot.RetryCount != other.RetryCount) differences.Add(nameof(snapshot.RetryCount));
-        if (snapshot.Label != other.Label) differences.Add(nameof(snapshot.Label));
-        if (snapshot.SequenceNumber != other.SequenceNumber) differences.Add(nameof(snapshot.SequenceNumber));
-        // Note: Comparing Steps or Metadata dictionaries would be more complex and might 
-        // require deep comparison, which is usually out of scope for a basic "field changed" diff.
-        // For now, I am only comparing direct scalar properties.
+        var changed = new List<string>();
 
-        return differences;
+        // Get all public instance readable properties of the record
+        var properties = typeof(SagaDebugSnapshot)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanRead);
+
+        foreach (var prop in properties)
+        {
+            var leftValue = prop.GetValue(snapshot);
+            var rightValue = prop.GetValue(other);
+
+            if (!ValuesEqual(leftValue, rightValue))
+            {
+                changed.Add(prop.Name);
+            }
+        }
+
+        return changed;
+    }
+
+    private static bool ValuesEqual(object? left, object? right)
+    {
+        // Both null -> equal
+        if (left is null && right is null) return true;
+        // One null -> not equal
+        if (left is null || right is null) return false;
+
+        // Strings: compare by value
+        if (left is string leftStr && right is string rightStr)
+            return leftStr.Equals(rightStr, StringComparison.Ordinal);
+
+        // Collections (except string)
+        if (left is IEnumerable leftEnum && !(left is string))
+        {
+            if (right is IEnumerable rightEnum && !(right is string))
+            {
+                var leftList = leftEnum.Cast<object>().ToList();
+                var rightList = rightEnum.Cast<object>().ToList();
+                return leftList.SequenceEqual(rightList);
+            }
+
+            // left is collection, right is not
+            return false;
+        }
+
+        // Fallback to default equality
+        return left.Equals(right);
     }
 }
