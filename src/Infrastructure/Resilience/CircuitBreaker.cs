@@ -85,6 +85,8 @@ public class CircuitBreaker : ICircuitBreaker
     /// <inheritdoc />
     public async Task<bool> ExecuteAsync(Func<Task> action, string identifier)
     {
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentException.ThrowIfNullOrEmpty(identifier);
         try
         {
             var canExecute = CanExecute(identifier);
@@ -105,6 +107,8 @@ public class CircuitBreaker : ICircuitBreaker
     /// <inheritdoc />
     public async Task<T> ExecuteAsync<T>(Func<Task<T>> action, string identifier)
     {
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentException.ThrowIfNullOrEmpty(identifier);
         try
         {
             var canExecute = CanExecute(identifier);
@@ -125,6 +129,7 @@ public class CircuitBreaker : ICircuitBreaker
     /// <inheritdoc />
     public CircuitBreakerState GetState(string identifier)
     {
+        ArgumentException.ThrowIfNullOrEmpty(identifier);
         lock (_lock)
         {
             if (!_metrics.TryGetValue(identifier, out var metrics))
@@ -144,6 +149,7 @@ public class CircuitBreaker : ICircuitBreaker
     /// <inheritdoc />
     public void Reset(string identifier)
     {
+        ArgumentException.ThrowIfNullOrEmpty(identifier);
         lock (_lock)
         {
             _metrics.TryRemove(identifier, out _);
