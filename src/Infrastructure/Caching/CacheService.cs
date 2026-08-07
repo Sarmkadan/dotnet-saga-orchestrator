@@ -77,7 +77,7 @@ public class CacheService : ICacheService, IDisposable
     private SemaphoreSlim GetLock(string key) => _locks[Math.Abs(key.GetHashCode()) % _locks.Length];
 
     /// <inheritdoc />
-    public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
+    public Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         cancellationToken.ThrowIfCancellationRequested();
@@ -90,13 +90,13 @@ public class CacheService : ICacheService, IDisposable
                 if (entry.IsExpired())
                 {
                     Interlocked.Increment(ref _misses);
-                    return default;
+                    return Task.FromResult<T?>(default);
                 }
                 Interlocked.Increment(ref _hits);
-                return (T?)entry.Value;
+                return Task.FromResult((T?)entry.Value);
             }
             Interlocked.Increment(ref _misses);
-            return default;
+            return Task.FromResult<T?>(default);
         }
         finally
         {
@@ -105,7 +105,7 @@ public class CacheService : ICacheService, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
+    public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         cancellationToken.ThrowIfCancellationRequested();
@@ -165,10 +165,12 @@ public class CacheService : ICacheService, IDisposable
         {
             _lock.ExitWriteLock();
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
+    public Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         cancellationToken.ThrowIfCancellationRequested();
@@ -182,10 +184,12 @@ public class CacheService : ICacheService, IDisposable
         {
             _lock.ExitWriteLock();
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public async Task ClearAsync(CancellationToken cancellationToken = default)
+    public Task ClearAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -198,10 +202,12 @@ public class CacheService : ICacheService, IDisposable
         {
             _lock.ExitWriteLock();
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
+    public Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         cancellationToken.ThrowIfCancellationRequested();
@@ -209,7 +215,7 @@ public class CacheService : ICacheService, IDisposable
         _lock.EnterReadLock();
         try
         {
-            return _cache.ContainsKey(key) && !_cache[key].IsExpired();
+            return Task.FromResult(_cache.ContainsKey(key) && !_cache[key].IsExpired());
         }
         finally
         {
@@ -241,22 +247,22 @@ public class CacheService : ICacheService, IDisposable
         string stringKey = key.ToString();
 
         // 1. Try get
-        T? cached = await GetAsync<T>(stringKey, cancellationToken);
+        T? cached = await GetAsync<T>(stringKey, cancellationToken).ConfigureAwait(false);
         if (cached != null) return cached;
 
         // 2. Lock and re-check (Double-checked locking pattern)
         var semaphore = GetLock(stringKey);
-        await semaphore.WaitAsync(cancellationToken);
+        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            cached = await GetAsync<T>(stringKey, cancellationToken);
+            cached = await GetAsync<T>(stringKey, cancellationToken).ConfigureAwait(false);
             if (cached != null) return cached;
 
             // 3. Factory call
-            T value = await factory();
+            T value = await factory().ConfigureAwait(false);
 
             // 4. Set
-            await SetAsync(stringKey, value, expiration, maxKeyLength, maxValueSize, maxCacheSize, cancellationToken);
+            await SetAsync(stringKey, value, expiration, maxKeyLength, maxValueSize, maxCacheSize, cancellationToken).ConfigureAwait(false);
             return value;
         }
         finally
