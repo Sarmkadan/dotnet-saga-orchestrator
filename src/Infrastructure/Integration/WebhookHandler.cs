@@ -101,36 +101,77 @@ public class WebhookHandler : IWebhookHandler
         if (@event == null)
             throw new ArgumentNullException(nameof(@event));
 
-        try
+        const int maxRetries = 2;
+        HttpResponseMessage? response = null;
+        bool success = false;
+
+        for (int attempt = 0; attempt <= maxRetries; attempt++)
         {
-            var config = new HttpClientConfiguration
+            try
             {
-                BaseUrl = url,
-                TimeoutSeconds = 10
-            };
+                var config = new HttpClientConfiguration
+                {
+                    BaseUrl = url,
+                    TimeoutSeconds = 10
+                };
 
-            var client = _httpClientFactory.CreateClient("webhook", config);
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
+                var client = _httpClientFactory.CreateClient("webhook", config);
+                var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = new StringContent(
+                        System.Text.Json.JsonSerializer.Serialize(@event),
+                        System.Text.Encoding.UTF8,
+                        "application/json")
+                };
+
+                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                if (response.IsSuccessStatusCode)
+                {
+                    success = true;
+                    break;
+                }
+                else
+                {
+                    _logger.LogWarning("Webhook delivery failed with status {StatusCode} | Url: {Url}, EventType: {EventType}",
+                        response.StatusCode, url, @event.EventType);
+
+                    if (attempt < maxRetries)
+                    {
+                        var delay = Math.Pow(2, attempt + 1) * 100; // 200, 400, 800 ms
+                        await Task.Delay((int)delay);
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
             {
-                Content = new StringContent(
-                    System.Text.Json.JsonSerializer.Serialize(@event),
-                    System.Text.Encoding.UTF8,
-                    "application/json")
-            };
+                _logger.LogError(ex, "HttpRequestException while delivering webhook | Url: {Url}, EventType: {EventType}",
+                    url, @event.EventType);
 
-            var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+                if (attempt < maxRetries)
+                {
+                    var delay = Math.Pow(2, attempt + 1) * 100; // 200, 400, 800 ms
+                    await Task.Delay((int)delay);
+                }
+            }
+            finally
+            {
+                if (response != null)
+                {
+                    response.Dispose();
+                    response = null;
+                }
+            }
+        }
 
+        if (success)
+        {
             _logger.LogInformation(
                 "Webhook delivered successfully | Url: {Url}, EventType: {EventType}",
                 url, @event.EventType);
         }
-        catch (HttpRequestException ex)
+        else
         {
-            _logger.LogError(ex,
-                "Failed to deliver webhook | Url: {Url}, EventType: {EventType}",
-                url, @event.EventType);
-            throw;
+            throw new HttpRequestException($"Failed to deliver webhook after {maxRetries} retries.");
         }
     }
 
