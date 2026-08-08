@@ -31,7 +31,14 @@ public class SagaOrchestrationService
     private readonly CompensationService _compensationService;
     private readonly ISagaLogger? _sagaLogger;
 
-    public SagaOrchestrationService(
+    /// <summary>
+/// Initializes a new instance of the <see cref="SagaOrchestrationService"/> class.
+/// </summary>
+/// <param name="sagaRepository">The saga repository.</param>
+/// <param name="stepRepository">The saga step repository.</param>
+/// <param name="compensationService">The compensation service.</param>
+/// <param name="sagaLogger">The saga logger (optional).</param>
+public SagaOrchestrationService(
         ISagaRepository sagaRepository,
         ISagaStepRepository stepRepository,
         CompensationService compensationService,
@@ -44,8 +51,15 @@ public class SagaOrchestrationService
     }
 
     /// <summary>
-    /// Creates and initializes a new saga instance
+    /// Creates and initializes a new saga instance.
     /// </summary>
+    /// <param name="definition">The saga definition.</param>
+    /// <param name="maxRetries">The maximum number of retries for steps (optional).</param>
+    /// <param name="timeoutSeconds">The timeout in seconds for the saga (optional).</param>
+    /// <returns>The created saga instance.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="definition"/> is null.</exception>
+    /// <exception cref="InvalidSagaDefinitionException">Thrown when the saga definition validation fails.</exception>
+    /// <exception cref="DotnetSagaOrchestratorException">Thrown when an error occurs during saga creation.</exception>
     public async Task<Saga> CreateSagaAsync(SagaDefinition definition, int? maxRetries = null, int? timeoutSeconds = null)
     {
         if (definition == null)
@@ -73,6 +87,12 @@ public class SagaOrchestrationService
     /// <summary>
     /// Starts saga execution by executing the first step
     /// </summary>
+    /// <param name="sagaId">The saga ID.</param>
+    /// <returns>The started saga instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is null or empty.</exception>
+    /// <exception cref="SagaNotFoundException">Thrown when the saga is not found.</exception>
+    /// <exception cref="SagaException">Thrown when the saga cannot be started.</exception>
+    /// <exception cref="DotnetSagaOrchestratorException">Thrown when an error occurs during saga start.</exception>
     public async Task<Saga> StartSagaAsync(string sagaId)
     {
         if (string.IsNullOrWhiteSpace(sagaId))
@@ -111,8 +131,15 @@ public class SagaOrchestrationService
     }
 
     /// <summary>
-    /// Executes the next step in the saga
+    /// Executes the next step in the saga.
     /// </summary>
+    /// <param name="sagaId">The saga ID.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The executed saga step, or null if all steps are completed.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is null or empty.</exception>
+    /// <exception cref="SagaNotFoundException">Thrown when the saga is not found.</exception>
+    /// <exception cref="SagaException">Thrown when the saga is not in running status.</exception>
+    /// <exception cref="DotnetSagaOrchestratorException">Thrown when an error occurs during step execution.</exception>
     public async Task<SagaStep> ExecuteNextStepAsync(string sagaId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(sagaId))
@@ -221,8 +248,15 @@ public class SagaOrchestrationService
     }
 
     /// <summary>
-    /// Handles step timeout
+    /// Handles step timeout.
     /// </summary>
+    /// <param name="sagaId">The saga ID.</param>
+    /// <param name="stepId">The step ID.</param>
+    /// <returns>True if the step timed out, false otherwise.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> or <paramref name="stepId"/> is null or empty.</exception>
+    /// <exception cref="SagaNotFoundException">Thrown when the saga is not found.</exception>
+    /// <exception cref="SagaException">Thrown when the step is not found in the saga.</exception>
+    /// <exception cref="DotnetSagaOrchestratorException">Thrown when an error occurs during timeout handling.</exception>
     public async Task<bool> HandleTimeoutAsync(string sagaId, string stepId)
     {
         if (string.IsNullOrWhiteSpace(sagaId))
@@ -277,6 +311,11 @@ public class SagaOrchestrationService
     /// Compensates a failed saga, running all pending compensation transactions
     /// to completion using the strategy configured on the saga's definition.
     /// </summary>
+    /// <param name="sagaId">The saga ID.</param>
+    /// <returns>The compensated saga instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is null or empty.</exception>
+    /// <exception cref="SagaNotFoundException">Thrown when the saga is not found.</exception>
+    /// <exception cref="DotnetSagaOrchestratorException">Thrown when an error occurs during compensation.</exception>
     public async Task<Saga> CompensateSagaAsync(string sagaId)
     {
         if (string.IsNullOrWhiteSpace(sagaId))
@@ -317,6 +356,12 @@ public class SagaOrchestrationService
     /// <summary>
     /// Compensates a failed saga using an explicit compensation strategy override.
     /// </summary>
+    /// <param name="sagaId">The saga ID.</param>
+    /// <param name="strategy">The compensation strategy.</param>
+    /// <returns>The compensated saga instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is null or empty.</exception>
+    /// <exception cref="SagaNotFoundException">Thrown when the saga is not found.</exception>
+    /// <exception cref="DotnetSagaOrchestratorException">Thrown when an error occurs during compensation.</exception>
     public async Task<Saga> CompensateSagaAsync(string sagaId, CompensationStrategy strategy)
     {
         if (string.IsNullOrWhiteSpace(sagaId))
@@ -340,8 +385,15 @@ public class SagaOrchestrationService
     }
 
     /// <summary>
-    /// Aborts a running saga
+    /// Aborts a running saga.
     /// </summary>
+    /// <param name="sagaId">The saga ID.</param>
+    /// <param name="reason">The reason for aborting the saga (optional).</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is null or empty.</exception>
+    /// <exception cref="SagaNotFoundException">Thrown when the saga is not found.</exception>
+    /// <exception cref="SagaException">Thrown when the saga is not in running or initialized status.</exception>
+    /// <exception cref="DotnetSagaOrchestratorException">Thrown when an error occurs during saga abort.</exception>
     public async Task AbortSagaAsync(string sagaId, string reason = "User abort")
     {
         if (string.IsNullOrWhiteSpace(sagaId))
