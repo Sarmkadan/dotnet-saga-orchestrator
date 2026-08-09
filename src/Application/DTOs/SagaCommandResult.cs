@@ -45,6 +45,8 @@ public class SagaCommandResult
 
     public static SagaCommandResult FailureResult(string message, params string[] errors)
     {
+        ArgumentException.ThrowIfNullOrEmpty(message);
+        ArgumentNullException.ThrowIfNull(errors);
         return new SagaCommandResult
         {
             Success = false,
@@ -56,6 +58,7 @@ public class SagaCommandResult
 
     public static SagaCommandResult ExceptionResult(Exception ex)
     {
+        ArgumentNullException.ThrowIfNull(ex);
         return new SagaCommandResult
         {
             Success = false,
@@ -99,6 +102,8 @@ public class SagaCommandResult<T>
 
     public static SagaCommandResult<T> FailureResult(string message, params string[] errors)
     {
+        ArgumentException.ThrowIfNullOrEmpty(message);
+        ArgumentNullException.ThrowIfNull(errors);
         return new SagaCommandResult<T>
         {
             Success = false,
@@ -110,6 +115,7 @@ public class SagaCommandResult<T>
 
     public static SagaCommandResult<T> ExceptionResult(Exception ex)
     {
+        ArgumentNullException.ThrowIfNull(ex);
         return new SagaCommandResult<T>
         {
             Success = false,
@@ -145,6 +151,7 @@ public class PaginatedResult<T>
 
     public static PaginatedResult<T> Create(List<T> items, int pageNumber, int pageSize, int totalCount)
     {
+        ArgumentNullException.ThrowIfNull(items);
         return new PaginatedResult<T>
         {
             Items = items,
