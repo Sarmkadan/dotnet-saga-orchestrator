@@ -69,6 +69,9 @@ public class SagaEvent
     /// </summary>
     public static SagaEvent CreateLifecycleEvent(string sagaId, string eventName, string description)
     {
+        ArgumentException.ThrowIfNullOrEmpty(sagaId);
+        ArgumentException.ThrowIfNullOrEmpty(eventName);
+        ArgumentException.ThrowIfNullOrEmpty(description);
         return new SagaEvent
         {
             SagaId = sagaId,
@@ -84,6 +87,11 @@ public class SagaEvent
     /// </summary>
     public static SagaEvent CreateStepEvent(string sagaId, string stepId, string stepName, string eventName, string description)
     {
+        ArgumentException.ThrowIfNullOrEmpty(sagaId);
+        ArgumentException.ThrowIfNullOrEmpty(stepId);
+        ArgumentException.ThrowIfNullOrEmpty(stepName);
+        ArgumentException.ThrowIfNullOrEmpty(eventName);
+        ArgumentException.ThrowIfNullOrEmpty(description);
         return new SagaEvent
         {
             SagaId = sagaId,
@@ -101,6 +109,9 @@ public class SagaEvent
     /// </summary>
     public static SagaEvent CreateErrorEvent(string sagaId, string stepName, string errorMessage)
     {
+        ArgumentException.ThrowIfNullOrEmpty(sagaId);
+        ArgumentException.ThrowIfNullOrEmpty(stepName);
+        ArgumentException.ThrowIfNullOrEmpty(errorMessage);
         return new SagaEvent
         {
             SagaId = sagaId,
