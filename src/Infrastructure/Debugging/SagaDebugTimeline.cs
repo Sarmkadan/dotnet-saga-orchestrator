@@ -29,7 +29,7 @@ public enum TimelineEntryKind
     /// <summary>Execution paused because a registered breakpoint was hit.</summary>
     BreakpointHit = 3,
 
-    /// <summary>A previously captured snapshot was restored for time-travel inspection.</summary>
+    /// <summary>A previously captured snapshot was restored for time‑travel inspection.</summary>
     SnapshotRestored = 4,
 }
 
@@ -51,7 +51,7 @@ public sealed record TimelineEntry
     [JsonPropertyName("timestamp")]
     public required DateTime Timestamp { get; init; }
 
-    /// <summary>Short human-readable title for this entry.</summary>
+    /// <summary>Short human‑readable title for this entry.</summary>
     [JsonPropertyName("title")]
     public required string Title { get; init; }
 
@@ -80,33 +80,43 @@ public sealed record TimelineEntry
     /// <summary>
     /// Constructs a timeline entry from a <see cref="SagaDebugSnapshot"/>.
     /// </summary>
-    public static TimelineEntry FromSnapshot(SagaDebugSnapshot snapshot) => new()
+    public static TimelineEntry FromSnapshot(SagaDebugSnapshot snapshot)
     {
-        EntryId     = Guid.NewGuid().ToString("N"),
-        Kind        = snapshot.Trigger == SnapshotTrigger.Breakpoint
-                          ? TimelineEntryKind.BreakpointHit
-                          : TimelineEntryKind.Snapshot,
-        Timestamp   = snapshot.CapturedAt,
-        Title       = $"Snapshot #{snapshot.SequenceNumber} — {snapshot.Trigger}",
-        Description = snapshot.Label
-                      ?? $"Saga status: {snapshot.SagaStatus} | "
-                       + $"{snapshot.CompletedStepCount}/{snapshot.Steps.Count} steps completed",
-        SnapshotId  = snapshot.SnapshotId,
-    };
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        return new TimelineEntry
+        {
+            EntryId     = Guid.NewGuid().ToString("N"),
+            Kind        = snapshot.Trigger == SnapshotTrigger.Breakpoint
+                              ? TimelineEntryKind.BreakpointHit
+                              : TimelineEntryKind.Snapshot,
+            Timestamp   = snapshot.CapturedAt,
+            Title       = $"Snapshot #{snapshot.SequenceNumber} — {snapshot.Trigger}",
+            Description = snapshot.Label
+                          ?? $"Saga status: {snapshot.SagaStatus} | "
+                           + $"{snapshot.CompletedStepCount}/{snapshot.Steps.Count} steps completed",
+            SnapshotId  = snapshot.SnapshotId,
+        };
+    }
 
     /// <summary>
     /// Constructs a timeline entry from a published <see cref="SagaEvent"/>.
     /// </summary>
-    public static TimelineEntry FromSagaEvent(SagaEvent sagaEvent) => new()
+    public static TimelineEntry FromSagaEvent(SagaEvent sagaEvent)
     {
-        EntryId     = Guid.NewGuid().ToString("N"),
-        Kind        = TimelineEntryKind.EventPublished,
-        Timestamp   = sagaEvent.Timestamp,
-        Title       = sagaEvent.EventName,
-        Description = sagaEvent.Description,
-        StepName    = sagaEvent.StepName,
-        Metadata    = new Dictionary<string, object>(sagaEvent.Data),
-    };
+        ArgumentNullException.ThrowIfNull(sagaEvent);
+
+        return new TimelineEntry
+        {
+            EntryId     = Guid.NewGuid().ToString("N"),
+            Kind        = TimelineEntryKind.EventPublished,
+            Timestamp   = sagaEvent.Timestamp,
+            Title       = sagaEvent.EventName,
+            Description = sagaEvent.Description,
+            StepName    = sagaEvent.StepName,
+            Metadata    = new Dictionary<string, object>(sagaEvent.Data),
+        };
+    }
 }
 
 /// <summary>
@@ -154,7 +164,7 @@ public sealed record SagaDebugBreakpoint
 /// <summary>
 /// Full chronological debug timeline for a single saga, combining domain events and
 /// debug snapshots into one unified, ordered view. Used by the distributed debugger
-/// for post-mortem analysis and live step-through inspection.
+/// for post‑mortem analysis and live step‑through inspection.
 /// </summary>
 public sealed record SagaDebugTimeline
 {
@@ -206,6 +216,12 @@ public sealed record SagaDebugTimeline
         IEnumerable<SagaEvent> sagaEvents,
         IEnumerable<SagaDebugBreakpoint> breakpoints)
     {
+        ArgumentException.ThrowIfNullOrEmpty(sagaId);
+        ArgumentException.ThrowIfNullOrEmpty(sagaName);
+        ArgumentNullException.ThrowIfNull(snapshots);
+        ArgumentNullException.ThrowIfNull(sagaEvents);
+        ArgumentNullException.ThrowIfNull(breakpoints);
+
         var snapshotEntries = snapshots.Select(TimelineEntry.FromSnapshot);
         var eventEntries    = sagaEvents.Select(TimelineEntry.FromSagaEvent);
 
