@@ -106,21 +106,25 @@ public sealed record SagaStepDebugState
     /// Captures the current live state of a <see cref="SagaStep"/> into an immutable record.
     /// </summary>
     /// <param name="step">The step to snapshot.</param>
-    public static SagaStepDebugState FromStep(SagaStep step) => new()
+    public static SagaStepDebugState FromStep(SagaStep step)
     {
-        StepId        = step.Id,
-        StepName      = step.Name,
-        StepOrder     = step.Order,
-        Status        = step.Status,
-        RetryCount    = step.RetryCount,
-        MaxRetries    = step.MaxRetries,
-        StartedAt     = step.StartedAt,
-        CompletedAt   = step.CompletedAt,
-        CompensatedAt = step.CompensatedAt,
-        ErrorMessage  = step.ErrorMessage,
-        ServiceUrl    = step.ServiceUrl ?? string.Empty,
-        OutputData    = new Dictionary<string, object>(step.Response),
-    };
+        ArgumentNullException.ThrowIfNull(step);
+        return new()
+        {
+            StepId        = step.Id,
+            StepName      = step.Name,
+            StepOrder     = step.Order,
+            Status        = step.Status,
+            RetryCount    = step.RetryCount,
+            MaxRetries    = step.MaxRetries,
+            StartedAt     = step.StartedAt,
+            CompletedAt   = step.CompletedAt,
+            CompensatedAt = step.CompensatedAt,
+            ErrorMessage  = step.ErrorMessage,
+            ServiceUrl    = step.ServiceUrl ?? string.Empty,
+            OutputData    = new Dictionary<string, object>(step.Response),
+        };
+    }
 }
 
 /// <summary>
@@ -233,24 +237,28 @@ public sealed record SagaDebugSnapshot
         Saga saga,
         SnapshotTrigger trigger,
         int sequenceNumber,
-        string? label = null) => new()
+        string? label = null)
     {
-        SnapshotId      = Guid.NewGuid().ToString("N"),
-        SagaId          = saga.Id,
-        SagaName        = saga.Definition?.Name ?? string.Empty,
-        DefinitionId    = saga.Definition?.Id   ?? string.Empty,
-        CorrelationId   = saga.CorrelationId,
-        SagaStatus      = saga.Status,
-        Trigger         = trigger,
-        CapturedAt      = DateTime.UtcNow,
-        SagaStartedAt   = saga.StartedAt,
-        SagaCompletedAt = saga.CompletedAt,
-        FailureReason   = saga.FailureReason,
-        RetryCount      = saga.RetryCount,
-        MaxRetries      = saga.MaxRetries,
-        Steps           = saga.Steps.Select(SagaStepDebugState.FromStep).ToList().AsReadOnly(),
-        Metadata        = new Dictionary<string, object>(saga.Metadata),
-        Label           = label,
-        SequenceNumber  = sequenceNumber,
-    };
+        ArgumentNullException.ThrowIfNull(saga);
+        return new()
+        {
+            SnapshotId      = Guid.NewGuid().ToString("N"),
+            SagaId          = saga.Id,
+            SagaName        = saga.Definition?.Name ?? string.Empty,
+            DefinitionId    = saga.Definition?.Id   ?? string.Empty,
+            CorrelationId   = saga.CorrelationId,
+            SagaStatus      = saga.Status,
+            Trigger         = trigger,
+            CapturedAt      = DateTime.UtcNow,
+            SagaStartedAt   = saga.StartedAt,
+            SagaCompletedAt = saga.CompletedAt,
+            FailureReason   = saga.FailureReason,
+            RetryCount      = saga.RetryCount,
+            MaxRetries      = saga.MaxRetries,
+            Steps           = saga.Steps.Select(SagaStepDebugState.FromStep).ToList().AsReadOnly(),
+            Metadata        = new Dictionary<string, object>(saga.Metadata),
+            Label           = label,
+            SequenceNumber  = sequenceNumber,
+        };
+    }
 }
