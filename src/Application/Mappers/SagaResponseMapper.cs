@@ -24,16 +24,19 @@ public class SagaResponseMapper : ISagaResponseMapper
 {
     public SagaResponse MapToResponse(Saga saga)
     {
+        ArgumentNullException.ThrowIfNull(saga);
         return SagaResponse.FromSaga(saga);
     }
 
     public List<SagaResponse> MapToResponses(List<Saga> sagas)
     {
+        ArgumentNullException.ThrowIfNull(sagas);
         return sagas.Select(MapToResponse).ToList();
     }
 
     public SagaStepResponse MapStepToResponse(SagaStep step)
     {
+        ArgumentNullException.ThrowIfNull(step);
         return SagaStepResponse.FromStep(step);
     }
 }
