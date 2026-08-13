@@ -127,6 +127,23 @@ public class SagaCliCommand
     }
 
     /// <summary>
+    /// Returns a string representation of the command.
+    /// </summary>
+    public override string ToString()
+    {
+        var argsFormatted = "";
+        foreach (var kvp in Arguments)
+        {
+            if (argsFormatted.Length > 0) argsFormatted += ", ";
+            argsFormatted += kvp.Key + "=" + kvp.Value;
+        }
+        var optionsFormatted = string.Join(", ", Options);
+        var errorsFormatted = string.Join(", ", ValidationErrors);
+
+        return $"SagaCliCommand {{ CommandType = {CommandType}, Arguments = [{argsFormatted}], Options = [{optionsFormatted}], ValidationErrors = [{errorsFormatted}] }}";
+    }
+
+    /// <summary>
     /// Returns the human-readable usage/help text describing every supported command and option.
     /// </summary>
     /// <returns>The formatted help text.</returns>
