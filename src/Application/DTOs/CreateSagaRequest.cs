@@ -50,4 +50,7 @@ public class CreateSagaRequest
 
         return true;
     }
+
+    public override string ToString() =>
+        $"CreateSagaRequest {{ DefinitionId = {DefinitionId}, DefinitionName = {DefinitionName}, MaxRetries = {MaxRetries}, TimeoutSeconds = {TimeoutSeconds}, Metadata = {Metadata}, Data = {Data} }}";
 }
