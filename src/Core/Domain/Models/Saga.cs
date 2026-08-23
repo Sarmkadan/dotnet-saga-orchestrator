@@ -15,6 +15,10 @@ namespace SagaOrchestrator.Core.Domain.Models;
 /// Represents a distributed saga that coordinates a business transaction across multiple microservices.
 /// Sagas ensure eventual consistency using compensating transactions.
 /// </summary>
+/// <summary>
+/// Represents a distributed saga that coordinates a business transaction across multiple microservices.
+/// Sagas ensure eventual consistency using compensating transactions. Can be in states: Pending, Initialized, Running, Completed, Failed, Compensating, Compensated.
+/// </summary>
 public class Saga
 {
     /// <summary>Gets or sets the unique identifier of the saga.</summary>

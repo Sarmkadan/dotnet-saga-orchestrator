@@ -16,6 +16,10 @@ namespace SagaOrchestrator.Core.Domain.Models;
 /// Represents a single step execution within a saga.
 /// Each step can succeed, fail, or be compensated.
 /// </summary>
+/// <summary>
+/// Represents a single step execution within a saga.
+/// Each step can succeed, fail, or be compensated. Can be in states: Pending, Executing, Completed, Failed, Compensated.
+/// </summary>
 public class SagaStep
 {
     /// <summary>Gets or sets the unique identifier of the step instance.</summary>
