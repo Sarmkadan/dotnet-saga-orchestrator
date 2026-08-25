@@ -598,3 +598,26 @@ catch (ArgumentException ex)
     Console.WriteLine($"Repository validation failed: {ex.Message}");
 }
 ```
+
+## ISagaStateRenderer
+
+The `ISagaStateRenderer` interface defines methods for visualizing various aspects of a saga's state, providing textual representations of progress, state diagrams, full reports, and DOT-formatted graphs. It enables consistent rendering of saga workflow information across different visualization tools and interfaces.
+
+### Usage Example
+
+```csharp
+public class SagaStateRendererExample : ISagaStateRenderer
+{
+    public string RenderProgressBar() => "[=====>] 75% complete";
+    public string RenderStateDiagram() => "State A --> State B --> State C";
+    public string RenderFullReport() => "Saga ID: 123 | Status: InProgress | Created: 2026-08-25";
+    public string RenderDot() => "digraph { A --> B --> C }";
+}
+
+// Usage example
+var renderer = new SagaStateRendererExample();
+Console.WriteLine(renderer.RenderProgressBar());  // Outputs: [=====>] 75% complete
+Console.WriteLine(renderer.RenderStateDiagram());  // Outputs: State A --> State B --> State C
+```
+
+This interface is typically used by visualization tools, monitoring systems, or command-line interfaces to display saga execution details in a human-readable format.
