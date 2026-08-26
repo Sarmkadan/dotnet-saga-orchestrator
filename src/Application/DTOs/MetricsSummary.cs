@@ -29,4 +29,9 @@ public class MetricsSummary
 
     [JsonPropertyName("timestamp")]
     public DateTime Timestamp { get; set; }
+
+    public override string ToString()
+    {
+        return $"MetricsSummary {{ TotalSagas = {TotalSagas}, ByStatus = {ByStatus}, AverageDurationSeconds = {AverageDurationSeconds}, CompensationRate = {CompensationRate}, Timestamp = {Timestamp} }}";
+    }
 }
