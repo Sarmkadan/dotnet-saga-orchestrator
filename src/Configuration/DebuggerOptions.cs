@@ -79,6 +79,15 @@ public sealed class DebuggerOptions
     /// Defaults to <c>false</c>.
     /// </summary>
     public bool EnableTimeTravel { get; set; } = false;
+
+    /// <summary>
+    /// Returns a string representation of the debugger options.
+    /// </summary>
+    /// <returns>A formatted string with key property values.</returns>
+    public override string ToString()
+    {
+        return $"DebuggerOptions {{ IsEnabled = {IsEnabled}, MaxSnapshotsPerSaga = {MaxSnapshotsPerSaga}, AutoCaptureOnStepTransition = {AutoCaptureOnStepTransition}, AutoCaptureOnCompensation = {AutoCaptureOnCompensation}, AutoCaptureOnTerminalState = {AutoCaptureOnTerminalState}, MaxBreakpointsPerSaga = {MaxBreakpointsPerSaga} }}";
+    }
 }
 
 /// <summary>
