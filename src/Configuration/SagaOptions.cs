@@ -21,6 +21,9 @@ public class SagaOptions
     public CachePolicies CachePolicies { get; set; } = new();
     public WorkerPolicies WorkerPolicies { get; set; } = new();
     public WebhookPolicies WebhookPolicies { get; set; } = new();
+
+    public override string ToString() =>
+        $"SagaOptions {{ TimeoutPolicies = {TimeoutPolicies}, RetryPolicies = {RetryPolicies}, CachePolicies = {CachePolicies}, WorkerPolicies = {WorkerPolicies}, WebhookPolicies = {WebhookPolicies}, DefaultStepTimeoutSeconds = {TimeoutPolicies.DefaultStepTimeoutSeconds} }}";
 }
 
 public class TimeoutPolicies
