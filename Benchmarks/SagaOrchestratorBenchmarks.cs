@@ -27,6 +27,8 @@ public class SagaOrchestratorBenchmarks
     [Params(1, 10, 100)]
     public int IterationCount { get; set; }
 
+    public override string ToString() => $"SagaOrchestratorBenchmarks {{ SagaStepCount = {SagaStepCount}, IterationCount = {IterationCount} }}";
+
     [GlobalSetup]
     public void Setup()
     {
