@@ -658,3 +658,54 @@ foreach (var statusCount in summary.ByStatus)
     Console.WriteLine($"  {statusCount.Key}: {statusCount.Value}");
 }
 ```
+
+## SagaOrchestrationServiceHappyPathTests
+
+
+The `SagaOrchestrationServiceHappyPathTests` class contains happy-path unit tests for the saga orchestration service, exercising the full lifecycle where every step succeeds: creating a saga from a valid definition with an initialized status, starting it so its steps are created, executing each step in order until the saga completes, and retrieving sagas by ID. It also verifies idempotent step execution (re-executing a completed step returns the same step) and the failure contracts, where null or empty arguments throw `ArgumentNullException`/`ArgumentException`, unknown saga IDs raise `SagaNotFoundException`, starting an already-running saga throws `SagaException`, and invalid definitions are rejected with `InvalidSagaDefinitionException`.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using SagaOrchestrator.Tests;
+
+// Instantiate the happy-path test suite
+var tests = new SagaOrchestrationServiceHappyPathTests();
+
+// Creating a saga from a valid definition yields an initialized saga
+await tests.CreateSagaAsync_WithValidDefinition_CreatesSagaWithInitializedStatus();
+
+// Starting an initialized saga transitions it to Running and creates its steps
+await tests.StartSagaAsync_WithInitializedSaga_StartsSagaAndCreatesSteps();
+
+// Executing next steps in order completes every step and the saga itself
+await tests.ExecuteNextStepAsync_ExecutesAllStepsInOrder_CompletesSagaSuccessfully();
+
+// Re-executing a completed step is idempotent and returns the same step
+await tests.ExecuteNextStepAsync_Idempotency_ExecutingCompletedStepReturnsSameStep();
+
+// Sagas can be retrieved by their identifier
+await tests.GetSagaAsync_WithValidId_ReturnsSaga();
+
+// Unknown saga IDs fail fast with SagaNotFoundException
+try
+{
+    await tests.StartSagaAsync_WithNonExistentSagaId_ThrowsSagaNotFoundException();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Expected failure: {ex.GetType().Name}");
+}
+
+// Null arguments are rejected with ArgumentNullException
+try
+{
+    await tests.CreateSagaAsync_WithNullDefinition_ThrowsArgumentNullException();
+}
+catch (ArgumentNullException)
+{
+    Console.WriteLine("A null saga definition is rejected.");
+}
+```
