@@ -621,3 +621,40 @@ Console.WriteLine(renderer.RenderStateDiagram());  // Outputs: State A --> State
 ```
 
 This interface is typically used by visualization tools, monitoring systems, or command-line interfaces to display saga execution details in a human-readable format.
+
+
+## MetricsSummary
+
+
+The `MetricsSummary` class is a data transfer object (DTO) that aggregates high-level operational metrics about saga execution into a single snapshot. It reports the total number of sagas, a breakdown of saga counts by status, the average saga duration in seconds, and the compensation rate, along with the timestamp at which the metrics were captured. This makes it well suited for dashboards, health checks, and monitoring endpoints that need a compact view of orchestrator health.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Application.DTOs;
+
+// Build a metrics summary from collected telemetry
+var summary = new MetricsSummary
+{
+    TotalSagas = 150,
+    ByStatus = new Dictionary<string, int>
+    {
+        { "Completed", 120 },
+        { "Running", 20 },
+        { "Failed", 10 }
+    },
+    AverageDurationSeconds = 42.7,
+    CompensationRate = 0.066,
+    Timestamp = DateTime.UtcNow
+};
+
+Console.WriteLine($"Total sagas: {summary.TotalSagas}");
+Console.WriteLine($"Average duration: {summary.AverageDurationSeconds:F1} seconds");
+Console.WriteLine($"Compensation rate: {summary.CompensationRate:P1}");
+Console.WriteLine($"Captured at: {summary.Timestamp:u}");
+
+foreach (var statusCount in summary.ByStatus)
+{
+    Console.WriteLine($"  {statusCount.Key}: {statusCount.Value}");
+}
+```
