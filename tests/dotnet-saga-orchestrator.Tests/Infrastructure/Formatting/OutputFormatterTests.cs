@@ -8,17 +8,26 @@ using Xunit;
 
 namespace SagaOrchestrator.Tests.Infrastructure.Formatting;
 
+/// <summary>
+/// Tests for the <see cref="OutputFormatter"/> class.
+/// </summary>
 public class OutputFormatterTests
 {
     private readonly Mock<ISagaSerializer> _mockSerializer;
     private readonly OutputFormatter _formatter;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OutputFormatterTests"/> class with mocked dependencies.
+    /// </summary>
     public OutputFormatterTests()
     {
         _mockSerializer = new Mock<ISagaSerializer>();
         _formatter = new OutputFormatter(_mockSerializer.Object);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="OutputFormatter.FormatAsJson{T}"/> returns a serialized string for a generic object.
+    /// </summary>
     [Fact]
     public void FormatAsJson_Generic_ReturnsSerializedString()
     {
@@ -30,6 +39,9 @@ public class OutputFormatterTests
         result.Should().Be("{\"Message\": \"Hello, World!\"}");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="OutputFormatter.FormatAsJson{T}"/> returns a serialized string for a <see cref="Saga"/> object.
+    /// </summary>
     [Fact]
     public void FormatAsJson_Saga_ReturnsSerializedString()
     {
@@ -41,6 +53,9 @@ public class OutputFormatterTests
         result.Should().Be("{\"Id\": \"1\"}");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="OutputFormatter.FormatAsTable{T}"/> returns a "No sagas found." message when the input list is empty.
+    /// </summary>
     [Fact]
     public void FormatAsTable_EmptyList_ReturnsNoSagasFoundMessage()
     {
@@ -48,6 +63,9 @@ public class OutputFormatterTests
         result.Should().Be("No sagas found.");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="OutputFormatter.FormatAsTable{T}"/> returns a formatted table containing the saga ID and status for a non-empty list.
+    /// </summary>
     [Fact]
     public void FormatAsTable_NormalList_ReturnsFormattedTable()
     {
@@ -62,6 +80,9 @@ public class OutputFormatterTests
         result.Should().Contain("Running");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="OutputFormatter.FormatAsTable{T}"/> correctly handles special characters (like newline) in saga fields.
+    /// </summary>
     [Fact]
     public void FormatAsTable_SpecialCharactersInFields_HandlesCorrectly()
     {
@@ -76,6 +97,9 @@ public class OutputFormatterTests
         result.Should().Contain("1");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="OutputFormatter.FormatAsCsv{T}"/> returns a formatted CSV string with the expected headers for a non-empty list.
+    /// </summary>
     [Fact]
     public void FormatAsCsv_NormalList_ReturnsFormattedCsv()
     {
@@ -89,6 +113,9 @@ public class OutputFormatterTests
         result.Should().Contain("Id,Name,Status,DefinitionId,CreatedAt,CompletedSteps,TotalSteps");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="OutputFormatter.FormatAsCsv{T}"/> correctly escapes special characters (like newline) in CSV output.
+    /// </summary>
     [Fact]
     public void FormatAsCsv_SpecialCharacters_EscapesCorrectly()
     {
