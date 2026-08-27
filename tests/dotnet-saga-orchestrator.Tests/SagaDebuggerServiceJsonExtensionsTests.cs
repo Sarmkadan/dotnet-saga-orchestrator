@@ -10,8 +10,15 @@ using Xunit;
 
 namespace SagaOrchestrator.Tests.Infrastructure.Debugging;
 
+/// <summary>
+/// Test class for <see cref="SagaDebuggerServiceJsonExtensions"/>.
+/// Contains tests for JSON serialization and deserialization of <see cref="SagaDebuggerService"/> instances.
+/// </summary>
 public class SagaDebuggerServiceJsonExtensionsTests
 {
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.ToJson(SagaDebuggerService)"/> returns a JSON string when given a valid service.
+    /// </summary>
     [Fact]
     public void ToJson_WithValidService_ReturnsJsonString()
     {
@@ -30,6 +37,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         json.Should().BeOfType<string>();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.ToJson(SagaDebuggerService)"/> throws an <see cref="ArgumentNullException"/> when the service is null.
+    /// </summary>
     [Fact]
     public void ToJson_WithNullService_ThrowsArgumentNullException()
     {
@@ -40,6 +50,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         Assert.Throws<ArgumentNullException>(() => SagaDebuggerServiceJsonExtensions.ToJson(service!));
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.ToJson(SagaDebuggerService,bool)"/> returns formatted JSON when the indented parameter is true.
+    /// </summary>
     [Fact]
     public void ToJson_WithIndentedTrue_ReturnsFormattedJson()
     {
@@ -58,6 +71,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         json.Should().BeOfType<string>();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.ToJson(SagaDebuggerService,bool)"/> returns compact JSON (without newlines) when the indented parameter is false.
+    /// </summary>
     [Fact]
     public void ToJson_WithIndentedFalse_ReturnsCompactJson()
     {
@@ -76,6 +92,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         json.Should().NotContain("\n"); // Should not have newlines
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.FromJson(string)"/> throws an exception when the JSON string is null.
+    /// </summary>
     [Fact]
     public void FromJson_WithNullJson_ThrowsException()
     {
@@ -83,6 +102,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         Assert.ThrowsAny<Exception>(() => SagaDebuggerServiceJsonExtensions.FromJson(null!));
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.FromJson(string)"/> throws an <see cref="ArgumentException"/> when the JSON string is empty.
+    /// </summary>
     [Fact]
     public void FromJson_WithEmptyJson_ThrowsArgumentException()
     {
@@ -90,6 +112,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         Assert.Throws<ArgumentException>(() => SagaDebuggerServiceJsonExtensions.FromJson(""));
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.FromJson(string)"/> throws an <see cref="ArgumentException"/> when the JSON string contains only whitespace.
+    /// </summary>
     [Fact]
     public void FromJson_WithWhitespaceJson_ThrowsArgumentException()
     {
@@ -97,6 +122,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         Assert.Throws<ArgumentException>(() => SagaDebuggerServiceJsonExtensions.FromJson("   "));
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.FromJson(string)"/> throws a <see cref="FormatException"/> when the JSON string is invalid.
+    /// </summary>
     [Fact]
     public void FromJson_WithInvalidJson_ThrowsFormatException()
     {
@@ -108,6 +136,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         act.Should().Throw<FormatException>();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.TryFromJson(string,SagaDebuggerService?)"/> returns false and null when the JSON string is null.
+    /// </summary>
     [Fact]
     public void TryFromJson_WithNullJson_ReturnsFalseAndNull()
     {
@@ -119,6 +150,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         service.Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.TryFromJson(string,SagaDebuggerService?)"/> returns false and null when the JSON string is empty.
+    /// </summary>
     [Fact]
     public void TryFromJson_WithEmptyJson_ReturnsFalseAndNull()
     {
@@ -130,6 +164,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         service.Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.TryFromJson(string,SagaDebuggerService?)"/> returns false and null when the JSON string contains only whitespace.
+    /// </summary>
     [Fact]
     public void TryFromJson_WithWhitespaceJson_ReturnsFalseAndNull()
     {
@@ -141,6 +178,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         service.Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.TryFromJson(string,SagaDebuggerService?)"/> returns false and null when the JSON string is invalid.
+    /// </summary>
     [Fact]
     public void TryFromJson_WithInvalidJson_ReturnsFalseAndNull()
     {
@@ -155,6 +195,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         deserializedService.Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.TryFromJson(string,SagaDebuggerService?)"/> attempts to deserialize valid JSON (returns false due to constructor limitations but validates the method handles the call).
+    /// </summary>
     [Fact]
     public void TryFromJson_WithValidJson_ReturnsTrue()
     {
@@ -176,6 +219,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         deserializedService.Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.ToJson(SagaDebuggerService)"/> produces valid JSON (non-empty, starts with '{', ends with '}').
+    /// </summary>
     [Fact]
     public void JsonOptions_ProducesValidJson()
     {
@@ -195,6 +241,9 @@ public class SagaDebuggerServiceJsonExtensionsTests
         json.Should().EndWith("}");
     }
 
+    /// <summary>
+    /// Tests that <see cref="SagaDebuggerServiceJsonExtensions.ToJson(SagaDebuggerService)"/> produces a string with valid JSON structure (starts with '{', ends with '}').
+    /// </summary>
     [Fact]
     public void ToJson_ProducesValidJsonStructure()
     {
