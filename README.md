@@ -742,3 +742,33 @@ tests.FormatAsCsv_NormalList_ReturnsFormattedCsv();
 var specialSagas = new List<Saga> { new Saga { Id = "s\n1", Status = SagaStatus.Running } };
 tests.FormatAsCsv_SpecialCharacters_EscapesCorrectly();
 ```
+
+## SagaMessageTemplatesValidationTests
+
+The `SagaMessageTemplatesValidationTests` class contains unit tests for the `SagaMessageTemplatesValidation` class, which validates parameters for various saga messaging templates. These tests verify that validation methods correctly return empty lists for valid inputs, throw `ArgumentNullException` for null parameters, and return appropriate error messages for invalid inputs such as exceeding maximum lengths or negative values.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+using SagaOrchestrator.Infrastructure.Messaging;
+
+// Instantiate the validation tester
+var tests = new SagaMessageTemplatesValidationTests();
+
+// Test that valid saga creation parameters return no validation errors
+tests.ValidateSagaCreated_ShouldReturnEmptyList_WhenAllParametersAreValid();
+
+// Test that null saga ID throws ArgumentNullException
+try
+{
+    tests.ValidateSagaCreated_ShouldThrowArgumentNullException_WhenSagaIdIsNull();
+}
+catch (ArgumentNullException)
+{
+    // Expected exception
+}
+
+// Test that excessively long saga ID returns validation error
+tests.ValidateSagaCreated_ShouldReturnError_WhenSagaIdExceedsMaxLength();
+```
