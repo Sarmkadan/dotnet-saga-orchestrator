@@ -709,3 +709,36 @@ catch (ArgumentNullException)
     Console.WriteLine("A null saga definition is rejected.");
 }
 ```
+
+## OutputFormatterTests
+
+The `OutputFormatterTests` class contains unit tests for the `OutputFormatter` class, verifying that it correctly formats saga data as JSON, table, and CSV, including handling of special characters and empty lists.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests.Infrastructure.Formatting;
+
+// Instantiate the test class
+var tests = new OutputFormatterTests();
+
+// Test JSON formatting for a generic object
+tests.FormatAsJson_Generic_ReturnsSerializedString();
+
+// Test JSON formatting for a Saga object
+tests.FormatAsJson_Saga_ReturnsSerializedString();
+
+// Test table formatting for an empty list
+tests.FormatAsTable_EmptyList_ReturnsNoSagasFoundMessage();
+
+// Test table formatting for a normal list
+var sagas = new List<Saga> { new Saga { Id = "s1", Status = SagaStatus.Running } };
+tests.FormatAsTable_NormalList_ReturnsFormattedTable();
+
+// Test CSV formatting for a normal list
+tests.FormatAsCsv_NormalList_ReturnsFormattedCsv();
+
+// Test CSV formatting with special characters
+var specialSagas = new List<Saga> { new Saga { Id = "s\n1", Status = SagaStatus.Running } };
+tests.FormatAsCsv_SpecialCharacters_EscapesCorrectly();
+```
