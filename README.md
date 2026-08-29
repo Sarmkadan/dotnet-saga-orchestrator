@@ -772,3 +772,26 @@ catch (ArgumentNullException)
 // Test that excessively long saga ID returns validation error
 tests.ValidateSagaCreated_ShouldReturnError_WhenSagaIdExceedsMaxLength();
 ```
+
+## SagaDebuggerServiceJsonExtensionsJsonExtensionsTests
+
+`SagaDebuggerServiceJsonExtensionsJsonExtensionsTests` verifies the JSON serialization and deserialization behavior of the saga debugger service, including valid, formatted, compact, and camel-cased output. It also covers argument validation and confirms that the try-pattern returns `false` with a null result when JSON is invalid or cannot be deserialized.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests.Infrastructure.Debugging;
+
+var tests = new SagaDebuggerServiceJsonExtensionsJsonExtensionsTests();
+
+tests.ToJson_ShouldSerializeValidJson();
+tests.ToJson_WithIndentedTrue_ShouldProduceFormattedJson();
+tests.ToJson_WithIndentedFalse_ShouldProduceCompactJson();
+tests.ToJson_WithNullValue_ShouldThrowArgumentNullException();
+tests.FromJson_WithNullOrWhitespaceJson_ShouldThrowArgumentException();
+tests.TryFromJson_WithNullOrWhitespaceJson_ShouldThrowArgumentException();
+tests.TryFromJson_WithInvalidJson_ShouldReturnFalseAndSetNull();
+tests.TryFromJson_WithUnDeserializableJson_ShouldReturnFalseAndSetNull();
+tests.ToJson_ShouldUseCamelCaseNamingPolicy();
+tests.ToJson_ShouldProduceNonEmptyOutput();
+```
