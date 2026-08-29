@@ -796,6 +796,32 @@ tests.ToJson_ShouldUseCamelCaseNamingPolicy();
 tests.ToJson_ShouldProduceNonEmptyOutput();
 ```
 
+## SagaDebuggerServiceJsonExtensionsTests
+
+`SagaDebuggerServiceJsonExtensionsTests` verifies the JSON serialization helpers for `SagaDebuggerService`, including indented and compact output and the resulting JSON structure. It also checks the validation and failure behavior of `FromJson` and `TryFromJson` for null, empty, whitespace, invalid, and valid serialized input.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests.Infrastructure.Debugging;
+
+var tests = new SagaDebuggerServiceJsonExtensionsTests();
+
+// Verify serialization output and formatting.
+tests.ToJson_WithValidService_ReturnsJsonString();
+tests.ToJson_WithIndentedTrue_ReturnsFormattedJson();
+tests.ToJson_WithIndentedFalse_ReturnsCompactJson();
+tests.JsonOptions_ProducesValidJson();
+tests.ToJson_ProducesValidJsonStructure();
+
+// Verify argument validation and deserialization failure handling.
+tests.ToJson_WithNullService_ThrowsArgumentNullException();
+tests.FromJson_WithEmptyJson_ThrowsArgumentException();
+tests.FromJson_WithInvalidJson_ThrowsFormatException();
+tests.TryFromJson_WithInvalidJson_ReturnsFalseAndNull();
+tests.TryFromJson_WithValidJson_ReturnsTrue();
+```
+
 ## RetryPolicyTestsBehavior
 
 `RetryPolicyTestsBehavior` is an xUnit behavior suite for retry-policy delay calculation, retry limits, factory methods, and constructor defaults. It verifies exponential and linear delays, maximum-delay capping, jitter variation, and the behavior at or beyond the configured retry limit.
