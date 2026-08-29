@@ -6,6 +6,7 @@
 
 using System.Collections.Concurrent;
 using SagaOrchestrator.Core.Extensions;
+using SagaOrchestrator.Infrastructure.Logging;
 
 using System.Threading;
 
@@ -69,16 +70,19 @@ public class CircuitBreaker : ICircuitBreaker
     private readonly int _failureThreshold;
     private readonly TimeSpan _timeout;
     private readonly object _lock = new();
+    private readonly ISagaLogger? _logger;
 
     /// <summary>
     /// Initializes a new circuit breaker.
     /// </summary>
     /// <param name="failureThreshold">Consecutive failures that trip the breaker open.</param>
     /// <param name="timeoutSeconds">How long the breaker stays open before allowing a half-open probe.</param>
-    public CircuitBreaker(int failureThreshold = 5, int timeoutSeconds = 60)
+    /// <param name="logger">The saga logger (optional).</param>
+    public CircuitBreaker(int failureThreshold = 5, int timeoutSeconds = 60, ISagaLogger? logger = null)
     {
         _failureThreshold = failureThreshold.GreaterThan(0, nameof(failureThreshold));
         _timeout = TimeSpan.FromSeconds(timeoutSeconds);
+        _logger = logger;
         _metrics = new();
     }
 
@@ -153,6 +157,10 @@ public class CircuitBreaker : ICircuitBreaker
         lock (_lock)
         {
             _metrics.TryRemove(identifier, out _);
+            _logger?.LogCircuitBreakerStateChanged(
+                identifier,
+                "Reset",
+                null);
         }
     }
 
@@ -177,6 +185,10 @@ public class CircuitBreaker : ICircuitBreaker
                 {
                     metrics.State = CircuitBreakerState.HalfOpen;
                     metrics.FailureCount = 0;
+                    _logger?.LogCircuitBreakerStateChanged(
+                        identifier,
+                        "Open -> HalfOpen",
+                        new { OpenDurationSeconds = (DateTime.UtcNow - metrics.LastFailureTime).TotalSeconds });
                     return true;
                 }
                 return false;
@@ -207,7 +219,13 @@ public class CircuitBreaker : ICircuitBreaker
                 metrics.FailureCount = 0;
                 metrics.SuccessCount++;
                 if (metrics.State == CircuitBreakerState.HalfOpen)
+                {
                     metrics.State = CircuitBreakerState.Closed;
+                    _logger?.LogCircuitBreakerStateChanged(
+                        identifier,
+                        "HalfOpen -> Closed",
+                        null);
+                }
 
                 // Reset the execution flag when probe succeeds
                 metrics.ExecutionInProgress = 0;
@@ -230,9 +248,21 @@ public class CircuitBreaker : ICircuitBreaker
             metrics.ExecutionInProgress = 0; // Reset execution flag on failure
 
             if (metrics.FailureCount >= _failureThreshold)
+            {
                 metrics.State = CircuitBreakerState.Open;
+                _logger?.LogCircuitBreakerStateChanged(
+                    identifier,
+                    "Closed -> Open",
+                    new { FailureCount = metrics.FailureCount, Threshold = _failureThreshold });
+            }
             else if (metrics.State == CircuitBreakerState.HalfOpen)
+            {
                 metrics.State = CircuitBreakerState.Open;
+                _logger?.LogCircuitBreakerStateChanged(
+                    identifier,
+                    "HalfOpen -> Open",
+                    null);
+            }
         }
     }
 

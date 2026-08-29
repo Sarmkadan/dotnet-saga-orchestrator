@@ -27,6 +27,12 @@ public interface ISagaLogger
 
     /// <summary>Logs the full step-by-step execution timeline for a saga.</summary>
     void LogExecutionTimeline(Saga saga);
+
+    /// <summary>Logs a circuit breaker state transition.</summary>
+    /// <param name="identifier">The circuit breaker identifier.</param>
+    /// <param name="transition">The transition description.</param>
+    /// <param name="details">Optional details as an object (will be serialized as structured log properties).</param>
+    void LogCircuitBreakerStateChanged(string identifier, string transition, object? details = null);
 }
 
 public class SagaLogger : ISagaLogger
@@ -187,6 +193,28 @@ public class SagaLogger : ISagaLogger
                 durationStr,
                 step.StartedAt?.ToString("O") ?? "N/A",
                 step.RetryCount);
+        }
+    }
+
+    /// <inheritdoc />
+    public void LogCircuitBreakerStateChanged(string identifier, string transition, object? details = null)
+    {
+        if (details != null)
+        {
+            using var scope = _logger.BeginScope(new Dictionary<string, object>
+            {
+                ["Identifier"] = identifier,
+                ["Transition"] = transition,
+                ["Details"] = details
+            });
+
+            _logger.LogInformation("Circuit breaker state changed | Identifier: {Identifier}, Transition: {Transition}, Details: {Details}",
+                identifier, transition, details);
+        }
+        else
+        {
+            _logger.LogInformation("Circuit breaker state changed | Identifier: {Identifier}, Transition: {Transition}",
+                identifier, transition);
         }
     }
 }
