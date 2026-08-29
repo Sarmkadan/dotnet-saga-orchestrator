@@ -795,3 +795,33 @@ tests.TryFromJson_WithUnDeserializableJson_ShouldReturnFalseAndSetNull();
 tests.ToJson_ShouldUseCamelCaseNamingPolicy();
 tests.ToJson_ShouldProduceNonEmptyOutput();
 ```
+
+## RetryPolicyTestsBehavior
+
+`RetryPolicyTestsBehavior` is an xUnit behavior suite for retry-policy delay calculation, retry limits, factory methods, and constructor defaults. It verifies exponential and linear delays, maximum-delay capping, jitter variation, and the behavior at or beyond the configured retry limit.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+
+var tests = new RetryPolicyTestsBehavior();
+
+// Run representative delay and retry-limit behavior checks.
+tests.CalculateDelay_SuccessFirstTry_NoRetryLogicApplied();
+tests.CalculateDelay_DelayGrowsExponentially();
+tests.CalculateDelay_DelayCappedAtMaxDelay();
+tests.CalculateDelay_WithJitter_AppliesRandomVariation();
+tests.CanRetry_WithinMaxRetries_ReturnsTrue(1);
+tests.CanRetry_AtMaxRetries_ReturnsFalse();
+tests.CanRetry_BeyondMaxRetries_ReturnsFalse();
+
+// Verify the supplied policy factories and constructor behavior.
+tests.CreateExponentialWithJitter_JitterEnabled();
+tests.CreateLinear_DelaysGrowLinearly();
+tests.DefaultConstructor_UsesExpectedDefaultValues();
+tests.CustomConstructor_SetsAllPropertiesCorrectly();
+
+// Confirm that calculating a delay after retry exhaustion is rejected.
+tests.CalculateDelay_RetriesExhausted_ThrowsInvalidOperationException();
+```
