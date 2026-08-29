@@ -247,21 +247,21 @@ public class CircuitBreaker : ICircuitBreaker
             metrics.LastFailureTime = DateTime.UtcNow;
             metrics.ExecutionInProgress = 0; // Reset execution flag on failure
 
-            if (metrics.FailureCount >= _failureThreshold)
-            {
-                metrics.State = CircuitBreakerState.Open;
-                _logger?.LogCircuitBreakerStateChanged(
-                    identifier,
-                    "Closed -> Open",
-                    new { FailureCount = metrics.FailureCount, Threshold = _failureThreshold });
-            }
-            else if (metrics.State == CircuitBreakerState.HalfOpen)
+            if (metrics.State == CircuitBreakerState.HalfOpen)
             {
                 metrics.State = CircuitBreakerState.Open;
                 _logger?.LogCircuitBreakerStateChanged(
                     identifier,
                     "HalfOpen -> Open",
                     null);
+            }
+            else if (metrics.State == CircuitBreakerState.Closed && metrics.FailureCount >= _failureThreshold)
+            {
+                metrics.State = CircuitBreakerState.Open;
+                _logger?.LogCircuitBreakerStateChanged(
+                    identifier,
+                    "Closed -> Open",
+                    new { FailureCount = metrics.FailureCount, Threshold = _failureThreshold });
             }
         }
     }
