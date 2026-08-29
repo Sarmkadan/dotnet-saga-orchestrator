@@ -773,28 +773,32 @@ catch (ArgumentNullException)
 tests.ValidateSagaCreated_ShouldReturnError_WhenSagaIdExceedsMaxLength();
 ```
 
-## SagaMessageTemplatesJsonExtensionsTests
+## SagaMessageTemplatesJsonExtensionsJsonExtensionsTests
 
-The `SagaMessageTemplatesJsonExtensionsTests` class verifies JSON serialization, deserialization, and try-pattern parsing for saga message strings. It covers empty values, special characters, quotes, Unicode text, optional indentation, invalid or malformed JSON, and null-argument validation.
+The `SagaMessageTemplatesJsonExtensionsJsonExtensionsTests` documentation covers the public tests that verify JSON serialization, deserialization, and try-pattern parsing for saga message strings. The suite exercises empty values, special characters, quotes, optional indentation, invalid or malformed JSON, null-argument validation, and round-trip preservation.
 
 ### Usage Example
 
 ```csharp
-using SagaOrchestrator.Tests;
+using SagaMessageTemplatesJsonExtensionsJsonExtensionsTests =
+    SagaOrchestrator.Tests.SagaMessageTemplatesJsonExtensionsTests;
 
-var tests = new SagaMessageTemplatesJsonExtensionsTests();
+var tests = new SagaMessageTemplatesJsonExtensionsJsonExtensionsTests();
 
 // Verify serialization behavior for representative message content.
 tests.ToJson_ShouldSerializeSimpleString();
 tests.ToJson_ShouldSerializeStringWithSpecialCharacters();
 tests.ToJson_WithIndentedTrue_ShouldFormatWithIndentation();
-tests.ToJson_WithUnicodeCharacters_ShouldPreserveCharacters();
 
 // Verify deserialization and try-pattern behavior.
 tests.FromJson_ShouldDeserializeStringWithQuotes();
 tests.FromJson_ShouldReturnNull_WhenJsonIsMalformed();
 tests.TryFromJson_ShouldReturnTrueAndValue_WhenJsonIsValid();
 tests.TryFromJson_ShouldReturnFalseAndNull_WhenJsonIsInvalid();
+
+// Verify that both parsing APIs preserve a serialized value.
+tests.RoundTrip_ToJsonThenFromJson_ShouldPreserveOriginalValue();
+tests.RoundTrip_ToJsonThenTryFromJson_ShouldPreserveOriginalValue();
 
 // Verify null inputs are rejected.
 tests.ToJson_ShouldThrowArgumentNullException_WhenMessageIsNull();
