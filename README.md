@@ -773,6 +773,35 @@ catch (ArgumentNullException)
 tests.ValidateSagaCreated_ShouldReturnError_WhenSagaIdExceedsMaxLength();
 ```
 
+## SagaMessageTemplatesJsonExtensionsTests
+
+The `SagaMessageTemplatesJsonExtensionsTests` class verifies JSON serialization, deserialization, and try-pattern parsing for saga message strings. It covers empty values, special characters, quotes, Unicode text, optional indentation, invalid or malformed JSON, and null-argument validation.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+
+var tests = new SagaMessageTemplatesJsonExtensionsTests();
+
+// Verify serialization behavior for representative message content.
+tests.ToJson_ShouldSerializeSimpleString();
+tests.ToJson_ShouldSerializeStringWithSpecialCharacters();
+tests.ToJson_WithIndentedTrue_ShouldFormatWithIndentation();
+tests.ToJson_WithUnicodeCharacters_ShouldPreserveCharacters();
+
+// Verify deserialization and try-pattern behavior.
+tests.FromJson_ShouldDeserializeStringWithQuotes();
+tests.FromJson_ShouldReturnNull_WhenJsonIsMalformed();
+tests.TryFromJson_ShouldReturnTrueAndValue_WhenJsonIsValid();
+tests.TryFromJson_ShouldReturnFalseAndNull_WhenJsonIsInvalid();
+
+// Verify null inputs are rejected.
+tests.ToJson_ShouldThrowArgumentNullException_WhenMessageIsNull();
+tests.FromJson_ShouldThrowArgumentNullException_WhenJsonIsNull();
+tests.TryFromJson_ShouldThrowArgumentNullException_WhenJsonIsNull();
+```
+
 ## SagaMessageTemplatesTests
 
 The `SagaMessageTemplatesTests` class verifies the formatted and detailed messages produced for saga creation, step starts, step completion, step failure, retries, and saga completion. It also covers edge cases such as null or empty values, zero and negative numbers, boundary retry attempts, and partial completion.
