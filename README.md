@@ -773,6 +773,32 @@ catch (ArgumentNullException)
 tests.ValidateSagaCreated_ShouldReturnError_WhenSagaIdExceedsMaxLength();
 ```
 
+## SagaMessageTemplatesTests
+
+The `SagaMessageTemplatesTests` class verifies the formatted and detailed messages produced for saga creation, step starts, step completion, step failure, retries, and saga completion. It also covers edge cases such as null or empty values, zero and negative numbers, boundary retry attempts, and partial completion.
+
+### Usage Example
+
+```csharp
+using SagaOrchestrator.Tests;
+
+var tests = new SagaMessageTemplatesTests();
+
+// Verify the standard message generated for each stage of a saga.
+tests.SagaCreated_Format_ShouldReturnCorrectMessage();
+tests.StepStarted_Format_ShouldReturnCorrectMessage();
+tests.StepCompleted_Format_ShouldReturnCorrectMessage();
+tests.StepFailed_Format_ShouldReturnCorrectMessage();
+tests.SagaCompleted_Format_ShouldReturnCorrectMessage();
+
+// Exercise detailed messages and representative edge cases.
+tests.SagaCreated_Detailed_ShouldHandleNullValues();
+tests.StepStarted_Detailed_ShouldHandleBoundaryValues();
+tests.StepCompleted_Detailed_ShouldHandleEmptyResult();
+tests.StepFailed_WithRetry_ShouldHandleFirstAndLastAttempt();
+tests.SagaCompleted_Format_ShouldHandlePartialCompletion();
+```
+
 ## SagaDebuggerServiceJsonExtensionsJsonExtensionsTests
 
 `SagaDebuggerServiceJsonExtensionsJsonExtensionsTests` verifies the JSON serialization and deserialization behavior of the saga debugger service, including valid, formatted, compact, and camel-cased output. It also covers argument validation and confirms that the try-pattern returns `false` with a null result when JSON is invalid or cannot be deserialized.
