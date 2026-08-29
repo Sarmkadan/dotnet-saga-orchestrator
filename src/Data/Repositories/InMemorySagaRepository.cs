@@ -20,7 +20,13 @@ namespace SagaOrchestrator.Data.Repositories;
 public class InMemorySagaRepository : ISagaRepository
 {
     private readonly Dictionary<string, Saga> _sagas = new();
+    private readonly Dictionary<string, string> _correlationIndex = new(); // correlationId -> sagaId
     private readonly object _lockObject = new();
+
+    public InMemorySagaRepository()
+    {
+        _correlationIndex = new Dictionary<string, string>();
+    }
 
     private Saga CopySaga(Saga saga)
     {
@@ -48,8 +54,12 @@ public class InMemorySagaRepository : ISagaRepository
 
         lock (_lockObject)
         {
-            var saga = _sagas.Values.FirstOrDefault(s => s.CorrelationId == correlationId);
-            return CopySaga(saga);
+            if (_correlationIndex.TryGetValue(correlationId, out var sagaId) &&
+                _sagas.TryGetValue(sagaId, out var saga))
+            {
+                return CopySaga(saga);
+            }
+            return null;
         }
     }
 
@@ -66,6 +76,12 @@ public class InMemorySagaRepository : ISagaRepository
                 throw new InvalidOperationException($"Saga with ID '{saga.Id}' already exists");
 
             _sagas[saga.Id] = saga;
+
+            if (!string.IsNullOrEmpty(saga.CorrelationId))
+            {
+                _correlationIndex[saga.CorrelationId] = saga.Id;
+            }
+
             return saga;
         }
     }
@@ -82,7 +98,28 @@ public class InMemorySagaRepository : ISagaRepository
             if (!_sagas.ContainsKey(saga.Id))
                 return null;
 
+            var existingSaga = _sagas[saga.Id];
+            var oldCorrelationId = existingSaga.CorrelationId;
+            var newCorrelationId = saga.CorrelationId;
+
             _sagas[saga.Id] = saga;
+
+            // Update correlation index if correlationId changed
+            if (oldCorrelationId != newCorrelationId)
+            {
+                // Remove old mapping if it existed
+                if (!string.IsNullOrEmpty(oldCorrelationId))
+                {
+                    _correlationIndex.Remove(oldCorrelationId);
+                }
+
+                // Add new mapping if it is non-empty
+                if (!string.IsNullOrEmpty(newCorrelationId))
+                {
+                    _correlationIndex[newCorrelationId] = saga.Id;
+                }
+            }
+
             return saga;
         }
     }
@@ -96,7 +133,18 @@ public class InMemorySagaRepository : ISagaRepository
 
         lock (_lockObject)
         {
-            return _sagas.Remove(id);
+            if (_sagas.TryGetValue(id, out var saga))
+            {
+                // Remove from correlation index if present
+                if (!string.IsNullOrEmpty(saga.CorrelationId))
+                {
+                    _correlationIndex.Remove(saga.CorrelationId);
+                }
+
+                return _sagas.Remove(id);
+            }
+
+            return false;
         }
     }
 
