@@ -13,6 +13,31 @@ namespace SagaOrchestrator.Core.Utilities;
 /// </summary>
 public class RetryPolicy
 {
+    /// <summary>
+    /// The default maximum number of retry attempts.
+    /// </summary>
+    public const int DefaultMaxRetries = 3;
+
+    /// <summary>
+    /// The default initial delay between retry attempts, in milliseconds.
+    /// </summary>
+    public const int DefaultInitialDelayMs = 1000;
+
+    /// <summary>
+    /// The default multiplier applied to the delay after each retry attempt.
+    /// </summary>
+    public const double DefaultBackoffMultiplier = 2.0;
+
+    /// <summary>
+    /// The default maximum delay between retry attempts, in milliseconds.
+    /// </summary>
+    public const int DefaultMaxDelayMs = 60000;
+
+    /// <summary>
+    /// The percentage by which jitter may increase or decrease a calculated delay.
+    /// </summary>
+    public const double DefaultJitterPercentage = 0.25;
+
     public int MaxRetries { get; }
     public int InitialDelayMs { get; }
     public double BackoffMultiplier { get; }
@@ -27,7 +52,7 @@ public class RetryPolicy
     /// <summary>
     /// Creates a retry policy with exponential backoff
     /// </summary>
-    public RetryPolicy(int maxRetries = 3, int initialDelayMs = 1000, double backoffMultiplier = 2.0, int maxDelayMs = 60000, bool useJitter = false)
+    public RetryPolicy(int maxRetries = DefaultMaxRetries, int initialDelayMs = DefaultInitialDelayMs, double backoffMultiplier = DefaultBackoffMultiplier, int maxDelayMs = DefaultMaxDelayMs, bool useJitter = false)
     {
         if (maxRetries < 0)
             throw new ArgumentException("Max retries cannot be negative", nameof(maxRetries));
@@ -65,7 +90,8 @@ public class RetryPolicy
         if (UseJitter)
         {
             // Apply ±25% random jitter
-            var jitterFactor = 0.75 + Random.Shared.NextDouble() * 0.5;
+            var jitterFactor = 1.0 - DefaultJitterPercentage
+                + Random.Shared.NextDouble() * (DefaultJitterPercentage + DefaultJitterPercentage);
             delay = (int)(delay * jitterFactor);
         }
 
@@ -83,7 +109,7 @@ public class RetryPolicy
     /// <summary>
     /// Creates a linear retry policy (fixed delays)
     /// </summary>
-    public static RetryPolicy CreateLinear(int maxRetries = 3, int delayMs = 1000)
+    public static RetryPolicy CreateLinear(int maxRetries = DefaultMaxRetries, int delayMs = DefaultInitialDelayMs)
     {
         return new RetryPolicy(maxRetries, delayMs, 1.0, delayMs);
     }
@@ -91,17 +117,17 @@ public class RetryPolicy
     /// <summary>
     /// Creates an exponential retry policy
     /// </summary>
-    public static RetryPolicy CreateExponential(int maxRetries = 3, int initialDelayMs = 1000)
+    public static RetryPolicy CreateExponential(int maxRetries = DefaultMaxRetries, int initialDelayMs = DefaultInitialDelayMs)
     {
-        return new RetryPolicy(maxRetries, initialDelayMs, 2.0, 60000);
+        return new RetryPolicy(maxRetries, initialDelayMs, DefaultBackoffMultiplier, DefaultMaxDelayMs);
     }
 
     /// <summary>
     /// Creates an exponential retry policy with jitter
     /// </summary>
-    public static RetryPolicy CreateExponentialWithJitter(int maxRetries = 3, int initialDelayMs = 1000)
+    public static RetryPolicy CreateExponentialWithJitter(int maxRetries = DefaultMaxRetries, int initialDelayMs = DefaultInitialDelayMs)
     {
-        return new RetryPolicy(maxRetries, initialDelayMs, 2.0, 60000, useJitter: true);
+        return new RetryPolicy(maxRetries, initialDelayMs, DefaultBackoffMultiplier, DefaultMaxDelayMs, useJitter: true);
     }
 
     /// <summary>
