@@ -36,8 +36,10 @@ public class InMemorySagaRepository : ISagaRepository
         return JsonSerializer.Deserialize<Saga>(json);
     }
 
+    /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     public async Task<Saga?> GetByIdAsync(string id)
     {
+        ArgumentException.ThrowIfNullOrEmpty(id);
         await Task.Yield();
 
         lock (_lockObject)
@@ -48,8 +50,10 @@ public class InMemorySagaRepository : ISagaRepository
         }
     }
 
+    /// <exception cref="ArgumentException">Thrown when <paramref name="correlationId"/> is null or empty.</exception>
     public async Task<Saga?> GetByCorrelationIdAsync(string correlationId)
     {
+        ArgumentException.ThrowIfNullOrEmpty(correlationId);
         await Task.Yield();
 
         lock (_lockObject)
@@ -124,10 +128,10 @@ public class InMemorySagaRepository : ISagaRepository
         }
     }
 
+    /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     public async Task<bool> DeleteAsync(string id)
     {
-        if (string.IsNullOrEmpty(id))
-            return false;
+        ArgumentException.ThrowIfNullOrEmpty(id);
 
         await Task.Yield();
 
