@@ -27,6 +27,19 @@ public interface ICircuitBreaker
     Task<bool> ExecuteAsync(Func<Task> action, string identifier);
 
     /// <summary>
+    /// Executes the action under the breaker for the given identifier with cancellation support.
+    /// </summary>
+    /// <param name="action">The action to guard.</param>
+    /// <param name="identifier">The logical target the breaker tracks (e.g. a service name).</param>
+    /// <param name="cancellationToken">The token used to cancel the operation.</param>
+    /// <returns><c>true</c> if the action ran; <c>false</c> if the breaker was open and rejected it.</returns>
+    /// <exception cref="OperationCanceledException">Thrown when the operation is cancelled.</exception>
+    Task<bool> ExecuteAsync(
+        Func<CancellationToken, Task> action,
+        string identifier,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Executes the action under the breaker and returns its result.
     /// </summary>
     /// <typeparam name="T">The result type.</typeparam>
@@ -35,6 +48,21 @@ public interface ICircuitBreaker
     /// <returns>The action result.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the breaker is open.</exception>
     Task<T> ExecuteAsync<T>(Func<Task<T>> action, string identifier);
+
+    /// <summary>
+    /// Executes the action under the breaker with cancellation support and returns its result.
+    /// </summary>
+    /// <typeparam name="T">The result type.</typeparam>
+    /// <param name="action">The action to guard.</param>
+    /// <param name="identifier">The logical target the breaker tracks.</param>
+    /// <param name="cancellationToken">The token used to cancel the operation.</param>
+    /// <returns>The action result.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the breaker is open.</exception>
+    /// <exception cref="OperationCanceledException">Thrown when the operation is cancelled.</exception>
+    Task<T> ExecuteAsync<T>(
+        Func<CancellationToken, Task<T>> action,
+        string identifier,
+        CancellationToken cancellationToken);
 
     /// <summary>Gets the current state of the breaker for the given identifier.</summary>
     /// <param name="identifier">The logical target the breaker tracks.</param>
@@ -87,19 +115,35 @@ public class CircuitBreaker : ICircuitBreaker
     }
 
     /// <inheritdoc />
-    public async Task<bool> ExecuteAsync(Func<Task> action, string identifier)
+    public Task<bool> ExecuteAsync(Func<Task> action, string identifier)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        return ExecuteAsync(_ => action(), identifier, CancellationToken.None);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> ExecuteAsync(
+        Func<CancellationToken, Task> action,
+        string identifier,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentException.ThrowIfNullOrEmpty(identifier);
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             var canExecute = CanExecute(identifier);
             if (!canExecute)
                 return false;
 
-            await action();
+            await action(cancellationToken);
             RecordSuccess(identifier);
             return true;
+        }
+        catch (OperationCanceledException exception) when (exception.CancellationToken == cancellationToken)
+        {
+            ReleaseExecution(identifier);
+            throw;
         }
         catch (Exception)
         {
@@ -109,19 +153,35 @@ public class CircuitBreaker : ICircuitBreaker
     }
 
     /// <inheritdoc />
-    public async Task<T> ExecuteAsync<T>(Func<Task<T>> action, string identifier)
+    public Task<T> ExecuteAsync<T>(Func<Task<T>> action, string identifier)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        return ExecuteAsync(_ => action(), identifier, CancellationToken.None);
+    }
+
+    /// <inheritdoc />
+    public async Task<T> ExecuteAsync<T>(
+        Func<CancellationToken, Task<T>> action,
+        string identifier,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentException.ThrowIfNullOrEmpty(identifier);
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             var canExecute = CanExecute(identifier);
             if (!canExecute)
                 throw new InvalidOperationException($"Circuit breaker is open for {identifier}");
 
-            var result = await action();
+            var result = await action(cancellationToken);
             RecordSuccess(identifier);
             return result;
+        }
+        catch (OperationCanceledException exception) when (exception.CancellationToken == cancellationToken)
+        {
+            ReleaseExecution(identifier);
+            throw;
         }
         catch (Exception)
         {
@@ -263,6 +323,15 @@ public class CircuitBreaker : ICircuitBreaker
                     "Closed -> Open",
                     new { FailureCount = metrics.FailureCount, Threshold = _failureThreshold });
             }
+        }
+    }
+
+    private void ReleaseExecution(string identifier)
+    {
+        lock (_lock)
+        {
+            if (_metrics.TryGetValue(identifier, out var metrics))
+                metrics.ExecutionInProgress = 0;
         }
     }
 
