@@ -19,6 +19,8 @@ namespace SagaOrchestrator.Data.Repositories;
 /// </summary>
 public class InMemorySagaRepository : ISagaRepository
 {
+    private static readonly JsonSerializerOptions CopyOptions = new() { WriteIndented = false };
+
     private readonly Dictionary<string, Saga> _sagas = new();
     private readonly Dictionary<string, string> _correlationIndex = new(); // correlationId -> sagaId
     private readonly object _lockObject = new();
@@ -28,11 +30,10 @@ public class InMemorySagaRepository : ISagaRepository
         _correlationIndex = new Dictionary<string, string>();
     }
 
-    private Saga CopySaga(Saga saga)
+    private static Saga? CopySaga(Saga? saga)
     {
         if (saga == null) return null;
-        var options = new JsonSerializerOptions { WriteIndented = false };
-        var json = JsonSerializer.Serialize(saga, options);
+        var json = JsonSerializer.Serialize(saga, CopyOptions);
         return JsonSerializer.Deserialize<Saga>(json);
     }
 
@@ -158,7 +159,7 @@ public class InMemorySagaRepository : ISagaRepository
 
         lock (_lockObject)
         {
-            return _sagas.Values.Select(CopySaga).ToList();
+            return _sagas.Values.Select(saga => CopySaga(saga)!).ToList();
         }
     }
 
@@ -168,7 +169,7 @@ public class InMemorySagaRepository : ISagaRepository
 
         lock (_lockObject)
         {
-            return _sagas.Values.Where(s => s.Status == status).Select(CopySaga).ToList();
+            return _sagas.Values.Where(s => s.Status == status).Select(saga => CopySaga(saga)!).ToList();
         }
     }
 
@@ -203,7 +204,7 @@ public class InMemorySagaRepository : ISagaRepository
                 results = results.Where(s => s.StartedAt <= toDate);
             }
 
-            return results.Select(CopySaga).ToList();
+            return results.Select(saga => CopySaga(saga)!).ToList();
         }
     }
 }
