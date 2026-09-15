@@ -51,3 +51,5 @@ public static class InMemoryCompensationTransactionRepositoryExtensionsValidatio
             $"InMemoryCompensationTransactionRepositoryExtensions type is not valid. Problems:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", problems)}");
     }
 }
+
+// This class contains no public methods with reference-type parameters, therefore no null guards are required.
