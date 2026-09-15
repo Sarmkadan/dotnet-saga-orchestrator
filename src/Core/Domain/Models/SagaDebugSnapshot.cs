@@ -222,6 +222,10 @@ public sealed record SagaDebugSnapshot
     public double ProgressPercent =>
         Steps.Count == 0 ? 0 : Math.Round((double)CompletedStepCount / Steps.Count * 100, 2);
 
+    /// <summary>Returns a concise summary of this debug snapshot.</summary>
+    public override string ToString() =>
+        $"SagaDebugSnapshot {{ SnapshotId = {SnapshotId}, SagaId = {SagaId}, SagaStatus = {SagaStatus}, Trigger = {Trigger}, SequenceNumber = {SequenceNumber}, CapturedAt = {CapturedAt:O}, StepCount = {Steps.Count} }}";
+
     // -------------------------------------------------------------------------
     // Factory
     // -------------------------------------------------------------------------
