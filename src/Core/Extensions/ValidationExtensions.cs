@@ -63,6 +63,16 @@ public static class ValidationExtensions
     }
 
     /// <summary>
+    /// Checks if the specified integer is positive (greater than zero).
+    /// </summary>
+    /// <param name="value">The integer to check.</param>
+    /// <returns>true if the value is positive; otherwise, false.</returns>
+    public static bool IsPositive(this int value)
+    {
+        return value > 0;
+    }
+
+    /// <summary>
     /// Validates that the specified integer is within the specified range [min, max].
     /// </summary>
     /// <param name="value">The value to validate.</param>
