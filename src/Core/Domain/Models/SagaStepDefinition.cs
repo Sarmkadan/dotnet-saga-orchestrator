@@ -197,4 +197,13 @@ public class SagaStepDefinition
             Metadata = new Dictionary<string, string>(Metadata)
         };
     }
+
+    /// <summary>
+    /// Returns a string representation of the saga step definition.
+    /// </summary>
+    /// <returns>A string summarizing key properties.</returns>
+    public override string ToString()
+    {
+        return $"SagaStepDefinition: Id={Id}, Name={Name}, Order={Order}, ServiceName={ServiceName}, ServiceUrl={ServiceUrl}, HttpMethod={HttpMethod}, IsCompensable={IsCompensable}, IsAsync={IsAsync}";
+    }
 }
