@@ -26,11 +26,16 @@ public class SagaException : Exception
 
     public SagaException(string message, string sagaId) : base(message)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+
         SagaId = sagaId;
     }
 
     public SagaException(string message, string sagaId, string errorCode) : base(message)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+        ArgumentNullException.ThrowIfNull(errorCode);
+
         SagaId = sagaId;
         ErrorCode = errorCode;
     }
@@ -38,6 +43,9 @@ public class SagaException : Exception
     public SagaException(string message, string sagaId, string errorCode, Exception? innerException)
         : base(message, innerException)
     {
+        ArgumentNullException.ThrowIfNull(sagaId);
+        ArgumentNullException.ThrowIfNull(errorCode);
+
         SagaId = sagaId;
         ErrorCode = errorCode;
     }
