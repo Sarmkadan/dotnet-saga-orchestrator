@@ -910,3 +910,8 @@ tests.CustomConstructor_SetsAllPropertiesCorrectly();
 // Confirm that calculating a delay after retry exhaustion is rejected.
 tests.CalculateDelay_RetriesExhausted_ThrowsInvalidOperationException();
 ```
+
+## License
+
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
+```
