@@ -15,11 +15,21 @@ namespace SagaOrchestrator.Application.DTOs;
 /// </summary>
 public class MetricsSummary
 {
+    private Dictionary<string, int> _byStatus = new();
+
     [JsonPropertyName("totalSagas")]
     public int TotalSagas { get; set; }
 
     [JsonPropertyName("byStatus")]
-    public Dictionary<string, int> ByStatus { get; set; } = new();
+    public Dictionary<string, int> ByStatus
+    {
+        get => _byStatus;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _byStatus = value;
+        }
+    }
 
     [JsonPropertyName("averageDurationSeconds")]
     public double AverageDurationSeconds { get; set; }
