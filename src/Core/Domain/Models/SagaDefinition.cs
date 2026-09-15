@@ -129,4 +129,13 @@ public class SagaDefinition
     {
         return Steps.Find(s => s.Order == order);
     }
+
+    /// <summary>
+    /// Returns a string representation of the saga definition.
+    /// </summary>
+    /// <returns>A string summarizing key properties.</returns>
+    public override string ToString()
+    {
+        return $"SagaDefinition: Id={Id}, Name={Name}, Version={Version}, IsActive={IsActive}, Steps={Steps.Count}";
+    }
 }
