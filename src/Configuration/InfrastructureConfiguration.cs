@@ -53,7 +53,10 @@ public sealed record InfrastructureConfiguration(
         if (EnableHttpClients)
         {
             services.AddHttpClient("webhook")
-                .AddHttpMessageHandler<PolicyHttpMessageHandler>();
+                .AddHttpMessageHandler<PolicyHttpMessageHandler>()
+                .ConfigureHttpClient(options => {
+                    options.Timeout = TimeSpan.FromSeconds(30);
+                });
         }
 
         if (EnableEventBus)
