@@ -5,6 +5,7 @@
 // =============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
+using SagaOrchestrator.Infrastructure.Http;
 
 namespace SagaOrchestrator.Configuration;
 
@@ -51,8 +52,8 @@ public sealed record InfrastructureConfiguration(
 
         if (EnableHttpClients)
         {
-            services.AddSingleton<global::SagaOrchestrator.Infrastructure.Http.IHttpClientFactory, global::SagaOrchestrator.Infrastructure.Http.HttpClientFactory>();
-            services.AddHttpClient();
+            services.AddHttpClient("webhook")
+                .AddHttpMessageHandler<PolicyHttpMessageHandler>();
         }
 
         if (EnableEventBus)
