@@ -5,7 +5,7 @@
 // =============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
-using SagaOrchestrator.Infrastructure.Http;
+using SagaOrchestrator.Infrastructure.Resilience;
 
 namespace SagaOrchestrator.Configuration;
 

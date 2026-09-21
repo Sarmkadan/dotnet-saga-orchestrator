@@ -8,7 +8,6 @@ using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using SagaOrchestrator.Core.Extensions;
 using SagaOrchestrator.Infrastructure.Events;
-using SagaOrchestrator.Infrastructure.Http;
 
 namespace SagaOrchestrator.Infrastructure.Integration;
 
@@ -111,10 +110,7 @@ public class WebhookHandler : IWebhookHandler
             {
                 // Use the named client configured with resilience policies
                 var client = _httpClientFactory.CreateClient("webhook");
-                // Override the base address for this specific webhook
-                client.BaseAddress = new Uri(url);
-
-                var request = new HttpRequestMessage(HttpMethod.Post, string.Empty) // Relative to BaseAddress
+                var request = new HttpRequestMessage(HttpMethod.Post, url)
                 {
                     Content = new StringContent(
                         System.Text.Json.JsonSerializer.Serialize(@event),
