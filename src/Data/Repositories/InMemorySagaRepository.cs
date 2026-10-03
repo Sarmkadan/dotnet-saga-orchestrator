@@ -41,7 +41,7 @@ public class InMemorySagaRepository : ISagaRepository
     public async Task<Saga?> GetByIdAsync(string id)
     {
         if (string.IsNullOrEmpty(id))
-            return false;
+            return null;
         await Task.Yield();
 
         lock (_lockObject)
