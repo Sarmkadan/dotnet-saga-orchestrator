@@ -82,13 +82,13 @@ public class SagaStepDefinition
     /// <summary>
     /// Creates a step definition with required parameters
     /// </summary>
-    public SagaStepDefinition(string name, string serviceName, string serviceUrl, string compensationUrl)
+    public SagaStepDefinition(string name, string serviceName, string serviceUrl, string? compensationUrl = null)
     {
         Id = Guid.NewGuid().ToString();
         Name = name ?? throw new ArgumentNullException(nameof(name));
         ServiceName = serviceName ?? throw new ArgumentNullException(nameof(serviceName));
         ServiceUrl = serviceUrl ?? throw new ArgumentNullException(nameof(serviceUrl));
-        CompensationUrl = compensationUrl ?? throw new ArgumentNullException(nameof(compensationUrl));
+        CompensationUrl = compensationUrl ?? string.Empty;
         Description = $"Step: {name}";
     }
 
@@ -98,23 +98,17 @@ public class SagaStepDefinition
     public bool Validate()
     {
         if (string.IsNullOrWhiteSpace(Name))
-            return false;
-
+            throw new ArgumentException("Step name cannot be null or empty", nameof(Name));
         if (string.IsNullOrWhiteSpace(ServiceName))
-            return false;
-
+            throw new ArgumentException("Service name cannot be null or empty", nameof(ServiceName));
         if (string.IsNullOrWhiteSpace(ServiceUrl))
-            return false;
-
+            throw new ArgumentException("Service URL cannot be null or empty", nameof(ServiceUrl));
         if (IsCompensable && string.IsNullOrWhiteSpace(CompensationUrl))
-            return false;
-
+            throw new ArgumentException("Compensation URL required for compensable steps", nameof(CompensationUrl));
         if (TimeoutSeconds <= 0)
-            return false;
-
+            throw new ArgumentException("Timeout must be greater than 0", nameof(TimeoutSeconds));
         if (MaxRetries < 0)
-            return false;
-
+            throw new ArgumentException("Max retries cannot be negative", nameof(MaxRetries));
         return true;
     }
 

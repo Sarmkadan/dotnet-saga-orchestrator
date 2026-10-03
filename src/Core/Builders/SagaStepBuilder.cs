@@ -43,6 +43,8 @@ public class SagaStepBuilder
             throw new ArgumentException("Service name cannot be null or empty", nameof(serviceName));
         if (string.IsNullOrWhiteSpace(action))
             throw new ArgumentException("Action URL cannot be null or empty", nameof(action));
+        if (!Uri.IsWellFormedUriString(action, UriKind.Absolute))
+            throw new ArgumentException("Action URL is not valid", nameof(action));
 
         return new SagaStepBuilder(name, serviceName, action);
     }
@@ -67,12 +69,11 @@ public class SagaStepBuilder
     /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithCompensation(string compensationUrl)
     {
-        if (!string.IsNullOrWhiteSpace(compensationUrl))
-        {
-            if (!Uri.IsWellFormedUriString(compensationUrl, UriKind.Absolute))
-                throw new ArgumentException("Compensation URL is not valid", nameof(compensationUrl));
-            _step.CompensationUrl = compensationUrl;
-        }
+        if (string.IsNullOrWhiteSpace(compensationUrl))
+            throw new ArgumentException("Compensation URL cannot be null or empty", nameof(compensationUrl));
+        if (!Uri.IsWellFormedUriString(compensationUrl, UriKind.Absolute))
+            throw new ArgumentException("Compensation URL is not valid", nameof(compensationUrl));
+        _step.CompensationUrl = compensationUrl;
         return this;
     }
 

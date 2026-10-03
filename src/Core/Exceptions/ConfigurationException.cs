@@ -1,29 +1,21 @@
 #nullable enable
-// =============================================================================
-// Author: Vladyslav Zaiets | https://sarmkadan.com
-// =============================================================================
-
 using System;
+using System.Text.Json.Serialization;
 
 namespace SagaOrchestrator.Core.Exceptions;
 
-/// <summary>
-/// Represents errors related to configuration problems (e.g., missing or invalid settings).
-/// </summary>
+/// <summary>Represents configuration errors.</summary>
 public class ConfigurationException : Exception
 {
-    public ConfigurationException()
-    {
-    }
+    [JsonPropertyName("message")]
+    public new string Message => base.Message;
 
+    public ConfigurationException() { }
+
+    [JsonConstructor]
     public ConfigurationException(string message)
-        : base(message)
-    {
-    }
-
+        : base(message ?? throw new ArgumentNullException(nameof(message))) { }
     public ConfigurationException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-        ArgumentNullException.ThrowIfNull(innerException);
-    }
+        : base(message ?? throw new ArgumentNullException(nameof(message)), innerException)
+    { ArgumentNullException.ThrowIfNull(innerException); }
 }

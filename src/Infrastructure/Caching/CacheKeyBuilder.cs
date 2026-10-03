@@ -16,13 +16,13 @@ public static class CacheKeyBuilder
 
     public static string BuildSagaKey(string sagaId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(sagaId));
+        ArgumentException.ThrowIfNullOrEmpty(sagaId);
         return $"saga{Delimiter}{sagaId}";
     }
 
     public static string BuildDefinitionKey(string definitionId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(definitionId));
+        ArgumentException.ThrowIfNullOrEmpty(definitionId);
         return $"definition{Delimiter}{definitionId}";
     }
 
@@ -34,62 +34,62 @@ public static class CacheKeyBuilder
 
     public static string BuildSagasByStatusKey(string status)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(status));
+        ArgumentException.ThrowIfNullOrEmpty(status);
         return $"sagas{Delimiter}status{Delimiter}{status}";
     }
 
     public static string BuildDefinitionByNameKey(string name)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(name));
+        ArgumentException.ThrowIfNullOrEmpty(name);
         return $"definitions{Delimiter}name{Delimiter}{name}";
     }
 
     public static string BuildCompensationKey(string sagaId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(sagaId));
+        ArgumentException.ThrowIfNullOrEmpty(sagaId);
         return $"compensation{Delimiter}{sagaId}";
     }
 
     public static string BuildEventHistoryKey(string sagaId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(sagaId));
+        ArgumentException.ThrowIfNullOrEmpty(sagaId);
         return $"events{Delimiter}{sagaId}";
     }
 
     public static string BuildServiceKey(string serviceName)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(serviceName));
+        ArgumentException.ThrowIfNullOrEmpty(serviceName);
         return $"service{Delimiter}{serviceName}";
     }
 
     public static string BuildHealthCheckKey() =>
-        "health{Delimiter}check";
+        $"health{Delimiter}check";
 
     public static string BuildMetricsKey() =>
         "metrics";
 
     public static string BuildWebhookKey(string webhookId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(webhookId));
+        ArgumentException.ThrowIfNullOrEmpty(webhookId);
         return $"webhook{Delimiter}{webhookId}";
     }
 
     public static string BuildRateLimitKey(string identifier, string resource)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(identifier));
-        ArgumentException.ThrowIfNullOrEmpty(nameof(resource));
+        ArgumentException.ThrowIfNullOrEmpty(identifier);
+        ArgumentException.ThrowIfNullOrEmpty(resource);
         return $"ratelimit{Delimiter}{identifier}{Delimiter}{resource}";
     }
 
     public static string BuildUserCacheKey(string userId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(userId));
+        ArgumentException.ThrowIfNullOrEmpty(userId);
         return $"user{Delimiter}{userId}";
     }
 
     public static string BuildSessionKey(string sessionId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(sessionId));
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
         return $"session{Delimiter}{sessionId}";
     }
 
@@ -98,19 +98,19 @@ public static class CacheKeyBuilder
 
     public static bool IsSagaKey(string key)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(key));
+        ArgumentException.ThrowIfNullOrEmpty(key);
         return key.StartsWith($"saga{Delimiter}");
     }
 
     public static bool IsDefinitionKey(string key)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(key));
+        ArgumentException.ThrowIfNullOrEmpty(key);
         return key.StartsWith($"definition{Delimiter}");
     }
 
     public static string ExtractIdFromKey(string key)
     {
-        ArgumentException.ThrowIfNullOrEmpty(nameof(key));
+        ArgumentException.ThrowIfNullOrEmpty(key);
         return key.Contains(Delimiter) ? key.Split(Delimiter).Last() : key;
     }
 

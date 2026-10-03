@@ -1,28 +1,18 @@
 #nullable enable
-// =============================================================================
-// Author: Vladyslav Zaiets | https://sarmkadan.com
-// =============================================================================
-
 using System;
+using System.Text.Json.Serialization;
 
 namespace SagaOrchestrator.Core.Exceptions;
 
-/// <summary>
-/// Base exception for errors occurring within the saga orchestrator that are not covered by more specific exception types.
-/// </summary>
+/// <summary>Base exception for saga orchestrator errors.</summary>
 public class DotnetSagaOrchestratorException : Exception
 {
-    public DotnetSagaOrchestratorException()
-    {
-    }
+    [JsonPropertyName("message")]
+    public new string Message => base.Message;
 
-    public DotnetSagaOrchestratorException(string message)
-        : base(message)
-    {
-    }
+    public DotnetSagaOrchestratorException() { }
 
-    public DotnetSagaOrchestratorException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+    [JsonConstructor]
+    public DotnetSagaOrchestratorException(string message) : base(message) { }
+    public DotnetSagaOrchestratorException(string message, Exception innerException) : base(message, innerException) { }
 }

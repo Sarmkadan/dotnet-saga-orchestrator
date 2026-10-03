@@ -52,6 +52,7 @@ public sealed record InfrastructureConfiguration(
 
         if (EnableHttpClients)
         {
+            services.AddTransient<PolicyHttpMessageHandler>();
             services.AddHttpClient("webhook")
                 .AddHttpMessageHandler<PolicyHttpMessageHandler>()
                 .ConfigureHttpClient(options => {

@@ -29,6 +29,9 @@ public class CompensationService
     private readonly ISagaStepRepository _stepRepository;
     private readonly SagaOptions _sagaOptions;
 
+    protected CompensationService()
+    { _compensationRepository = null!; _sagaRepository = null!; _stepRepository = null!; _sagaOptions = new SagaOptions(); }
+
     public CompensationService(
         ICompensationTransactionRepository compensationRepository,
         ISagaRepository sagaRepository,
@@ -44,7 +47,7 @@ public class CompensationService
     /// <summary>
     /// Initiates compensation for a failed saga
     /// </summary>
-    public async Task BeginCompensationAsync(Saga saga)
+    public virtual async Task BeginCompensationAsync(Saga saga)
     {
         if (saga == null)
             throw new ArgumentNullException(nameof(saga));
@@ -74,7 +77,7 @@ public class CompensationService
     /// <summary>
     /// Executes the next compensation transaction
     /// </summary>
-    public async Task<CompensationTransaction?> ExecuteNextCompensationAsync(string sagaId, CancellationToken cancellationToken = default)
+    public virtual async Task<CompensationTransaction?> ExecuteNextCompensationAsync(string sagaId, CancellationToken cancellationToken = default)
     {
         var saga = await _sagaRepository.GetByIdAsync(sagaId)
             ?? throw new SagaNotFoundException(sagaId);
@@ -154,7 +157,7 @@ public class CompensationService
     /// <summary>
     /// Retries a failed compensation transaction
     /// </summary>
-    public async Task<bool> RetryCompensationAsync(string compensationId)
+    public virtual async Task<bool> RetryCompensationAsync(string compensationId)
     {
         var compensation = await _compensationRepository.GetByIdAsync(compensationId);
         if (compensation == null)
@@ -175,7 +178,7 @@ public class CompensationService
     /// <summary>
     /// Gets compensation transactions for a saga
     /// </summary>
-    public async Task<List<CompensationTransaction>> GetCompensationsAsync(string sagaId)
+    public virtual async Task<List<CompensationTransaction>> GetCompensationsAsync(string sagaId)
     {
         return await _compensationRepository.GetBySagaIdAsync(sagaId);
     }
@@ -183,7 +186,7 @@ public class CompensationService
     /// <summary>
     /// Checks for compensation timeouts
     /// </summary>
-    public async Task<List<CompensationTransaction>> CheckTimeoutsAsync(string sagaId)
+    public virtual async Task<List<CompensationTransaction>> CheckTimeoutsAsync(string sagaId)
     {
         var compensations = await _compensationRepository.GetBySagaIdAsync(sagaId);
         var timedOut = new List<CompensationTransaction>();

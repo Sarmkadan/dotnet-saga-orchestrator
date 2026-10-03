@@ -2,7 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace dotnet_saga_orchestrator.benchmarks
+namespace SagaOrchestrator.Benchmarks
 {
     /// <summary>
     /// Provides extension methods for serializing and deserializing <see cref="SagaOrchestratorBenchmarks"/> instances to and from JSON.

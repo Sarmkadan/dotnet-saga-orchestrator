@@ -1,35 +1,27 @@
 #nullable enable
-// =============================================================================
-// Author: Vladyslav Zaiets | https://sarmkadan.com
-// CTO & Software Architect
-// =============================================================================
-
 using System;
+using System.Text.Json.Serialization;
 
 namespace SagaOrchestrator.Core.Exceptions;
 
-/// <summary>
-/// Thrown when a saga step fails during execution.
-/// </summary>
+/// <summary>Thrown when a saga step fails during execution.</summary>
 public class SagaStepExecutionException : SagaException
 {
-    public string? StepName { get; }
-    public int StepOrder { get; }
+    [JsonPropertyName("stepName")]
+    public string? StepName { get; init; }
+    [JsonPropertyName("stepOrder")]
+    public int StepOrder { get; init; }
+
+    public SagaStepExecutionException() : base() { }
+
+    [JsonConstructor]
+    public SagaStepExecutionException(string message) : base(message) { }
 
     public SagaStepExecutionException(string sagaId, string stepName, int stepOrder, string message)
-        : base($"Step '{stepName}' (order {stepOrder}) failed in saga '{sagaId}': {message}",
-               sagaId, "STEP_EXECUTION_FAILED")
-    {
-        StepName = stepName;
-        StepOrder = stepOrder;
-    }
+        : base($"Step '{stepName}' (order {stepOrder}) failed in saga '{sagaId}': {message}", sagaId, "STEP_EXECUTION_FAILED")
+    { StepName = stepName; StepOrder = stepOrder; }
 
-    public SagaStepExecutionException(string sagaId, string stepName, int stepOrder, string message,
-                                     Exception? innerException)
-        : base($"Step '{stepName}' (order {stepOrder}) failed in saga '{sagaId}': {message}",
-               sagaId, "STEP_EXECUTION_FAILED", innerException)
-    {
-        StepName = stepName;
-        StepOrder = stepOrder;
-    }
+    public SagaStepExecutionException(string sagaId, string stepName, int stepOrder, string message, Exception? innerException)
+        : base($"Step '{stepName}' (order {stepOrder}) failed in saga '{sagaId}': {message}", sagaId, "STEP_EXECUTION_FAILED", innerException)
+    { StepName = stepName; StepOrder = stepOrder; }
 }

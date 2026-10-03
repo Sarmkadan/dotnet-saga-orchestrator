@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
-namespace DotSaga.Orchestration.Benchmarks;
+namespace SagaOrchestrator.Benchmarks;
 
 /// <summary>
 /// Provides JSON serialization extensions for <see cref="SagaOrchestratorBenchmarksExtensions"/>.

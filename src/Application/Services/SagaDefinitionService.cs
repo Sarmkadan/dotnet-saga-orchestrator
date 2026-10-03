@@ -23,6 +23,7 @@ public class SagaDefinitionService
 {
     private readonly ISagaDefinitionRepository _repository;
     private readonly ISagaSerializer _serializer;
+    protected SagaDefinitionService() { _repository = null!; _serializer = null!; }
 
     public SagaDefinitionService(ISagaDefinitionRepository repository, ISagaSerializer serializer)
     {
@@ -33,7 +34,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Creates a new saga definition
     /// </summary>
-    public async Task<SagaDefinition> CreateDefinitionAsync(string name, string description)
+    public virtual async Task<SagaDefinition> CreateDefinitionAsync(string name, string description)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Name is required", nameof(name));
@@ -58,7 +59,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Adds a step to a saga definition
     /// </summary>
-    public async Task<SagaDefinition> AddStepAsync(string definitionId, SagaStepDefinition stepDefinition)
+    public virtual async Task<SagaDefinition> AddStepAsync(string definitionId, SagaStepDefinition stepDefinition)
     {
         if (string.IsNullOrWhiteSpace(definitionId))
             throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
@@ -97,7 +98,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Removes a step from a saga definition
     /// </summary>
-    public async Task<SagaDefinition> RemoveStepAsync(string definitionId, string stepName)
+    public virtual async Task<SagaDefinition> RemoveStepAsync(string definitionId, string stepName)
     {
         if (string.IsNullOrWhiteSpace(definitionId))
             throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
@@ -187,7 +188,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Gets a saga definition by ID
     /// </summary>
-    public async Task<SagaDefinition> GetDefinitionAsync(string definitionId)
+    public virtual async Task<SagaDefinition> GetDefinitionAsync(string definitionId)
     {
         if (string.IsNullOrWhiteSpace(definitionId))
             throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
@@ -206,7 +207,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Gets a saga definition by name
     /// </summary>
-    public async Task<SagaDefinition?> GetDefinitionByNameAsync(string name)
+    public virtual async Task<SagaDefinition?> GetDefinitionByNameAsync(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Name must be provided", nameof(name));
@@ -224,7 +225,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Lists all saga definitions
     /// </summary>
-    public async Task<List<SagaDefinition>> ListDefinitionsAsync(bool activeOnly = false)
+    public virtual async Task<List<SagaDefinition>> ListDefinitionsAsync(bool activeOnly = false)
     {
         try
         {
@@ -244,7 +245,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Activates a saga definition
     /// </summary>
-    public async Task<SagaDefinition> ActivateDefinitionAsync(string definitionId)
+    public virtual async Task<SagaDefinition> ActivateDefinitionAsync(string definitionId)
     {
         if (string.IsNullOrWhiteSpace(definitionId))
             throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
@@ -278,7 +279,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Deactivates a saga definition
     /// </summary>
-    public async Task<SagaDefinition> DeactivateDefinitionAsync(string definitionId)
+    public virtual async Task<SagaDefinition> DeactivateDefinitionAsync(string definitionId)
     {
         if (string.IsNullOrWhiteSpace(definitionId))
             throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
@@ -312,7 +313,7 @@ public class SagaDefinitionService
     /// <summary>
     /// Clones a saga definition for versioning
     /// </summary>
-    public async Task<SagaDefinition> CloneDefinitionAsync(string sourceDefinitionId)
+    public virtual async Task<SagaDefinition> CloneDefinitionAsync(string sourceDefinitionId)
     {
         if (string.IsNullOrWhiteSpace(sourceDefinitionId))
             throw new ArgumentException("Source definition ID must be provided", nameof(sourceDefinitionId));
@@ -357,7 +358,7 @@ public class SagaDefinitionService
     /// </summary>
     /// <param name="definitionId">The ID of the saga definition to export</param>
     /// <returns>JSON string representation of the saga definition</returns>
-    public async Task<string> ExportDefinitionToJsonAsync(string definitionId)
+    public virtual async Task<string> ExportDefinitionToJsonAsync(string definitionId)
     {
         if (string.IsNullOrWhiteSpace(definitionId))
             throw new ArgumentException("Definition ID must be provided", nameof(definitionId));
@@ -382,7 +383,7 @@ public class SagaDefinitionService
     /// <param name="json">JSON string representation of the saga definition</param>
     /// <param name="overwriteIfExists">Whether to overwrite if a definition with the same name already exists</param>
     /// <returns>The created or updated saga definition</returns>
-    public async Task<SagaDefinition> ImportDefinitionFromJsonAsync(string json, bool overwriteIfExists = false)
+    public virtual async Task<SagaDefinition> ImportDefinitionFromJsonAsync(string json, bool overwriteIfExists = false)
     {
         if (string.IsNullOrWhiteSpace(json))
             throw new ArgumentException("JSON content must be provided", nameof(json));
@@ -447,7 +448,7 @@ public class SagaDefinitionService
     /// </summary>
     /// <param name="definitionId">The ID of the saga definition to export</param>
     /// <returns>Indented JSON string representation of the saga definition</returns>
-    public async Task<string> ExportDefinitionToJsonIndentedAsync(string definitionId)
+    public virtual async Task<string> ExportDefinitionToJsonIndentedAsync(string definitionId)
     {
         if (string.IsNullOrWhiteSpace(definitionId))
             throw new ArgumentException("Definition ID must be provided", nameof(definitionId));

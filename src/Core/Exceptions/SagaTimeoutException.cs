@@ -1,30 +1,25 @@
 #nullable enable
-// =============================================================================
-// Author: Vladyslav Zaiets | https://sarmkadan.com
-// CTO & Software Architect
-// =============================================================================
-
 using System;
+using System.Text.Json.Serialization;
 
 namespace SagaOrchestrator.Core.Exceptions;
 
-/// <summary>
-/// Thrown when a saga or saga step execution exceeds the configured timeout.
-/// </summary>
+/// <summary>Thrown when a saga or step exceeds timeout.</summary>
 public class SagaTimeoutException : SagaException
 {
-    public int TimeoutSeconds { get; }
+    [JsonPropertyName("timeoutSeconds")]
+    public int TimeoutSeconds { get; init; }
+
+    public SagaTimeoutException() : base() { }
+
+    [JsonConstructor]
+    public SagaTimeoutException(string message) : base(message) { }
 
     public SagaTimeoutException(string sagaId, int timeoutSeconds)
-        : base($"Saga '{sagaId}' exceeded timeout of {timeoutSeconds} seconds.", sagaId, "SAGA_TIMEOUT")
-    {
-        TimeoutSeconds = timeoutSeconds;
-    }
+        : base($"Saga '{sagaId ?? throw new ArgumentNullException(nameof(sagaId))}' exceeded timeout of {(timeoutSeconds >= 0 ? timeoutSeconds : throw new ArgumentException("Timeout must be non-negative", nameof(timeoutSeconds)))} seconds.", sagaId, "SAGA_TIMEOUT")
+    { TimeoutSeconds = timeoutSeconds; }
 
     public SagaTimeoutException(string sagaId, string stepName, int timeoutSeconds)
-        : base($"Step '{stepName}' in saga '{sagaId}' exceeded timeout of {timeoutSeconds} seconds.",
-               sagaId, "STEP_TIMEOUT")
-    {
-        TimeoutSeconds = timeoutSeconds;
-    }
+        : base($"Step '{stepName}' in saga '{sagaId ?? throw new ArgumentNullException(nameof(sagaId))}' exceeded timeout of {(timeoutSeconds >= 0 ? timeoutSeconds : throw new ArgumentException("Timeout must be non-negative", nameof(timeoutSeconds)))} seconds.", sagaId, "STEP_TIMEOUT")
+    { TimeoutSeconds = timeoutSeconds; }
 }

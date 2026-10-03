@@ -40,7 +40,8 @@ public class InMemorySagaRepository : ISagaRepository
     /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     public async Task<Saga?> GetByIdAsync(string id)
     {
-        ArgumentException.ThrowIfNullOrEmpty(id);
+        if (string.IsNullOrEmpty(id))
+            return false;
         await Task.Yield();
 
         lock (_lockObject)
@@ -132,7 +133,8 @@ public class InMemorySagaRepository : ISagaRepository
     /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     public async Task<bool> DeleteAsync(string id)
     {
-        ArgumentException.ThrowIfNullOrEmpty(id);
+        if (string.IsNullOrEmpty(id))
+            return false;
 
         await Task.Yield();
 

@@ -122,7 +122,7 @@ public class Saga
     /// </summary>
     public void Start()
     {
-        if (!SagaStatus.Initialized.CanTransitionTo(SagaStatus.Running))
+        if (!Status.CanTransitionTo(SagaStatus.Running))
             throw new InvalidOperationException($"Cannot start saga in {Status} status");
 
         Status = SagaStatus.Running;

@@ -14,7 +14,6 @@ public static class SagaStatusExtensions
             return status switch
             {
                 SagaStatus.Completed => true,
-                SagaStatus.Failed => true,
                 SagaStatus.Compensated => true,
                 SagaStatus.Aborted => true,
                 SagaStatus.TimedOut => true,
@@ -49,6 +48,9 @@ public static class SagaStatusExtensions
                 (SagaStatus.Running, SagaStatus.Compensating) => true,
                 (SagaStatus.Running, SagaStatus.Aborted) => true,
                 (SagaStatus.Running, SagaStatus.TimedOut) => true,
+
+                // From Failed
+                (SagaStatus.Failed, SagaStatus.Compensating) => true,
 
                 // From Compensating
                 (SagaStatus.Compensating, SagaStatus.Compensated) => true,
