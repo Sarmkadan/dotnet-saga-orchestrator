@@ -30,7 +30,7 @@ public interface ICacheService
     /// <summary>
     /// Gets or creates a value in the cache with stampede protection.
     /// </summary>
-    Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default);
+    Task<T> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the cache hit and miss counters.
@@ -238,13 +238,13 @@ public class CacheService : ICacheService, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task<T> GetOrCreateAsync<T>(CacheKey key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
+    public async Task<T> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(factory);
         cancellationToken.ThrowIfCancellationRequested();
 
-        string stringKey = key.ToString();
+        string stringKey = key;
 
         // 1. Try get
         T? cached = await GetAsync<T>(stringKey, cancellationToken).ConfigureAwait(false);
