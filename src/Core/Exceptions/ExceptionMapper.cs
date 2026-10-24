@@ -5,6 +5,7 @@
 // =============================================================================
 
 using System.Net;
+using SagaOrchestrator.Core.Utilities;
 
 namespace SagaOrchestrator.Core.Exceptions;
 
@@ -46,6 +47,21 @@ public static class ExceptionMapper
     public static bool IsTimeout(Exception ex) =>
         ex is SagaTimeoutException;
 
+    /// <summary>
+    /// Determines whether the message of an exception may be returned to clients in
+    /// <see cref="ErrorResponse.Details"/>. Only types whose messages are written for callers are allowlisted;
+    /// every other exception (including unmapped ones) is reported without its message.
+    /// </summary>
+    /// <param name="ex">The exception to test.</param>
+    /// <returns>True if the exception message is client-safe; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="ex"/> is null.</exception>
+    internal static bool ExposesMessage(Exception ex)
+    {
+        ArgumentNullException.ThrowIfNull(ex);
+
+        return ex is ArgumentException or ValidationException or InvalidSagaDefinitionException or SagaNotFoundException;
+    }
+
     public static string GetErrorCode(Exception ex) => ex switch
     {
         SagaNotFoundException => "SAGA_NOT_FOUND",
@@ -64,23 +80,54 @@ public static class ExceptionMapper
     };
 }
 
+/// <summary>
+/// Client-facing error payload. Built only from sanitized data: the internal exception message
+/// is copied into <see cref="Details"/> only for exception types that are designed to carry
+/// client-safe messages, and stack traces, inner exceptions and other internals are never included.
+/// </summary>
 public class ErrorResponse
 {
+    /// <summary>Stable, machine-readable error code.</summary>
     public string Code { get; set; } = string.Empty;
+
+    /// <summary>Generic, client-safe description of the failure.</summary>
     public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Additional client-safe detail, or <c>null</c> when the exception type does not expose its message.
+    /// </summary>
     public string? Details { get; set; }
+
+    /// <summary>
+    /// Correlation identifier for support lookup. Matches the identifier under which the full exception
+    /// is logged server-side.
+    /// </summary>
     public string RequestId { get; set; } = string.Empty;
+
+    /// <summary>UTC instant at which the error response was created.</summary>
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
-    public static ErrorResponse FromException(Exception ex, string requestId = "")
+    /// <summary>
+    /// Creates a sanitized error response from an exception.
+    /// </summary>
+    /// <param name="ex">The exception to convert.</param>
+    /// <param name="requestId">
+    /// Correlation identifier, typically the request trace identifier. A new identifier is generated
+    /// when <paramref name="requestId"/> is null or whitespace.
+    /// </param>
+    /// <returns>An <see cref="ErrorResponse"/> that contains no internal exception message, stack trace or inner details.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="ex"/> is null.</exception>
+    public static ErrorResponse FromException(Exception ex, string? requestId = null)
     {
-        var (statusCode, message) = ExceptionMapper.MapException(ex);
+        ArgumentNullException.ThrowIfNull(ex);
+
+        var (_, message) = ExceptionMapper.MapException(ex);
         return new ErrorResponse
         {
             Code = ExceptionMapper.GetErrorCode(ex),
             Message = message,
-            Details = ex.Message,
-            RequestId = requestId,
+            Details = ExceptionMapper.ExposesMessage(ex) ? ex.Message : null,
+            RequestId = string.IsNullOrWhiteSpace(requestId) ? SagaIdGenerator.GenerateRequestId() : requestId,
             Timestamp = DateTime.UtcNow
         };
     }

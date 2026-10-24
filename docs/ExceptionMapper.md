@@ -49,13 +49,20 @@ Extracts a stable, machine-readable error code string from the exception. For re
 - **Throws**: `ArgumentNullException` when `exception` is `null`.
 
 #### `FromException(Exception exception, string? requestId = null)`
-Builds a complete `ErrorResponse` instance from an exception, combining the mapped status code and message with the optional request identifier and the current UTC timestamp. This is the primary factory method for producing a standardized error payload.
+Builds a sanitized `ErrorResponse` instance from an exception, combining the mapped message with the correlation identifier and the current UTC timestamp. This is the primary factory method for producing a standardized error payload. The response never contains the exception's stack trace, inner exceptions, or (unless the type is allowlisted, see `Details`) its message.
 
 - **Parameters**:
   - `exception` — the exception to convert.
-  - `requestId` — optional correlation identifier; when `null`, the resulting `ErrorResponse.RequestId` will be `null`.
+  - `requestId` — optional correlation identifier, typically the request trace identifier. When `null` or whitespace, a new identifier is generated with `SagaIdGenerator.GenerateRequestId()`, so `RequestId` is always non-empty.
 - **Returns**: A populated `ErrorResponse` instance.
 - **Throws**: `ArgumentNullException` when `exception` is `null`.
+
+#### `ErrorResponseLoggingExtensions.ToErrorResponseAndLog(this ILogger logger, Exception exception, string? requestId = null)`
+Lives in `SagaOrchestrator.Infrastructure.Logging`. Calls `FromException` and, when the mapped status code is 5xx, logs the full exception (message and stack trace) through `logger` with the same `RequestId` that is returned to the client. Client errors (4xx) are not logged here.
+
+- **Parameters**: `logger` — the logger that receives the full detail; `exception` — the exception to convert; `requestId` — as for `FromException`.
+- **Returns**: A sanitized `ErrorResponse` instance.
+- **Throws**: `ArgumentNullException` when `logger` or `exception` is `null`.
 
 ### Instance Properties (`ErrorResponse`)
 
@@ -66,10 +73,10 @@ The machine-readable error code derived from the exception, as returned by `GetE
 The human-readable message produced by `MapException`, suitable for display in logs or client-facing responses.
 
 #### `Details` (string?)
-Optional additional diagnostic information. May be `null` when no extra context is available or when exposing internal details is undesirable.
+The exception message, copied only for an allowlisted set of types whose messages are written for callers: `ArgumentException` (and derived types), `ValidationException`, `InvalidSagaDefinitionException`, and `SagaNotFoundException`. For every other exception, including unmapped exception types such as `SqlException` or `IOException`, `Details` is `null`. The message is never copied from a stack trace, inner exception, or any other internal source.
 
-#### `RequestId` (string?)
-The correlation identifier passed to `FromException`. `null` when no request identifier was supplied.
+#### `RequestId` (string)
+The correlation identifier passed to `FromException`, or a generated `req_` identifier when none was supplied. Return it to the client and use it to find the full exception in server logs.
 
 #### `Timestamp` (DateTime)
 The UTC instant at which `FromException` was called, capturing when the error response was generated.
@@ -86,7 +93,7 @@ try
 catch (Exception ex)
 {
     var (statusCode, message) = ExceptionMapper.MapException(ex);
-    var errorResponse = ExceptionMapper.FromException(ex, requestId: _context.TraceIdentifier);
+    var errorResponse = _logger.ToErrorResponseAndLog(ex, requestId: _context.TraceIdentifier);
 
     _context.Response.StatusCode = (int)statusCode;
     _context.Response.ContentType = "application/json";
@@ -113,8 +120,8 @@ catch (Exception ex) when (ExceptionMapper.IsTimeout(ex))
 }
 catch (Exception ex)
 {
-    var error = ExceptionMapper.FromException(ex, requestId);
-    _logger.LogError(ex, "Unhandled exception {Code}", error.Code);
+    // Full exception is logged server-side under error.RequestId; the client only sees the sanitized payload.
+    var error = _logger.ToErrorResponseAndLog(ex, requestId);
     return Results.InternalServerError(error);
 }
 ```
@@ -124,6 +131,7 @@ catch (Exception ex)
 - All static classification and mapping methods throw `ArgumentNullException` when passed a `null` exception. Callers must guard against `null` before invoking them.
 - `MapException` and `GetErrorCode` rely on the runtime type of the exception, including base types. Custom exceptions that inherit from recognized saga or validation base types are classified correctly without additional registration.
 - `FromException` always sets `Timestamp` to `DateTime.UtcNow` at the moment of invocation. Two calls with the same exception and request identifier will produce instances differing only in their timestamps.
-- The `Details` property is populated only when the exception carries additional contextual information (e.g., inner exception messages or structured data). It is `null` otherwise. Consumers should not assume it is always present.
+- Sanitization is not environment-dependent: the same rules apply in development and production. Unmapped and non-allowlisted exceptions never expose their message, stack trace, or inner exception details to clients. Log the full exception server-side (see `ToErrorResponseAndLog`) instead.
+- The `Details` property is populated only for the allowlisted exception types listed above. It is `null` otherwise. Consumers should not assume it is always present.
 - The static methods are thread-safe; they perform no shared state mutation and operate solely on the provided exception argument. The `ErrorResponse` instance is immutable after construction and safe to share across threads.
-- When `requestId` is omitted or `null` in `FromException`, the resulting `RequestId` property is `null`. Downstream code that expects a non-null request identifier should supply one explicitly or handle the `null` case.
+- When `requestId` is omitted, `null`, or whitespace in `FromException`, a new `req_` identifier is generated, so `RequestId` is always non-empty and satisfies `ExceptionMapperValidation`. Supply the request trace identifier when one exists so client reports match server logs.
