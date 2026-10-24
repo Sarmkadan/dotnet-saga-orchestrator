@@ -913,5 +913,5 @@ tests.CalculateDelay_RetriesExhausted_ThrowsInvalidOperationException();
 
 ## License
 
-This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
+This project is licensed under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for the full text.
 ```
