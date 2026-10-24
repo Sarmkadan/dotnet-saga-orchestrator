@@ -20,7 +20,7 @@ public static class SagaCliCommandValidation
     /// </summary>
     private static readonly HashSet<string> ValidCommandTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "create", "execute", "status", "list", "compensate", "help"
+        "create", "execute", "status", "list", "compensate", "cancel", "help"
     };
 
     /// <summary>
@@ -67,6 +67,10 @@ public static class SagaCliCommandValidation
         else if (value.CommandType == "compensate")
         {
             ValidateCompensateCommand(value, errors);
+        }
+        else if (value.CommandType == "cancel")
+        {
+            ValidateCancelCommand(value, errors);
         }
         else if (value.CommandType == "list")
         {
@@ -170,6 +174,14 @@ public static class SagaCliCommandValidation
         if (command.Options.Contains("verbose"))
         {
             // No additional validation needed for boolean flag
+        }
+    }
+
+    private static void ValidateCancelCommand(SagaCliCommand command, List<string> errors)
+    {
+        if (!command.Arguments.TryGetValue("saga-id", out var sagaId) || string.IsNullOrWhiteSpace(sagaId))
+        {
+            errors.Add("--saga-id parameter is required for cancel command and cannot be null or whitespace.");
         }
     }
 

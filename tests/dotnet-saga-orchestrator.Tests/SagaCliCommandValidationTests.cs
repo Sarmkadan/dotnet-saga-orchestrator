@@ -75,4 +75,27 @@ public class SagaCliCommandValidationTests
         // Assert
         Assert.NotEmpty(errors);
     }
+
+    [Fact]
+    public void Parse_CancelWithSagaId_IsValid()
+    {
+        // Act
+        var command = SagaCliCommand.Parse(new[] { "cancel", "--saga-id=saga_123" });
+
+        // Assert
+        Assert.True(command.IsValid);
+        Assert.Empty(command.ValidationErrors);
+        Assert.Empty(SagaCliCommandValidation.Validate(command));
+    }
+
+    [Fact]
+    public void Parse_CancelWithoutSagaId_IsInvalid()
+    {
+        // Act
+        var command = SagaCliCommand.Parse(new[] { "cancel" });
+
+        // Assert
+        Assert.False(command.IsValid);
+        Assert.Contains(command.ValidationErrors, e => e.Contains("--saga-id parameter required for cancel command"));
+    }
 }

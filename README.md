@@ -48,7 +48,7 @@ Console.WriteLine($"Is valid correlation ID: {isValidCorrelation}"); // Output: 
 
 
 
-The `SagaCliCommand` class represents a CLI command for saga operations with full argument parsing. It supports various commands including `create`, `execute`, `status`, `list`, `compensate`, and `help`. The class parses raw CLI arguments into structured command properties, validates them, and provides helpful error messages and usage text.
+The `SagaCliCommand` class represents a CLI command for saga operations with full argument parsing. It supports various commands including `create`, `execute`, `status`, `list`, `compensate`, `cancel`, and `help`. The class parses raw CLI arguments into structured command properties, validates them, and provides helpful error messages and usage text.
 
 ### Usage Example
 

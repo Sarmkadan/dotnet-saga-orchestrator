@@ -8,11 +8,11 @@ namespace SagaOrchestrator.Presentation.Cli.Commands;
 
 /// <summary>
 /// Represents a CLI command for saga operations with full argument parsing.
-/// Supports create, execute, status, list, and compensate commands with validation.
+/// Supports create, execute, status, list, compensate, cancel, and help commands with validation.
 /// </summary>
 public class SagaCliCommand
 {
-    /// <summary>Gets or sets the verb of the command (create, execute, status, list, compensate, help).</summary>
+    /// <summary>Gets or sets the verb of the command (create, execute, status, list, compensate, cancel, help).</summary>
     public string CommandType { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the parsed <c>--key=value</c> named arguments.</summary>
@@ -81,6 +81,7 @@ public class SagaCliCommand
             "status" => ValidateStatusCommand(),
             "list" => true,
             "compensate" => ValidateCompensateCommand(),
+            "cancel" => ValidateCancelCommand(),
             "help" => true,
             _ => false
         };
@@ -121,6 +122,16 @@ public class SagaCliCommand
         if (!Arguments.ContainsKey("saga-id"))
         {
             ValidationErrors.Add("--saga-id parameter required for compensate command");
+            return false;
+        }
+        return true;
+    }
+
+    private bool ValidateCancelCommand()
+    {
+        if (!Arguments.ContainsKey("saga-id"))
+        {
+            ValidationErrors.Add("--saga-id parameter required for cancel command");
             return false;
         }
         return true;
@@ -176,7 +187,10 @@ COMMANDS:
                --saga-id <id>        Saga identifier
                --strategy <type>     Compensation strategy
 
-  help         Display this help message
+  cancel       Cancel a running saga and compensate its completed steps
+               --saga-id <id>        Saga identifier
+
+  help        Display this help message
 
 EXAMPLES:
   saga create --definition OrderProcessing

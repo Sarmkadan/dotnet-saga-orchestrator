@@ -81,6 +81,7 @@ public class CliHandler : ICliHandler
                 "status" => await HandleStatusAsync(command),
                 "list" => await HandleListAsync(command),
                 "compensate" => await HandleCompensateAsync(command),
+                "cancel" => await HandleCancelAsync(command),
                 "help" => HandleHelp(command),
                 _ => HandleUnknownCommand(command)
             };
@@ -263,6 +264,28 @@ public class CliHandler : ICliHandler
 
         Console.WriteLine($"✓ Compensation initiated for saga: {sagaId}");
         return 0;
+    }
+
+    private async Task<int> HandleCancelAsync(SagaCliCommand command)
+    {
+        if (!command.Arguments.TryGetValue("saga-id", out var sagaId))
+        {
+            Console.Error.WriteLine("Missing --saga-id parameter");
+            return 1;
+        }
+
+        try
+        {
+            var saga = await _orchestrationService.CancelSagaAsync(sagaId);
+            Console.WriteLine($"✓ Saga cancelled: {saga.Id}");
+            Console.WriteLine($"  Status: {saga.Status}");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to cancel saga: {ex.Message}");
+            return 1;
+        }
     }
 
     private int HandleHelp(SagaCliCommand command)

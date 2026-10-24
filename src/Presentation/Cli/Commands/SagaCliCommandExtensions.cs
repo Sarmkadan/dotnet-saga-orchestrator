@@ -160,6 +160,7 @@ public static class SagaCliCommandExtensions
             "execute" => ValidateExecuteArguments(command),
             "status" => ValidateStatusArguments(command),
             "compensate" => ValidateCompensateArguments(command),
+            "cancel" => ValidateCancelArguments(command),
             _ => true
         };
     }
@@ -231,6 +232,19 @@ public static class SagaCliCommandExtensions
         if (!command.Arguments.ContainsKey("saga-id"))
         {
             command.ValidationErrors.Add("--saga-id parameter is required for compensate command");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private static bool ValidateCancelArguments(SagaCliCommand command)
+    {
+        var isValid = true;
+
+        if (!command.Arguments.ContainsKey("saga-id"))
+        {
+            command.ValidationErrors.Add("--saga-id parameter is required for cancel command");
             isValid = false;
         }
 

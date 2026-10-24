@@ -48,9 +48,13 @@ public static class SagaStatusExtensions
                 (SagaStatus.Running, SagaStatus.Compensating) => true,
                 (SagaStatus.Running, SagaStatus.Aborted) => true,
                 (SagaStatus.Running, SagaStatus.TimedOut) => true,
+                (SagaStatus.Running, SagaStatus.Cancelled) => true,
 
                 // From Failed
                 (SagaStatus.Failed, SagaStatus.Compensating) => true,
+
+                // From Cancelled
+                (SagaStatus.Cancelled, SagaStatus.Compensating) => true,
 
                 // From Compensating
                 (SagaStatus.Compensating, SagaStatus.Compensated) => true,
@@ -79,6 +83,7 @@ public static class SagaStatusExtensions
                 SagaStatus.Compensated => "Compensated",
                 SagaStatus.Aborted => "Aborted",
                 SagaStatus.TimedOut => "Timed Out",
+                SagaStatus.Cancelled => "Cancelled",
                 _ => status.ToString()
             };
         }

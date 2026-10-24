@@ -157,9 +157,9 @@ public class Saga
     /// </summary>
     public void BeginCompensation()
     {
-        // Compensation is only entered from Failed; the transition table also allows Running -> Compensating,
+        // Compensation is only entered from Failed or Cancelled; the transition table also allows Running -> Compensating,
         // which must not be reachable through this entry point.
-        if (Status != SagaStatus.Failed || !Status.CanTransitionTo(SagaStatus.Compensating))
+        if (Status is not (SagaStatus.Failed or SagaStatus.Cancelled) || !Status.CanTransitionTo(SagaStatus.Compensating))
             throw new InvalidOperationException("Can only compensate failed sagas");
 
         Status = SagaStatus.Compensating;

@@ -30,6 +30,7 @@ public class SagaOrchestrationService
     private readonly ISagaStepRepository _stepRepository;
     private readonly CompensationService _compensationService;
     private readonly ISagaLogger? _sagaLogger;
+    private readonly SagaEventPublisher? _eventPublisher;
 
     /// <summary>
 /// Initializes a new instance of the <see cref="SagaOrchestrationService"/> class.
@@ -38,16 +39,19 @@ public class SagaOrchestrationService
 /// <param name="stepRepository">The saga step repository.</param>
 /// <param name="compensationService">The compensation service.</param>
 /// <param name="sagaLogger">The saga logger (optional).</param>
+/// <param name="eventPublisher">The event publisher used to announce lifecycle events such as cancellation (optional).</param>
 public SagaOrchestrationService(
         ISagaRepository sagaRepository,
         ISagaStepRepository stepRepository,
         CompensationService compensationService,
-        ISagaLogger? sagaLogger = null)
+        ISagaLogger? sagaLogger = null,
+        SagaEventPublisher? eventPublisher = null)
     {
         _sagaRepository = sagaRepository ?? throw new ArgumentNullException(nameof(sagaRepository));
         _stepRepository = stepRepository ?? throw new ArgumentNullException(nameof(stepRepository));
         _compensationService = compensationService ?? throw new ArgumentNullException(nameof(compensationService));
         _sagaLogger = sagaLogger;
+        _eventPublisher = eventPublisher;
     }
 
     /// <summary>
@@ -428,6 +432,60 @@ public SagaOrchestrationService(
         saga.FailedAt = DateTime.UtcNow;
 
         await _sagaRepository.UpdateAsync(saga);
+    }
+
+    /// <summary>
+    /// Cancels a running saga and starts compensation of the steps it has already completed.
+    /// Publishes a <c>SagaCancelled</c> lifecycle event when an event publisher is configured.
+    /// </summary>
+    /// <param name="sagaId">The saga ID.</param>
+    /// <returns>The cancelled saga instance, with compensation started.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="sagaId"/> is null or empty.</exception>
+    /// <exception cref="SagaNotFoundException">Thrown when the saga is not found.</exception>
+    /// <exception cref="SagaException">Thrown when the saga is not in running status.</exception>
+    /// <exception cref="DotnetSagaOrchestratorException">Thrown when an error occurs during cancellation.</exception>
+    public async Task<Saga> CancelSagaAsync(string sagaId)
+    {
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must be provided", nameof(sagaId));
+
+        Saga saga;
+        try
+        {
+            saga = await _sagaRepository.GetByIdAsync(sagaId)
+                ?? throw new SagaNotFoundException(sagaId);
+        }
+        catch (Exception ex) when (!(ex is SagaNotFoundException))
+        {
+            throw new DotnetSagaOrchestratorException("Error retrieving saga for cancellation", ex);
+        }
+
+        if (!saga.Status.CanTransitionTo(SagaStatus.Cancelled))
+            throw new SagaException($"Cannot cancel saga in {saga.Status} status", sagaId);
+
+        saga.Status = SagaStatus.Cancelled;
+        saga.FailureReason = "Cancelled by request";
+        saga.FailedAt = DateTime.UtcNow;
+        await _sagaRepository.UpdateAsync(saga);
+
+        try
+        {
+            await _compensationService.BeginCompensationAsync(saga);
+        }
+        catch (Exception compEx)
+        {
+            throw new DotnetSagaOrchestratorException("Error during compensation after cancellation", compEx);
+        }
+
+        if (_eventPublisher != null)
+        {
+            var cancelledEvent = SagaEvent.CreateLifecycleEvent(
+                saga.Id, "SagaCancelled", "Saga cancelled; compensation started");
+            cancelledEvent.Severity = EventSeverity.Warning;
+            await _eventPublisher.PublishAsync(cancelledEvent);
+        }
+
+        return saga;
     }
 
     /// <summary>

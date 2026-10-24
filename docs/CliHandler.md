@@ -93,7 +93,12 @@ The CLI handler supports the following commands:
    saga compensate --saga-id <saga-id>
    ```
 
-6. **help** - Display help information
+6. **cancel** - Cancel a running saga and compensate the steps it has already completed
+   ```
+   saga cancel --saga-id <saga-id>
+   ```
+
+7. **help** - Display help information
    ```
    saga help
    ```

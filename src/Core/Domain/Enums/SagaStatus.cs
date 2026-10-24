@@ -54,5 +54,10 @@ public enum SagaStatus
     /// <summary>
     /// Saga timed out
     /// </summary>
-    TimedOut = 8
+    TimedOut = 8,
+
+    /// <summary>
+    /// Saga cancelled on request; compensation of completed steps is pending or in progress
+    /// </summary>
+    Cancelled = 9
 }

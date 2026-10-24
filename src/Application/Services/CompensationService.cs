@@ -52,7 +52,7 @@ public class CompensationService
         if (saga == null)
             throw new ArgumentNullException(nameof(saga));
 
-        if (saga.Status != SagaStatus.Failed)
+        if (saga.Status is not (SagaStatus.Failed or SagaStatus.Cancelled))
             throw new SagaException($"Cannot compensate saga in {saga.Status} status", saga.Id);
 
         saga.BeginCompensation();

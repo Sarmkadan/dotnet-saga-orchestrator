@@ -209,6 +209,81 @@ public class SagaOrchestrationServiceTests
 
     #endregion
 
+    #region CancelSagaAsync
+
+    [Fact]
+    public async Task CancelSagaAsync_NullOrWhiteSpaceId_ThrowsArgumentException()
+    {
+        // Act
+        Func<Task> act = async () => await _service.CancelSagaAsync("   ");
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*Saga ID must be provided*");
+    }
+
+    [Fact]
+    public async Task CancelSagaAsync_SagaNotRunning_ThrowsSagaException()
+    {
+        // Arrange
+        var saga = new Saga { Id = "saga-1", Status = SagaStatus.Completed };
+        _sagaRepositoryMock.Setup(r => r.GetByIdAsync("saga-1")).ReturnsAsync(saga);
+
+        // Act
+        Func<Task> act = async () => await _service.CancelSagaAsync("saga-1");
+
+        // Assert
+        await act.Should().ThrowAsync<SagaException>()
+            .WithMessage("*Cannot cancel saga in Completed status*");
+        _compensationServiceMock.Verify(c => c.BeginCompensationAsync(It.IsAny<Saga>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CancelSagaAsync_RunningSaga_SetsCancelledAndStartsCompensation()
+    {
+        // Arrange
+        var saga = new Saga { Id = "saga-2", Status = SagaStatus.Running };
+        _sagaRepositoryMock.Setup(r => r.GetByIdAsync("saga-2")).ReturnsAsync(saga);
+        _compensationServiceMock
+            .Setup(c => c.BeginCompensationAsync(It.IsAny<Saga>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _service.CancelSagaAsync("saga-2");
+
+        // Assert
+        result.Should().BeSameAs(saga);
+        result.Status.Should().Be(SagaStatus.Cancelled);
+        _compensationServiceMock.Verify(c => c.BeginCompensationAsync(saga), Times.Once);
+    }
+
+    [Fact]
+    public async Task CancelSagaAsync_WithEventPublisher_PublishesSagaCancelledEvent()
+    {
+        // Arrange
+        var publisher = new SagaEventPublisher();
+        var service = new SagaOrchestrationService(
+            _sagaRepositoryMock.Object,
+            _stepRepositoryMock.Object,
+            _compensationServiceMock.Object,
+            _loggerMock.Object,
+            publisher);
+        var saga = new Saga { Id = "saga-3", Status = SagaStatus.Running };
+        _sagaRepositoryMock.Setup(r => r.GetByIdAsync("saga-3")).ReturnsAsync(saga);
+        _compensationServiceMock
+            .Setup(c => c.BeginCompensationAsync(It.IsAny<Saga>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await service.CancelSagaAsync("saga-3");
+
+        // Assert
+        var events = publisher.GetSagaEvents("saga-3");
+        events.Should().ContainSingle(e => e.EventName == "SagaCancelled" && e.Severity == EventSeverity.Warning);
+    }
+
+    #endregion
+
     #region GetSagaAsync
 
     [Fact]
