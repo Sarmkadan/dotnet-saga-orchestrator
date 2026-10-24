@@ -7,6 +7,7 @@ root = true
 # All files
 [*]
 charset = utf-8
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
@@ -73,13 +74,14 @@ csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
 # Var preferences
 csharp_style_var_for_built_in_types = false:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = false:suggestion
+csharp_style_var_elsewhere = true:suggestion
 
 # Namespace declarations
-csharp_style_namespace_declarations = block_scoped:suggestion
+csharp_style_namespace_declarations = file_scoped:warning
 
 # Using directives placement
 csharp_using_directive_placement = inside_namespace:suggestion
+dotnet_sort_system_directives_first = true
 
 # Naming conventions
 [*.cs]
@@ -113,6 +115,20 @@ dotnet_naming_rule.public_members_pascal_case.severity = suggestion
 dotnet_naming_symbols.public_symbols.applicable_kinds = property,method,field,event,delegate,class,struct,interface,enum
 dotnet_naming_symbols.public_symbols.applicable_accessibilities = public
 dotnet_naming_symbols.public_symbols.required_modifiers =
+
+# Private fields should be _camelCase
+dotnet_naming_style.underscore_camel_case_style.required_prefix = _
+dotnet_naming_style.underscore_camel_case_style.required_suffix =
+dotnet_naming_style.underscore_camel_case_style.word_separator =
+dotnet_naming_style.underscore_camel_case_style.capitalization = camel_case
+
+dotnet_naming_rule.private_fields_underscore_camel_case.symbols = private_field_symbols
+dotnet_naming_rule.private_fields_underscore_camel_case.style = underscore_camel_case_style
+dotnet_naming_rule.private_fields_underscore_camel_case.severity = suggestion
+
+dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private
+dotnet_naming_symbols.private_field_symbols.required_modifiers =
 
 # Private members should be camelCase
 dotnet_naming_rule.private_members_camel_case.symbols = private_symbols
@@ -169,6 +185,10 @@ indent_size = 2
 
 # XML files
 [*.xml]
+indent_size = 2
+
+# Project files
+[*.csproj]
 indent_size = 2
 
 # Markdown files
