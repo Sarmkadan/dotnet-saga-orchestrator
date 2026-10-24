@@ -56,8 +56,8 @@ public class SagaCommandResultValidationTests
         {
             Message = "", // Invalid
             Timestamp = DateTime.Now, // Invalid (Local time)
-            RequestId = null, // Invalid
-            Errors = null, // Invalid
+            RequestId = null!, // Invalid
+            Errors = null!, // Invalid
             Success = true
         };
 

@@ -426,7 +426,7 @@ public class SagaOrchestrationServiceHappyPathTests
 
         // Verify saga is completed
         var completedSaga = await sagaRepo.GetByIdAsync(saga.Id);
-        completedSaga.Status.Should().Be(SagaStatus.Completed);
+        completedSaga!.Status.Should().Be(SagaStatus.Completed);
 
         // Act - Try to execute another step (should return null)
         var result = await service.ExecuteNextStepAsync(saga.Id);

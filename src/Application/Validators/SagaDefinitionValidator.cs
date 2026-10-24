@@ -24,7 +24,6 @@ public class SagaDefinitionValidator : ISagaDefinitionValidator
 {
     public async Task ValidateAsync(SagaDefinition definition)
     {
-        ArgumentNullException.ThrowIfNull(nameof(definition));
         var errors = await ValidateAndGetErrorsAsync(definition);
         if (errors.Count > 0)
         {

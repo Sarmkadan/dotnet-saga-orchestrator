@@ -28,11 +28,11 @@ public class SagaStep
 
     /// <summary>Gets or sets the identifier of the saga this step belongs to.</summary>
     [JsonPropertyName("sagaId")]
-    public string SagaId { get; set; }
+    public string SagaId { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the human-readable name of the step.</summary>
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the execution order of the step within the saga (1-based).</summary>
     [JsonPropertyName("order")]
@@ -44,11 +44,11 @@ public class SagaStep
 
     /// <summary>Gets or sets the URL of the forward action endpoint for the step.</summary>
     [JsonPropertyName("serviceUrl")]
-    public string ServiceUrl { get; set; }
+    public string ServiceUrl { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the URL of the compensating action endpoint for the step.</summary>
     [JsonPropertyName("compensationUrl")]
-    public string CompensationUrl { get; set; }
+    public string CompensationUrl { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the request payload sent to the forward action.</summary>
     [JsonPropertyName("payload")]

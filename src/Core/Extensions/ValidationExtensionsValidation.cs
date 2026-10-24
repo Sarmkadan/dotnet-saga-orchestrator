@@ -19,7 +19,6 @@ public static class ValidationExtensionsValidation
     /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
     public static IReadOnlyList<string> Validate()
     {
-        ArgumentNullException.ThrowIfNull(nameof(ValidationExtensions));
 
         var problems = new List<string>();
 

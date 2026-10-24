@@ -48,7 +48,7 @@ internal static class SagaIdGeneratorExtensionsJson
     /// <returns>A saga identifier string, or null if deserialization fails.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
     /// <remarks>
-    /// Expected JSON format: { "sagaId": "saga_<guid>" }
+    /// Expected JSON format: { "sagaId": "saga_&lt;guid&gt;" }
     /// </remarks>
     public static string? FromJson(string json)
     {
@@ -78,7 +78,7 @@ internal static class SagaIdGeneratorExtensionsJson
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
     /// <remarks>
-    /// Expected JSON format: { "sagaId": "saga_<guid>" }
+    /// Expected JSON format: { "sagaId": "saga_&lt;guid&gt;" }
     /// </remarks>
     public static bool TryFromJson(string json, out string? value)
     {

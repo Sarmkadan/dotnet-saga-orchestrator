@@ -52,10 +52,10 @@ public class DebuggerOptionsExtensionsTests
     public void IsAutoCaptureEnabled_ThrowsArgumentNullException_WhenOptionsIsNull()
     {
         // Arrange
-        DebuggerOptions options = null;
+        DebuggerOptions options = null!;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => options.IsAutoCaptureEnabled(DebuggerSnapshotTrigger.StepTransition));
+        Assert.Throws<ArgumentNullException>(() => options!.IsAutoCaptureEnabled(DebuggerSnapshotTrigger.StepTransition));
     }
 
     [Fact]
@@ -122,10 +122,10 @@ public class DebuggerOptionsExtensionsTests
     public void GetMaxSnapshotsForSaga_ThrowsArgumentNullException_WhenOptionsIsNull()
     {
         // Arrange
-        DebuggerOptions options = null;
+        DebuggerOptions options = null!;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => options.GetMaxSnapshotsForSaga("saga"));
+        Assert.Throws<ArgumentNullException>(() => options!.GetMaxSnapshotsForSaga("saga"));
     }
 
     [Fact]
@@ -255,10 +255,10 @@ public class DebuggerOptionsExtensionsTests
     public void WillCaptureDataFor_ThrowsArgumentNullException_WhenOptionsIsNull()
     {
         // Arrange
-        DebuggerOptions options = null;
+        DebuggerOptions options = null!;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => options.WillCaptureDataFor(DebuggerScenario.StepExecution));
+        Assert.Throws<ArgumentNullException>(() => options!.WillCaptureDataFor(DebuggerScenario.StepExecution));
     }
 
     [Fact]
@@ -293,10 +293,10 @@ public class DebuggerOptionsExtensionsTests
     public void WithOverrides_ThrowsArgumentNullException_WhenOptionsIsNull()
     {
         // Arrange
-        DebuggerOptions options = null;
+        DebuggerOptions options = null!;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => options.WithOverrides(o => { }));
+        Assert.Throws<ArgumentNullException>(() => options!.WithOverrides(o => { }));
     }
 
     [Fact]

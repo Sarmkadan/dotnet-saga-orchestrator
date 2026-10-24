@@ -98,7 +98,7 @@ public class SagaDebuggerServiceValidationTests
         var service = CreateValidService();
         var snapshotIndexField = typeof(SagaDebuggerService).GetField("_snapshotIndex", BindingFlags.NonPublic | BindingFlags.Instance);
         var snapshotIndex = new Dictionary<string, SagaDebugSnapshot> { { "key", null! } };
-        snapshotIndexField.SetValue(service, snapshotIndex);
+        snapshotIndexField!.SetValue(service, snapshotIndex);
 
         // Act
         var problems = SagaDebuggerServiceValidation.Validate(service);
@@ -114,7 +114,7 @@ public class SagaDebuggerServiceValidationTests
         var service = CreateValidService();
         var breakpointsField = typeof(SagaDebuggerService).GetField("_breakpoints", BindingFlags.NonPublic | BindingFlags.Instance);
         var breakpoints = new Dictionary<string, List<SagaDebugBreakpoint>> { { "saga1", null! } };
-        breakpointsField.SetValue(service, breakpoints);
+        breakpointsField!.SetValue(service, breakpoints);
 
         // Act
         var problems = SagaDebuggerServiceValidation.Validate(service);

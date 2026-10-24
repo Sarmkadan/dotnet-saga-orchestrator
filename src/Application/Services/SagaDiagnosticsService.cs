@@ -1,12 +1,11 @@
 using SagaOrchestrator.Services;
 
-namespace SagaOrchestrator.Services
+namespace SagaOrchestrator.Services;
+
+public class SagaDiagnosticsService
 {
-    public class SagaDiagnosticsService
+    public async Task FindStuckSagasAsync(TimeSpan threshold)
     {
-        public async Task FindStuckSagasAsync(TimeSpan threshold)
-        {
-            // implement me
-        }
+        // implement me
     }
 }

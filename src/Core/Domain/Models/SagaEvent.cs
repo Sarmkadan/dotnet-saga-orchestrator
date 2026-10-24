@@ -20,7 +20,7 @@ public class SagaEvent
     public string Id { get; set; }
 
     [JsonPropertyName("sagaId")]
-    public string SagaId { get; set; }
+    public string SagaId { get; set; } = string.Empty;
 
     [JsonPropertyName("eventType")]
     public string EventType { get; set; }

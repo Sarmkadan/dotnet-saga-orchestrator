@@ -10,19 +10,21 @@ namespace SagaOrchestrator.Infrastructure.Telemetry;
 
 /// <summary>
 /// Central ActivitySource for saga orchestration telemetry.
-///
-// Register with OpenTelemetry by adding the source name to your tracer provider:
-// <code>
-// services.AddOpenTelemetry()
-//     .WithTracing(b => b.AddSource(SagaActivitySource.Name));
-// </code>
-///
-/// The source emits spans for:
-//   - saga.start       – when a saga transitions to Running
-//   - saga.step        – each individual step execution attempt
-//   - saga.compensate  – each compensation transaction execution
-//   - saga.complete    – when a saga reaches Completed or Compensated
 /// </summary>
+/// <remarks>
+/// Register with OpenTelemetry by adding the source name to your tracer provider:
+/// <code>
+/// services.AddOpenTelemetry()
+///     .WithTracing(b => b.AddSource(SagaActivitySource.Name));
+/// </code>
+/// The source emits spans for:
+/// <list type="bullet">
+/// <item><description>saga.start – when a saga transitions to Running</description></item>
+/// <item><description>saga.step – each individual step execution attempt</description></item>
+/// <item><description>saga.compensate – each compensation transaction execution</description></item>
+/// <item><description>saga.complete – when a saga reaches Completed or Compensated</description></item>
+/// </list>
+/// </remarks>
 public static class SagaActivitySource
 {
     /// <summary>

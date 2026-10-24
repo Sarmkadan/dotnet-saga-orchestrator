@@ -75,7 +75,7 @@ public static class SagaStepBuilderExtensions
             }
         }
 
-        builder.WithCompensation(compensationUrl);
+        builder.WithCompensation(compensationUrl ?? string.Empty);
         builder.WithMetadata("isCompensable", isCompensable.ToString());
         return builder;
     }

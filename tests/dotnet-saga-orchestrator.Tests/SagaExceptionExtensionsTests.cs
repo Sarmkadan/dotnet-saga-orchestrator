@@ -2,70 +2,69 @@ using System;
 using Xunit;
 using SagaOrchestrator.Core.Exceptions;
 
-namespace SagaOrchestrator.Tests
+namespace SagaOrchestrator.Tests;
+
+public class SagaExceptionExtensionsTests
 {
-    public class SagaExceptionExtensionsTests
+    [Fact]
+    public void IsSagaNotFound_HappyPath_ReturnsTrue()
     {
-        [Fact]
-        public void IsSagaNotFound_HappyPath_ReturnsTrue()
-        {
-            // Arrange
-            var ex = new SagaException("Saga not found", "saga-123", "SAGA_NOT_FOUND");
+        // Arrange
+        var ex = new SagaException("Saga not found", "saga-123", "SAGA_NOT_FOUND");
 
-            // Act
-            var result = SagaExceptionExtensions.IsSagaNotFound(ex);
+        // Act
+        var result = SagaExceptionExtensions.IsSagaNotFound(ex);
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsSagaNotFound_NullInput_ThrowsArgumentNullException()
-        {
-            // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => SagaExceptionExtensions.IsSagaNotFound(null));
-        }
+    [Fact]
+    public void IsSagaNotFound_NullInput_ThrowsArgumentNullException()
+    {
+        // Act and Assert
+        Assert.Throws<ArgumentNullException>(() => SagaExceptionExtensions.IsSagaNotFound(null!));
+    }
 
-        [Fact]
-        public void IsSagaTimeout_HappyPath_ReturnsTrue()
-        {
-            // Arrange
-            var ex = new SagaException("Saga timed out", "saga-123", "SAGA_TIMEOUT");
+    [Fact]
+    public void IsSagaTimeout_HappyPath_ReturnsTrue()
+    {
+        // Arrange
+        var ex = new SagaException("Saga timed out", "saga-123", "SAGA_TIMEOUT");
 
-            // Act
-            var result = SagaExceptionExtensions.IsSagaTimeout(ex);
+        // Act
+        var result = SagaExceptionExtensions.IsSagaTimeout(ex);
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsSagaTimeout_NullInput_ThrowsArgumentNullException()
-        {
-            // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => SagaExceptionExtensions.IsSagaTimeout(null));
-        }
+    [Fact]
+    public void IsSagaTimeout_NullInput_ThrowsArgumentNullException()
+    {
+        // Act and Assert
+        Assert.Throws<ArgumentNullException>(() => SagaExceptionExtensions.IsSagaTimeout(null!));
+    }
 
-        [Fact]
-        public void GetDetailedMessage_HappyPath_ReturnsCorrectString()
-        {
-            // Arrange
-            var ex = new SagaException("Saga not found", "saga-123", "SAGA_NOT_FOUND");
+    [Fact]
+    public void GetDetailedMessage_HappyPath_ReturnsCorrectString()
+    {
+        // Arrange
+        var ex = new SagaException("Saga not found", "saga-123", "SAGA_NOT_FOUND");
 
-            // Act
-            var result = SagaExceptionExtensions.GetDetailedMessage(ex);
+        // Act
+        var result = SagaExceptionExtensions.GetDetailedMessage(ex);
 
-            // Assert
-            Assert.Contains("Saga Id: saga-123", result);
-            Assert.Contains("Error Code: SAGA_NOT_FOUND", result);
-            Assert.Contains("Message: Saga not found", result);
-        }
+        // Assert
+        Assert.Contains("Saga Id: saga-123", result);
+        Assert.Contains("Error Code: SAGA_NOT_FOUND", result);
+        Assert.Contains("Message: Saga not found", result);
+    }
 
-        [Fact]
-        public void GetDetailedMessage_NullInput_ThrowsArgumentNullException()
-        {
-            // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => SagaExceptionExtensions.GetDetailedMessage(null));
-        }
+    [Fact]
+    public void GetDetailedMessage_NullInput_ThrowsArgumentNullException()
+    {
+        // Act and Assert
+        Assert.Throws<ArgumentNullException>(() => SagaExceptionExtensions.GetDetailedMessage(null!));
     }
 }

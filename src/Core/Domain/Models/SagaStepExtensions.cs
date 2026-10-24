@@ -16,7 +16,7 @@ namespace SagaOrchestrator.Core.Domain.Models;
 /// for working with saga steps, including retry logic, status checks, and timeout handling.
 /// </summary>
 /// <remarks>
-/// All methods validate their parameters using <see cref="ArgumentNullException.ThrowIfNull"/>.
+/// All methods validate their parameters using <c>ArgumentNullException.ThrowIfNull</c>.
 /// This class is <see langword="sealed"/> to prevent inheritance.
 /// </remarks>
 public static class SagaStepExtensions

@@ -47,12 +47,12 @@ public static class CircuitBreakerTestsExtensions
     /// </summary>
     /// <param name="instance">The test instance.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="instance"/> is null.</exception>
-    public static void RunManagementTests(this CircuitBreakerTests instance)
+    public static async Task RunManagementTestsAsync(this CircuitBreakerTests instance)
     {
         ArgumentNullException.ThrowIfNull(instance);
 
         instance.GetState_UnknownIdentifier_ReturnsClosed();
-        instance.Reset_ClearsMetricsForIdentifier();
-        instance.EvictStaleEntries_RemovesUnusedClosedCircuits();
+        await instance.Reset_ClearsMetricsForIdentifier();
+        await instance.EvictStaleEntries_RemovesUnusedClosedCircuits();
     }
 }

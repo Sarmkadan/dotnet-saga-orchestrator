@@ -65,9 +65,9 @@ public class CompositeSagaEventObserver : ISagaEventObserver
     /// <summary>
     /// Called when a saga is created.
     /// </summary>
-    /// <param name="@event">The saga created event.</param>
+    /// <param name="event">The saga created event.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="event"/> is null.</exception>
     /// <remarks>
     /// Invokes <see cref="ISagaEventObserver.OnSagaCreatedAsync"/> on all composed observers.
     /// Errors from individual observers are caught and logged internally, ensuring one faulty observer
@@ -111,9 +111,9 @@ public class CompositeSagaEventObserver : ISagaEventObserver
     /// <summary>
     /// Called when a saga completes successfully.
     /// </summary>
-    /// <param name="@event">The saga completed event.</param>
+    /// <param name="event">The saga completed event.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="event"/> is null.</exception>
     /// <remarks>
     /// Invokes <see cref="ISagaEventObserver.OnSagaCompletedAsync"/> on all composed observers.
     /// Errors from individual observers are caught and logged internally, ensuring one faulty observer
@@ -155,9 +155,9 @@ public class CompositeSagaEventObserver : ISagaEventObserver
     /// <summary>
     /// Called when a saga fails.
     /// </summary>
-    /// <param name="@event">The saga failed event.</param>
+    /// <param name="event">The saga failed event.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="event"/> is null.</exception>
     /// <remarks>
     /// Invokes <see cref="ISagaEventObserver.OnSagaFailedAsync"/> on all composed observers.
     /// Errors from individual observers are caught and logged internally, ensuring one faulty observer
@@ -199,9 +199,9 @@ public class CompositeSagaEventObserver : ISagaEventObserver
     /// <summary>
     /// Called when compensation starts for a saga.
     /// </summary>
-    /// <param name="@event">The compensation started event.</param>
+    /// <param name="event">The compensation started event.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="event"/> is null.</exception>
     /// <remarks>
     /// Invokes <see cref="ISagaEventObserver.OnCompensationStartedAsync"/> on all composed observers.
     /// Errors from individual observers are caught and logged internally, ensuring one faulty observer

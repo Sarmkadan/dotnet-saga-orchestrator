@@ -3,102 +3,101 @@ using System.Collections.Generic;
 using Xunit;
 using SagaOrchestrator.Core.Exceptions;
 
-namespace SagaOrchestrator.Tests
+namespace SagaOrchestrator.Tests;
+
+public class ExceptionMapperTests
 {
-    public class ExceptionMapperTests
+    [Fact]
+    public void Validate_HappyPath_ReturnsEmptyList()
     {
-        [Fact]
-        public void Validate_HappyPath_ReturnsEmptyList()
+        // Arrange
+        var errorResponse = new ErrorResponse
         {
-            // Arrange
-            var errorResponse = new ErrorResponse
-            {
-                Code = "code",
-                Message = "message",
-                Timestamp = DateTime.UtcNow,
-                RequestId = "requestId"
-            };
+            Code = "code",
+            Message = "message",
+            Timestamp = DateTime.UtcNow,
+            RequestId = "requestId"
+        };
 
-            // Act
-            var result = ExceptionMapperValidation.Validate(errorResponse);
+        // Act
+        var result = ExceptionMapperValidation.Validate(errorResponse);
 
-            // Assert
-            Assert.Empty(result);
-        }
+        // Assert
+        Assert.Empty(result);
+    }
 
-        [Fact]
-        public void Validate_NullInput_ThrowsArgumentNullException()
+    [Fact]
+    public void Validate_NullInput_ThrowsArgumentNullException()
+    {
+        // Act and Assert
+        Assert.Throws<ArgumentNullException>(() => ExceptionMapperValidation.Validate(null));
+    }
+
+    [Fact]
+    public void IsValid_HappyPath_ReturnsTrue()
+    {
+        // Arrange
+        var errorResponse = new ErrorResponse
         {
-            // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => ExceptionMapperValidation.Validate(null));
-        }
+            Code = "code",
+            Message = "message",
+            Timestamp = DateTime.UtcNow,
+            RequestId = "requestId"
+        };
 
-        [Fact]
-        public void IsValid_HappyPath_ReturnsTrue()
+        // Act
+        var result = ExceptionMapperValidation.IsValid(errorResponse);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void IsValid_NullInput_ReturnsFalse()
+    {
+        // Act
+        var result = ExceptionMapperValidation.IsValid(null);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void EnsureValid_HappyPath_DoesNotThrow()
+    {
+        // Arrange
+        var errorResponse = new ErrorResponse
         {
-            // Arrange
-            var errorResponse = new ErrorResponse
-            {
-                Code = "code",
-                Message = "message",
-                Timestamp = DateTime.UtcNow,
-                RequestId = "requestId"
-            };
+            Code = "code",
+            Message = "message",
+            Timestamp = DateTime.UtcNow,
+            RequestId = "requestId"
+        };
 
-            // Act
-            var result = ExceptionMapperValidation.IsValid(errorResponse);
+        // Act and Assert
+        ExceptionMapperValidation.EnsureValid(errorResponse);
+    }
 
-            // Assert
-            Assert.True(result);
-        }
+    [Fact]
+    public void EnsureValid_NullInput_ThrowsArgumentNullException()
+    {
+        // Act and Assert
+        Assert.Throws<ArgumentNullException>(() => ExceptionMapperValidation.EnsureValid(null));
+    }
 
-        [Fact]
-        public void IsValid_NullInput_ReturnsFalse()
+    [Fact]
+    public void EnsureValid_InvalidInput_ThrowsArgumentException()
+    {
+        // Arrange
+        var errorResponse = new ErrorResponse
         {
-            // Act
-            var result = ExceptionMapperValidation.IsValid(null);
+            Code = string.Empty,
+            Message = "message",
+            Timestamp = DateTime.UtcNow,
+            RequestId = "requestId"
+        };
 
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void EnsureValid_HappyPath_DoesNotThrow()
-        {
-            // Arrange
-            var errorResponse = new ErrorResponse
-            {
-                Code = "code",
-                Message = "message",
-                Timestamp = DateTime.UtcNow,
-                RequestId = "requestId"
-            };
-
-            // Act and Assert
-            ExceptionMapperValidation.EnsureValid(errorResponse);
-        }
-
-        [Fact]
-        public void EnsureValid_NullInput_ThrowsArgumentNullException()
-        {
-            // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => ExceptionMapperValidation.EnsureValid(null));
-        }
-
-        [Fact]
-        public void EnsureValid_InvalidInput_ThrowsArgumentException()
-        {
-            // Arrange
-            var errorResponse = new ErrorResponse
-            {
-                Code = string.Empty,
-                Message = "message",
-                Timestamp = DateTime.UtcNow,
-                RequestId = "requestId"
-            };
-
-            // Act and Assert
-            Assert.Throws<ArgumentException>(() => ExceptionMapperValidation.EnsureValid(errorResponse));
-        }
+        // Act and Assert
+        Assert.Throws<ArgumentException>(() => ExceptionMapperValidation.EnsureValid(errorResponse));
     }
 }

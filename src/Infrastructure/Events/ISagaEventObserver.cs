@@ -41,9 +41,9 @@ public interface ISagaEventObserver
     /// <summary>
     /// Called when a saga is created.
     /// </summary>
-    /// <param name="@event">The saga created event.</param>
+    /// <param name="event">The saga created event.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="event"/> is null.</exception>
     /// <remarks>
     /// This method should be exception-isolated - any exceptions thrown by implementations
     /// must be caught and logged internally, never propagated to the caller.
@@ -54,9 +54,9 @@ public interface ISagaEventObserver
     /// <summary>
     /// Called when a saga completes successfully.
     /// </summary>
-    /// <param name="@event">The saga completed event.</param>
+    /// <param name="event">The saga completed event.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="event"/> is null.</exception>
     /// <remarks>
     /// This method should be exception-isolated - any exceptions thrown by implementations
     /// must be caught and logged internally, never propagated to the caller.
@@ -66,9 +66,9 @@ public interface ISagaEventObserver
     /// <summary>
     /// Called when a saga fails.
     /// </summary>
-    /// <param name="@event">The saga failed event.</param>
+    /// <param name="event">The saga failed event.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="event"/> is null.</exception>
     /// <remarks>
     /// This method should be exception-isolated - any exceptions thrown by implementations
     /// must be caught and logged internally, never propagated to the caller.
@@ -78,9 +78,9 @@ public interface ISagaEventObserver
     /// <summary>
     /// Called when compensation starts for a saga.
     /// </summary>
-    /// <param name="@event">The compensation started event.</param>
+    /// <param name="event">The compensation started event.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="@event"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="event"/> is null.</exception>
     /// <remarks>
     /// This method should be exception-isolated - any exceptions thrown by implementations
     /// must be caught and logged internally, never propagated to the caller.

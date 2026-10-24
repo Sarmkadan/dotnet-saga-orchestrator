@@ -35,7 +35,6 @@ public class TimeoutPolicy
     /// </summary>
     public bool HasExceeded(TimeSpan elapsed)
     {
-        ArgumentNullException.ThrowIfNull(nameof(elapsed));
         return elapsed >= Timeout;
     }
 
@@ -44,8 +43,6 @@ public class TimeoutPolicy
     /// </summary>
     public bool HasExceeded(TimeSpan elapsed, TimeSpan buffer)
     {
-        ArgumentNullException.ThrowIfNull(nameof(elapsed));
-        ArgumentNullException.ThrowIfNull(nameof(buffer));
         return elapsed >= (Timeout - buffer);
     }
 
@@ -54,7 +51,6 @@ public class TimeoutPolicy
     /// </summary>
     public TimeSpan GetRemainingTime(DateTime startTime)
     {
-        ArgumentNullException.ThrowIfNull(nameof(startTime));
         var elapsed = DateTime.UtcNow - startTime;
         var remaining = Timeout - elapsed;
         return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
@@ -65,8 +61,6 @@ public class TimeoutPolicy
     /// </summary>
     public bool HasSufficientTime(DateTime startTime, TimeSpan requiredTime)
     {
-        ArgumentNullException.ThrowIfNull(nameof(startTime));
-        ArgumentNullException.ThrowIfNull(nameof(requiredTime));
         var remaining = GetRemainingTime(startTime);
         return remaining >= requiredTime;
     }
@@ -76,7 +70,6 @@ public class TimeoutPolicy
     /// </summary>
     public double GetElapsedPercentage(DateTime startTime)
     {
-        ArgumentNullException.ThrowIfNull(nameof(startTime));
         var elapsed = DateTime.UtcNow - startTime;
         var percentage = elapsed.TotalSeconds / Timeout.TotalSeconds * 100;
         return Math.Min(percentage, 100);

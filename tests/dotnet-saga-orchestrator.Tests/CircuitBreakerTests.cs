@@ -175,15 +175,15 @@ public class CircuitBreakerTests
     /// Tests that the Reset method clears failure metrics and returns the circuit to Closed state.
     /// Verifies that after resetting an open circuit, new executions can proceed normally.
     /// </summary>
-    public void Reset_ClearsMetricsForIdentifier()
+    public async Task Reset_ClearsMetricsForIdentifier()
     {
         var breaker = new CircuitBreaker(failureThreshold: 1, timeoutSeconds: 60);
 
-        breaker.ExecuteAsync(async () =>
+        await breaker.ExecuteAsync(async () =>
         {
             await Task.CompletedTask;
             throw new InvalidOperationException("Fail");
-        }, "test-service").CatchAsync().GetAwaiter().GetResult();
+        }, "test-service").CatchAsync();
 
         breaker.GetState("test-service").Should().Be(CircuitBreakerState.Open);
 
@@ -264,15 +264,15 @@ public class CircuitBreakerTests
     /// Tests that EvictStaleEntries removes circuit breaker entries that haven't been accessed recently.
     /// Verifies the circuit breaker's cleanup mechanism for unused service identifiers.
     /// </summary>
-    public void EvictStaleEntries_RemovesUnusedClosedCircuits()
+    public async Task EvictStaleEntries_RemovesUnusedClosedCircuits()
     {
         var breaker = new CircuitBreaker();
 
         // Access multiple identifiers
-        breaker.ExecuteAsync(async () => await Task.CompletedTask, "service-1")
-            .CatchAsync().GetAwaiter().GetResult();
-        breaker.ExecuteAsync(async () => await Task.CompletedTask, "service-2")
-            .CatchAsync().GetAwaiter().GetResult();
+        await breaker.ExecuteAsync(async () => await Task.CompletedTask, "service-1")
+            .CatchAsync();
+        await breaker.ExecuteAsync(async () => await Task.CompletedTask, "service-2")
+            .CatchAsync();
 
         // service-1 is accessed (implicitly in initial execute)
         // service-2 hasn't been accessed for a while

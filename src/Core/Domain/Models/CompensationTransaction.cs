@@ -21,13 +21,13 @@ public class CompensationTransaction
     public string Id { get; set; }
 
     [JsonPropertyName("sagaId")]
-    public string SagaId { get; set; }
+    public string SagaId { get; set; } = string.Empty;
 
     [JsonPropertyName("stepId")]
-    public string StepId { get; set; }
+    public string StepId { get; set; } = string.Empty;
 
     [JsonPropertyName("stepName")]
-    public string StepName { get; set; }
+    public string StepName { get; set; } = string.Empty;
 
     [JsonPropertyName("order")]
     public int Order { get; set; }
@@ -36,7 +36,7 @@ public class CompensationTransaction
     public CompensationStatus Status { get; set; }
 
     [JsonPropertyName("compensationUrl")]
-    public string CompensationUrl { get; set; }
+    public string CompensationUrl { get; set; } = string.Empty;
 
     [JsonPropertyName("requestPayload")]
     public Dictionary<string, object> RequestPayload { get; set; } = new();
