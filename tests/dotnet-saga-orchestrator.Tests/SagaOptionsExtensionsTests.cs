@@ -143,8 +143,7 @@ public class SagaOptionsExtensionsTests
     }
 
     [Theory]
-    [InlineData(-1, 2)]   // negative -> default used (method throws before, so we test only non‑negative)
-    [InlineData(0, 2)]    // zero -> default used
+    [InlineData(0, 2)]    // zero -> default used (negative input throws; see GetEffectiveMaxRetries_Throws_WhenRequestedNegative)
     [InlineData(3, 3)]    // between default and max -> requested used
     [InlineData(10, 5)]   // above max -> max used
     public void GetEffectiveMaxRetries_ReturnsExpected(int requested, int expected)

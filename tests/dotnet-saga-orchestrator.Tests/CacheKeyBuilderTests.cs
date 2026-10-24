@@ -22,17 +22,16 @@ namespace SagaOrchestrator.Tests
         }
 
         [Fact]
-        public void BuildSagaKey_NullInput_ReturnsKeyWithEmptyValue()
+        public void BuildSagaKey_NullInput_ThrowsArgumentNullException()
         {
             // Arrange
             string sagaId = null;
-            string expected = "saga:"; // null becomes empty string
 
             // Act
-            string actual = CacheKeyBuilder.BuildSagaKey(sagaId);
+            Action act = () => CacheKeyBuilder.BuildSagaKey(sagaId);
 
             // Assert
-            actual.Should().Be(expected);
+            act.Should().Throw<ArgumentNullException>().WithParameterName("sagaId");
         }
 
         [Fact]
@@ -50,17 +49,16 @@ namespace SagaOrchestrator.Tests
         }
 
         [Fact]
-        public void BuildDefinitionKey_NullInput_ReturnsKeyWithEmptyValue()
+        public void BuildDefinitionKey_NullInput_ThrowsArgumentNullException()
         {
             // Arrange
             string definitionId = null;
-            string expected = "definition:"; // null becomes empty string
 
             // Act
-            string actual = CacheKeyBuilder.BuildDefinitionKey(definitionId);
+            Action act = () => CacheKeyBuilder.BuildDefinitionKey(definitionId);
 
             // Assert
-            actual.Should().Be(expected);
+            act.Should().Throw<ArgumentNullException>().WithParameterName("definitionId");
         }
 
         [Fact]
@@ -88,17 +86,16 @@ namespace SagaOrchestrator.Tests
         }
 
         [Fact]
-        public void BuildSagasByStatusKey_NullInput_ReturnsKeyWithEmptyValue()
+        public void BuildSagasByStatusKey_NullInput_ThrowsArgumentNullException()
         {
             // Arrange
             string status = null;
-            string expected = "sagas:status:"; // null becomes empty string
 
             // Act
-            string actual = CacheKeyBuilder.BuildSagasByStatusKey(status);
+            Action act = () => CacheKeyBuilder.BuildSagasByStatusKey(status);
 
             // Assert
-            actual.Should().Be(expected);
+            act.Should().Throw<ArgumentNullException>().WithParameterName("status");
         }
 
         [Fact]
@@ -116,17 +113,16 @@ namespace SagaOrchestrator.Tests
         }
 
         [Fact]
-        public void BuildCompensationKey_NullInput_ReturnsKeyWithEmptyValue()
+        public void BuildCompensationKey_NullInput_ThrowsArgumentNullException()
         {
             // Arrange
             string sagaId = null;
-            string expected = "compensation:"; // null becomes empty string
 
             // Act
-            string actual = CacheKeyBuilder.BuildCompensationKey(sagaId);
+            Action act = () => CacheKeyBuilder.BuildCompensationKey(sagaId);
 
             // Assert
-            actual.Should().Be(expected);
+            act.Should().Throw<ArgumentNullException>().WithParameterName("sagaId");
         }
 
         [Fact]
@@ -144,17 +140,16 @@ namespace SagaOrchestrator.Tests
         }
 
         [Fact]
-        public void BuildEventHistoryKey_NullInput_ReturnsKeyWithEmptyValue()
+        public void BuildEventHistoryKey_NullInput_ThrowsArgumentNullException()
         {
             // Arrange
             string sagaId = null;
-            string expected = "events:"; // null becomes empty string
 
             // Act
-            string actual = CacheKeyBuilder.BuildEventHistoryKey(sagaId);
+            Action act = () => CacheKeyBuilder.BuildEventHistoryKey(sagaId);
 
             // Assert
-            actual.Should().Be(expected);
+            act.Should().Throw<ArgumentNullException>().WithParameterName("sagaId");
         }
 
         [Fact]
@@ -172,17 +167,16 @@ namespace SagaOrchestrator.Tests
         }
 
         [Fact]
-        public void BuildServiceKey_NullInput_ReturnsKeyWithEmptyValue()
+        public void BuildServiceKey_NullInput_ThrowsArgumentNullException()
         {
             // Arrange
             string serviceName = null;
-            string expected = "service:"; // null becomes empty string
 
             // Act
-            string actual = CacheKeyBuilder.BuildServiceKey(serviceName);
+            Action act = () => CacheKeyBuilder.BuildServiceKey(serviceName);
 
             // Assert
-            actual.Should().Be(expected);
+            act.Should().Throw<ArgumentNullException>().WithParameterName("serviceName");
         }
 
         [Fact]

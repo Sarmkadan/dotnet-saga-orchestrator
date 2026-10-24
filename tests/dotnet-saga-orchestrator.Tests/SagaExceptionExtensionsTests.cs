@@ -10,7 +10,7 @@ namespace SagaOrchestrator.Tests
         public void IsSagaNotFound_HappyPath_ReturnsTrue()
         {
             // Arrange
-            var ex = new SagaException("saga-123", "SAGA_NOT_FOUND", "Saga not found");
+            var ex = new SagaException("Saga not found", "saga-123", "SAGA_NOT_FOUND");
 
             // Act
             var result = SagaExceptionExtensions.IsSagaNotFound(ex);
@@ -30,7 +30,7 @@ namespace SagaOrchestrator.Tests
         public void IsSagaTimeout_HappyPath_ReturnsTrue()
         {
             // Arrange
-            var ex = new SagaException("saga-123", "SAGA_TIMEOUT", "Saga timed out");
+            var ex = new SagaException("Saga timed out", "saga-123", "SAGA_TIMEOUT");
 
             // Act
             var result = SagaExceptionExtensions.IsSagaTimeout(ex);
@@ -50,7 +50,7 @@ namespace SagaOrchestrator.Tests
         public void GetDetailedMessage_HappyPath_ReturnsCorrectString()
         {
             // Arrange
-            var ex = new SagaException("saga-123", "SAGA_NOT_FOUND", "Saga not found");
+            var ex = new SagaException("Saga not found", "saga-123", "SAGA_NOT_FOUND");
 
             // Act
             var result = SagaExceptionExtensions.GetDetailedMessage(ex);

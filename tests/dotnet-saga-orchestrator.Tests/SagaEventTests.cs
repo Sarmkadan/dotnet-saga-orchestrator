@@ -64,21 +64,21 @@ namespace SagaOrchestrator.Core.Domain.Models.Tests
         public void EdgeCase_CreateLifecycleEvent_NullInput()
         {
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => SagaEvent.CreateLifecycleEvent(null, "eventName", "description"));
+            Assert.Throws<ArgumentNullException>(() => SagaEvent.CreateLifecycleEvent(null, "eventName", "description"));
         }
 
         [Fact]
         public void EdgeCase_CreateStepEvent_NullInput()
         {
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => SagaEvent.CreateStepEvent("saga-123", null, "stepName", "eventName", "description"));
+            Assert.Throws<ArgumentNullException>(() => SagaEvent.CreateStepEvent("saga-123", null, "stepName", "eventName", "description"));
         }
 
         [Fact]
         public void EdgeCase_CreateErrorEvent_NullInput()
         {
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => SagaEvent.CreateErrorEvent("saga-123", null, "errorMessage"));
+            Assert.Throws<ArgumentNullException>(() => SagaEvent.CreateErrorEvent("saga-123", null, "errorMessage"));
         }
     }
 }

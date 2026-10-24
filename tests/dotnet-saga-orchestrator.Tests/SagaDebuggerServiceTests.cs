@@ -18,11 +18,10 @@ public class SagaDebuggerServiceTests
     public async Task CaptureSnapshotAsync_HappyPath_ReturnsSnapshot()
     {
         // Arrange
-        var sagaRepository = Mock.Of<ISagaRepository>();
-        var sagaStepRepository = Mock.Of<ISagaStepRepository>();
+        var (sagaRepository, sagaStepRepository) = CreateRepositoriesWithSaga("sagaId");
         var eventPublisher = new SagaEventPublisher();
         var options = new DebuggerOptions { IsEnabled = true };
-        var service = new SagaDebuggerService(sagaRepository, sagaStepRepository, eventPublisher, options);
+        var service = new SagaDebuggerService(sagaRepository.Object, sagaStepRepository.Object, eventPublisher, options);
 
         // Act
         var snapshot = await service.CaptureSnapshotAsync("sagaId");
@@ -52,17 +51,33 @@ public class SagaDebuggerServiceTests
     public async Task TravelToAsync_HappyPath_ReturnsSnapshot()
     {
         // Arrange
-        var sagaRepository = Mock.Of<ISagaRepository>();
-        var sagaStepRepository = Mock.Of<ISagaStepRepository>();
+        var (sagaRepository, sagaStepRepository) = CreateRepositoriesWithSaga("sagaId");
         var eventPublisher = new SagaEventPublisher();
         var options = new DebuggerOptions { IsEnabled = true };
-        var service = new SagaDebuggerService(sagaRepository, sagaStepRepository, eventPublisher, options);
+        var service = new SagaDebuggerService(sagaRepository.Object, sagaStepRepository.Object, eventPublisher, options);
+        var captured = await service.CaptureSnapshotAsync("sagaId");
 
         // Act
-        var snapshot = await service.TravelToAsync("sagaId", "snapshotId");
+        var snapshot = await service.TravelToAsync("sagaId", captured.SnapshotId);
 
         // Assert
         Assert.NotNull(snapshot);
+        Assert.Equal("sagaId", snapshot.SagaId);
+        // Travelling records the restoration as a new snapshot rather than returning the original one.
+        Assert.NotEqual(captured.SnapshotId, snapshot.SnapshotId);
+    }
+
+    private static (Mock<ISagaRepository> SagaRepository, Mock<ISagaStepRepository> SagaStepRepository) CreateRepositoriesWithSaga(string sagaId)
+    {
+        var saga = new Saga { Id = sagaId, Definition = new SagaDefinition { Id = "def-1" } };
+
+        var sagaRepository = new Mock<ISagaRepository>();
+        sagaRepository.Setup(r => r.GetByIdAsync(sagaId)).ReturnsAsync(saga);
+
+        var sagaStepRepository = new Mock<ISagaStepRepository>();
+        sagaStepRepository.Setup(r => r.GetBySagaIdAsync(sagaId)).ReturnsAsync(new List<SagaStep>());
+
+        return (sagaRepository, sagaStepRepository);
     }
 
     [Fact]

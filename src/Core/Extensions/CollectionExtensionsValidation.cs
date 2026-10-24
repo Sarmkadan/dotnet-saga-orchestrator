@@ -44,8 +44,9 @@ public static class CollectionExtensionsValidation
         if (typeof(T) == typeof(string))
         {
             var stringCollection = source.Cast<string>()!;
-            var emptyStrings = stringCollection.Where(s => string.IsNullOrEmpty(s)).ToList();
-            var whitespaceStrings = stringCollection.Where(s => s is not null && string.IsNullOrWhiteSpace(s)).ToList();
+            // Null elements are reported above; empty and whitespace-only are counted separately and disjointly.
+            var emptyStrings = stringCollection.Where(s => s is not null && s.Length == 0).ToList();
+            var whitespaceStrings = stringCollection.Where(s => !string.IsNullOrEmpty(s) && string.IsNullOrWhiteSpace(s)).ToList();
 
             if (emptyStrings.Count > 0)
             {
@@ -141,8 +142,8 @@ public static class CollectionExtensionsValidation
         if (typeof(TValue) == typeof(string))
         {
             var stringValues = dictionary.Values.Cast<string>()!;
-            var emptyStrings = stringValues.Where(s => string.IsNullOrEmpty(s)).ToList();
-            var whitespaceStrings = stringValues.Where(s => s is not null && string.IsNullOrWhiteSpace(s)).ToList();
+            var emptyStrings = stringValues.Where(s => s is not null && s.Length == 0).ToList();
+            var whitespaceStrings = stringValues.Where(s => !string.IsNullOrEmpty(s) && string.IsNullOrWhiteSpace(s)).ToList();
 
             if (emptyStrings.Count > 0)
             {

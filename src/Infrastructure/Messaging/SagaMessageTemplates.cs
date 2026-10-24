@@ -18,7 +18,7 @@ public static class SagaMessageTemplates
         {
             ArgumentException.ThrowIfNullOrEmpty(sagaId);
             ArgumentException.ThrowIfNullOrEmpty(sagaName);
-            return $"Saga '{sagaName}' (ID: {sagaId}) created with {stepCount}";
+            return $"Saga '{sagaName}' (ID: {sagaId}) created with {stepCount} steps";
         }
 
         public static string Detailed(string sagaId, string sagaName, string definitionId, int stepCount)

@@ -12,6 +12,10 @@ public class SagaStepExecutionException : SagaException
     [JsonPropertyName("stepOrder")]
     public int StepOrder { get; init; }
 
+    /// <summary>The raw failure text reported by the step, without the composed prefix in <see cref="Exception.Message"/>.</summary>
+    [JsonPropertyName("stepFailureMessage")]
+    public string? StepFailureMessage { get; init; }
+
     public SagaStepExecutionException() : base() { }
 
     [JsonConstructor]
@@ -19,9 +23,9 @@ public class SagaStepExecutionException : SagaException
 
     public SagaStepExecutionException(string sagaId, string stepName, int stepOrder, string message)
         : base($"Step '{stepName}' (order {stepOrder}) failed in saga '{sagaId}': {message}", sagaId, "STEP_EXECUTION_FAILED")
-    { StepName = stepName; StepOrder = stepOrder; }
+    { StepName = stepName; StepOrder = stepOrder; StepFailureMessage = message; }
 
     public SagaStepExecutionException(string sagaId, string stepName, int stepOrder, string message, Exception? innerException)
         : base($"Step '{stepName}' (order {stepOrder}) failed in saga '{sagaId}': {message}", sagaId, "STEP_EXECUTION_FAILED", innerException)
-    { StepName = stepName; StepOrder = stepOrder; }
+    { StepName = stepName; StepOrder = stepOrder; StepFailureMessage = message; }
 }

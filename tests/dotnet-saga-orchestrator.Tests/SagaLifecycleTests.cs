@@ -323,10 +323,10 @@ public class SagaLifecycleTests
     }
 
     /// <summary>
-    /// Tests that Validate returns false when a compensable step lacks a compensation URL.
+    /// Tests that Validate throws when a compensable step lacks a compensation URL, like its other invalid-field checks.
     /// </summary>
     [Fact]
-    public void SagaStepDefinition_Validate_WhenCompensableWithoutUrl_ReturnsFalse()
+    public void SagaStepDefinition_Validate_WhenCompensableWithoutUrl_ThrowsArgumentException()
     {
         var step = new SagaStepDefinition
         {
@@ -339,6 +339,8 @@ public class SagaLifecycleTests
             MaxRetries = 3
         };
 
-        step.Validate().Should().BeFalse();
+        var act = () => step.Validate();
+
+        act.Should().Throw<ArgumentException>().WithParameterName("CompensationUrl");
     }
 }

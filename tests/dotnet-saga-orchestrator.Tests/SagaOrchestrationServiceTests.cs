@@ -44,9 +44,9 @@ namespace SagaOrchestrator.Tests
         public async Task CreateSagaAsync_ValidDefinition_ReturnsSaga()
         {
             // Arrange
-            var definitionMock = new Mock<SagaDefinition>();
-            definitionMock.SetupGet(d => d.Id).Returns("def-1");
-            definitionMock.Setup(d => d.Validate()).Returns(true);
+            // SagaDefinition members are not virtual, so Moq cannot stub them; use a real, valid definition instead.
+            var definition = new SagaDefinition("Valid", "Valid definition") { Id = "def-1" };
+            definition.AddStep(new SagaStepDefinition("Step", "svc", "https://svc.example.com/action", "https://svc.example.com/compensate"));
 
             var expectedSaga = new Saga();
             _sagaRepositoryMock
@@ -54,7 +54,7 @@ namespace SagaOrchestrator.Tests
                 .ReturnsAsync(expectedSaga);
 
             // Act
-            var result = await _service.CreateSagaAsync(definitionMock.Object);
+            var result = await _service.CreateSagaAsync(definition);
 
             // Assert
             result.Should().BeSameAs(expectedSaga);
@@ -75,12 +75,11 @@ namespace SagaOrchestrator.Tests
         public async Task CreateSagaAsync_InvalidDefinition_ThrowsInvalidSagaDefinitionException()
         {
             // Arrange
-            var definitionMock = new Mock<SagaDefinition>();
-            definitionMock.Setup(d => d.Validate()).Returns(false);
-            definitionMock.SetupGet(d => d.Id).Returns("def-2");
+            // No steps makes the definition invalid; SagaDefinition cannot be mocked (non-virtual members).
+            var definition = new SagaDefinition("Invalid", "No steps") { Id = "def-2" };
 
             // Act
-            Func<Task> act = async () => await _service.CreateSagaAsync(definitionMock.Object);
+            Func<Task> act = async () => await _service.CreateSagaAsync(definition);
 
             // Assert
             await act.Should().ThrowAsync<InvalidSagaDefinitionException>()

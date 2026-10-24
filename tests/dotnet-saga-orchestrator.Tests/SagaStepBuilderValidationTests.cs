@@ -11,6 +11,7 @@ namespace SagaOrchestrator.Tests
         {
             return SagaStepBuilder.Create("Test Step", "Test Service", "https://example.com/action")
                 .WithOrder(1)
+                .WithCompensation("https://example.com/compensate")
                 .WithTimeout(30)
                 .WithRetryPolicy(3, 1000);
         }
@@ -91,10 +92,9 @@ namespace SagaOrchestrator.Tests
         public void Validate_EmptyStepName_ReturnsErrorMessage()
         {
             // Arrange
-            var builder = SagaStepBuilder.Create("", "Test Service", "https://example.com/action")
-                .WithOrder(1)
-                .WithTimeout(30)
-                .WithRetryPolicy(3, 1000);
+            // Create() rejects an empty name up front, so build a valid step and blank the name afterwards.
+            var builder = CreateValidBuilder();
+            builder.Build().Name = string.Empty;
 
             // Act
             var errors = SagaStepBuilderValidation.Validate(builder);
@@ -108,10 +108,9 @@ namespace SagaOrchestrator.Tests
         public void Validate_TimeoutTooLow_ReturnsErrorMessage()
         {
             // Arrange
-            var builder = SagaStepBuilder.Create("Test Step", "Test Service", "https://example.com/action")
-                .WithOrder(1)
-                .WithTimeout(0) // Invalid: must be between 1 and 3600
-                .WithRetryPolicy(3, 1000);
+            // WithTimeout rejects 0 up front, so build a valid step and set the invalid timeout afterwards.
+            var builder = CreateValidBuilder();
+            builder.Build().TimeoutSeconds = 0; // Invalid: must be between 1 and 3600
 
             // Act
             var errors = SagaStepBuilderValidation.Validate(builder);

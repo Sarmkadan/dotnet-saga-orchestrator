@@ -107,8 +107,8 @@ namespace SagaOrchestrator.Tests
                 RequestPayload = null!,
                 ResponsePayload = null!,
                 InitiatedAt = default,
-                CompletedAt = DateTime.UtcNow, // will be earlier than InitiatedAt (default)
-                FailedAt = DateTime.UtcNow,
+                CompletedAt = default(DateTime), // set, but equal to DateTime.MinValue (invalid)
+                FailedAt = default(DateTime),
                 ErrorMessage = "   ",
                 RetryCount = 5,
                 MaxRetries = 3,
@@ -135,7 +135,6 @@ namespace SagaOrchestrator.Tests
                             ex.Message.Contains("CompensationTransaction.FailedAt must be a valid DateTime if set.") &&
                             ex.Message.Contains("CompensationTransaction.ErrorMessage must not be whitespace if set.") &&
                             ex.Message.Contains("CompensationTransaction.RetryCount must not exceed MaxRetries.") &&
-                            ex.Message.Contains("CompensationTransaction.MaxRetries must be a positive integer.") &&
                             ex.Message.Contains("CompensationTransaction.TimeoutSeconds must be a positive integer."));
         }
     }

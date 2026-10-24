@@ -118,22 +118,7 @@ public static class InMemorySagaStepRepositoryValidation
             problems.Add("SagaStep.CompensatedAt cannot be earlier than CompletedAt.");
         }
 
-        // Validate payloads if present
-        if (step.Payload != null)
-        {
-            if (step.Payload.Count == 0)
-            {
-                problems.Add("SagaStep.Payload should not be empty if initialized.");
-            }
-        }
-
-        if (step.Response != null)
-        {
-            if (step.Response.Count == 0)
-            {
-                problems.Add("SagaStep.Response should not be empty if initialized.");
-            }
-        }
+        // Payload and Response default to empty dictionaries; an empty map is a valid state (no data captured yet).
 
         return problems.AsReadOnly();
     }

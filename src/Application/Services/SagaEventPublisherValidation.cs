@@ -38,7 +38,8 @@ public static class SagaEventPublisherValidation
     /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
     public static bool IsValid(this SagaEventPublisher value)
     {
-        return value is not null && value.Validate().Count == 0;
+        ArgumentNullException.ThrowIfNull(value);
+        return value.Validate().Count == 0;
     }
 
     /// <summary>

@@ -103,7 +103,7 @@ namespace SagaOrchestrator.Tests
         {
             // Arrange
             var saga = new SagaDefinition("TestSaga", "Test description");
-            var step = new SagaStepDefinition { Name = "StepOne" };
+            var step = new SagaStepDefinition("StepOne", "svc", "https://svc.example.com/action", "https://svc.example.com/compensate");
             saga.AddStep(step);
 
             // Act

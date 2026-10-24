@@ -197,6 +197,12 @@ public class SagaStepBuilder
         return _step;
     }
 
+    /// <summary>
+    /// Returns the step under construction without running build-time checks.
+    /// Used by <see cref="SagaStepBuilderValidation"/> so it can report every problem instead of throwing on the first.
+    /// </summary>
+    internal SagaStepDefinition StepUnderConstruction => _step;
+
     private void ValidateStep()
     {
         var errors = new List<string>();

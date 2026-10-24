@@ -340,7 +340,7 @@ public class SagaOrchestrationServiceHappyPathTests
     }
 
     [Fact]
-    public async Task ExecuteNextStepAsync_Idempotency_ExecutingCompletedStepReturnsSameStep()
+    public async Task ExecuteNextStepAsync_Idempotency_CompletedStepIsNotReExecuted()
     {
         // Arrange
         var (sagaRepo, stepRepo, compService) = CreateInMemoryRepositories();
@@ -352,14 +352,19 @@ public class SagaOrchestrationServiceHappyPathTests
         // Execute step 1
         var step1FirstCall = await service.ExecuteNextStepAsync(saga.Id);
 
-        // Execute step 1 again (should return the same completed step due to idempotency)
+        // Call again: step 1 is already completed, so it must not run a second time; the call moves on to step 2
         var step1SecondCall = await service.ExecuteNextStepAsync(saga.Id);
 
         // Assert
         step1FirstCall.Should().NotBeNull();
         step1SecondCall.Should().NotBeNull();
-        step1FirstCall.Id.Should().Be(step1SecondCall.Id);
-        step1SecondCall.Status.Should().Be(SagaStepStatus.Completed);
+        step1SecondCall.Id.Should().NotBe(step1FirstCall.Id);
+        step1SecondCall.Order.Should().Be(2);
+
+        var storedStep1 = await stepRepo.GetByIdAsync(step1FirstCall.Id);
+        storedStep1.Should().NotBeNull();
+        storedStep1!.Status.Should().Be(SagaStepStatus.Completed);
+        storedStep1.AttemptCount.Should().Be(1);
     }
 
     [Fact]

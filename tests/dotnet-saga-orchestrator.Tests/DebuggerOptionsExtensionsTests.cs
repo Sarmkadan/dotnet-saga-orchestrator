@@ -129,13 +129,13 @@ public class DebuggerOptionsExtensionsTests
     }
 
     [Fact]
-    public void GetMaxSnapshotsForSaga_ThrowsArgumentException_WhenSagaIdIsNull()
+    public void GetMaxSnapshotsForSaga_ThrowsArgumentNullException_WhenSagaIdIsNull()
     {
         // Arrange
         var options = CreateDefaultOptions();
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => options.GetMaxSnapshotsForSaga(null!));
+        Assert.Throws<ArgumentNullException>(() => options.GetMaxSnapshotsForSaga(null!));
     }
 
     [Fact]

@@ -57,7 +57,9 @@ namespace SagaOrchestrator.Core.Domain.Models.Tests
             // Arrange
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>("compensationUrl", () => new SagaStepDefinition("Test Step", "Test Service", "https://test.com", null) { IsCompensable = true });
+            var stepDefinition = new SagaStepDefinition("Test Step", "Test Service", "https://test.com", null);
+
+            Assert.Throws<ArgumentNullException>("compensationUrl", () => stepDefinition.SetCompensable(true, null));
         }
 
         [Fact]

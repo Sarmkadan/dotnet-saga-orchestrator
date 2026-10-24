@@ -25,7 +25,7 @@ public static class SagaStepBuilderValidation
         ArgumentNullException.ThrowIfNull(value);
 
         var errors = new List<string>();
-        var step = value.Build();
+        var step = value.StepUnderConstruction;
 
         // Validate required fields
         if (string.IsNullOrWhiteSpace(step.Name))

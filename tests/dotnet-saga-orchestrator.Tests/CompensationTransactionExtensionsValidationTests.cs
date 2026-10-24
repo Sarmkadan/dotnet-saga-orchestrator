@@ -66,8 +66,10 @@ namespace SagaOrchestrator.Tests
             var errors = CompensationTransactionExtensionsValidation.ValidateExtensionMethods(transaction);
 
             // Assert
-            errors.Should().ContainSingle()
-                .Which.Should().Contain(nameof(CompensationTransactionExtensions.GetDurationMs));
+            // CompletedAt precedes InitiatedAt, so both duration-derived values are negative.
+            errors.Should().HaveCount(2);
+            errors.Should().Contain(e => e.Contains(nameof(CompensationTransactionExtensions.GetDurationMs)));
+            errors.Should().Contain(e => e.Contains(nameof(CompensationTransactionExtensions.GetElapsedTimeMs)));
         }
 
         [Fact]

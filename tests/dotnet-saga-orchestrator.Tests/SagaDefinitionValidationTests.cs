@@ -18,6 +18,7 @@ namespace SagaOrchestrator.Tests
                 Name = "Step 1",
                 ServiceName = "ServiceA",
                 ServiceUrl = "https://servicea.example.com/action",
+                CompensationUrl = "https://servicea.example.com/compensate",
                 Order = 1,
                 TimeoutSeconds = 30,
                 MaxRetries = 3,

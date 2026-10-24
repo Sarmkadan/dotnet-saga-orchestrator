@@ -152,22 +152,7 @@ namespace SagaOrchestrator.Data.Repositories
                 problems.Add("CompensationTransaction.TimeoutSeconds must be a positive integer.");
             }
 
-            // Validate payloads if present
-            if (transaction.RequestPayload != null)
-            {
-                if (transaction.RequestPayload.Count == 0)
-                {
-                    problems.Add("CompensationTransaction.RequestPayload should not be empty if initialized.");
-                }
-            }
-
-            if (transaction.ResponsePayload != null)
-            {
-                if (transaction.ResponsePayload.Count == 0)
-                {
-                    problems.Add("CompensationTransaction.ResponsePayload should not be empty if initialized.");
-                }
-            }
+            // Payloads default to empty dictionaries; an empty map is a valid state (no data captured yet).
 
             return problems.AsReadOnly();
         }

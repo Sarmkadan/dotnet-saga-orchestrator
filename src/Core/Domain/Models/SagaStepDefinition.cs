@@ -154,10 +154,13 @@ public class SagaStepDefinition
     /// </summary>
     public void SetCompensable(bool compensable, string? compensationUrl = null)
     {
-        IsCompensable = compensable;
+        if (compensable && compensationUrl is null)
+            throw new ArgumentNullException(nameof(compensationUrl), "Compensation URL required for compensable steps");
 
         if (compensable && string.IsNullOrWhiteSpace(compensationUrl))
             throw new ArgumentException("Compensation URL required for compensable steps", nameof(compensationUrl));
+
+        IsCompensable = compensable;
 
         if (compensable)
             CompensationUrl = compensationUrl!;

@@ -121,6 +121,12 @@ public SagaOrchestrationService(
 
         try
         {
+            // Persist the step instances so later ExecuteNextStepAsync calls can find and update them.
+            foreach (var step in saga.Steps)
+            {
+                await _stepRepository.CreateAsync(step);
+            }
+
             var updated = await _sagaRepository.UpdateAsync(saga);
             return updated ?? throw new SagaException("Failed to update saga", sagaId);
         }
@@ -155,6 +161,10 @@ public SagaOrchestrationService(
         {
             throw new DotnetSagaOrchestratorException("Error retrieving saga for step execution", ex);
         }
+
+        // A completed saga has no remaining steps; report that with null rather than an error.
+        if (saga.Status == SagaStatus.Completed)
+            return null!;
 
         if (saga.Status != SagaStatus.Running)
             throw new SagaException($"Cannot execute step for saga in {saga.Status} status", sagaId);

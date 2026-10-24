@@ -27,7 +27,7 @@ public static class SagaStepExecutionExceptionExtensions
     {
         ArgumentNullException.ThrowIfNull(exception);
 
-        return $"Saga step execution failed: Step '{exception.StepName}' (order {exception.StepOrder}) in saga '{exception.SagaId}'. {exception.Message}";
+        return $"Saga step execution failed: Step '{exception.StepName}' (order {exception.StepOrder}) in saga '{exception.SagaId}'. {exception.StepFailureMessage ?? exception.Message}";
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public static class SagaStepExecutionExceptionExtensions
             ["sagaId"] = exception.SagaId ?? string.Empty,
             ["errorType"] = "SagaStepExecutionFailed",
             ["errorCode"] = "STEP_EXECUTION_FAILED",
-            ["message"] = exception.Message ?? string.Empty,
+            ["message"] = exception.StepFailureMessage ?? exception.Message ?? string.Empty,
             ["timestamp"] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture)
         };
 

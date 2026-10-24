@@ -34,17 +34,13 @@ namespace SagaOrchestrator.Tests
         }
 
         [Fact]
-        public void Validate_WithNullMessage_ReturnsProblem()
+        public void Constructor_WithNullMessage_ThrowsArgumentNullException()
         {
-            // Arrange
-            var exception = new SagaException(null);
+            // The constructor rejects a null message, so an exception with a null message cannot be built
+            // through the public API and the validator's null-message branch is not reachable from here.
+            var act = () => new SagaException(null!);
 
-            // Act
-            var problems = SagaExceptionValidation.Validate(exception);
-
-            // Assert
-            Assert.Single(problems);
-            Assert.Equal("Message must be non-null and non-empty.", problems[0]);
+            Assert.Throws<ArgumentNullException>(act);
         }
 
         [Fact]

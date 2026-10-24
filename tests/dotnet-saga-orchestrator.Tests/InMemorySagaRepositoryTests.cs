@@ -36,7 +36,8 @@ public class InMemorySagaRepositoryTests
         // Assert
         Assert.NotNull(created);
         Assert.Equal(saga, created);
-        Assert.Equal(saga, fetched);
+        // The repository returns detached copies on read, so compare by identity key rather than reference.
+        Assert.Equal(saga.Id, fetched?.Id);
     }
 
     [Fact]
@@ -98,8 +99,8 @@ public class InMemorySagaRepositoryTests
 
         // Assert
         Assert.Equal(2, completed.Count);
-        Assert.Contains(sagaA, completed);
-        Assert.Contains(sagaC, completed);
+        Assert.Contains(completed, s => s.Id == sagaA.Id);
+        Assert.Contains(completed, s => s.Id == sagaC.Id);
     }
 
     [Fact]
@@ -131,7 +132,7 @@ public class InMemorySagaRepositoryTests
 
         // Assert
         Assert.Single(results);
-        Assert.Equal(saga1, results[0]);
+        Assert.Equal(saga1.Id, results[0].Id);
     }
 
     [Fact]
@@ -149,7 +150,7 @@ public class InMemorySagaRepositoryTests
 
         // Assert
         Assert.Equal(2, all.Count);
-        Assert.Contains(sagaX, all);
-        Assert.Contains(sagaY, all);
+        Assert.Contains(all, s => s.Id == sagaX.Id);
+        Assert.Contains(all, s => s.Id == sagaY.Id);
     }
 }

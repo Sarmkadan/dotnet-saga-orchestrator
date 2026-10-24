@@ -13,5 +13,11 @@ public class InvalidSagaDefinitionException : SagaException
     public InvalidSagaDefinitionException(string message) : base(message) { }
     public InvalidSagaDefinitionException(string message, Exception? innerException) : base(message, innerException) { }
     public InvalidSagaDefinitionException(string definitionId, string message)
-        : base($"Saga definition '{definitionId}' is invalid: {message}", definitionId, "INVALID_SAGA_DEFINITION") { }
+        : base(FormatMessage(definitionId, message), definitionId, "INVALID_SAGA_DEFINITION") { }
+
+    private static string FormatMessage(string definitionId, string message)
+    {
+        ArgumentNullException.ThrowIfNull(definitionId);
+        return $"Saga definition '{definitionId}' is invalid: {message}";
+    }
 }

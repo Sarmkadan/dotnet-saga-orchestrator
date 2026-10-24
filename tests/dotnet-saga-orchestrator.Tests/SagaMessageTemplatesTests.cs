@@ -35,10 +35,10 @@ public class SagaMessageTemplatesTests
         var stepCount = 0;
 
         // Act
-        var result = SagaMessageTemplates.SagaCreated.Format(sagaId, sagaName, stepCount);
+        Action act = () => SagaMessageTemplates.SagaCreated.Format(sagaId, sagaName, stepCount);
 
         // Assert
-        result.Should().Be("Saga '' (ID: ) created with 0 steps");
+        act.Should().Throw<ArgumentException>();
     }
 
     [Fact]
@@ -67,10 +67,10 @@ public class SagaMessageTemplatesTests
         int stepCount = 0;
 
         // Act
-        var result = SagaMessageTemplates.SagaCreated.Detailed(sagaId, sagaName, definitionId, stepCount);
+        Action act = () => SagaMessageTemplates.SagaCreated.Detailed(sagaId, sagaName, definitionId, stepCount);
 
         // Assert
-        result.Should().Be("New saga instance created\n  ID: \n  Name: \n  Definition: \n  Steps: 0");
+        act.Should().Throw<ArgumentNullException>();
     }
 
     #endregion
@@ -193,10 +193,10 @@ public class SagaMessageTemplatesTests
         var result = "";
 
         // Act
-        var detailedResult = SagaMessageTemplates.StepCompleted.Detailed(stepName, durationMs, result);
+        Action act = () => SagaMessageTemplates.StepCompleted.Detailed(stepName, durationMs, result);
 
         // Assert
-        detailedResult.Should().Be("Step execution completed\n  Step: CheckStatus\n  Duration: 100ms\n  Result: ");
+        act.Should().Throw<ArgumentException>();
     }
 
     #endregion
@@ -225,10 +225,10 @@ public class SagaMessageTemplatesTests
         string error = null!;
 
         // Act
-        var result = SagaMessageTemplates.StepFailed.Format(stepName, error);
+        Action act = () => SagaMessageTemplates.StepFailed.Format(stepName, error);
 
         // Assert
-        result.Should().Be("Step 'ProcessRefund' failed: ");
+        act.Should().Throw<ArgumentNullException>();
     }
 
     [Fact]
@@ -391,10 +391,10 @@ public class SagaMessageTemplatesTests
         var error = "";
 
         // Act
-        var result = SagaMessageTemplates.SagaFailed.Format(sagaName, error);
+        Action act = () => SagaMessageTemplates.SagaFailed.Format(sagaName, error);
 
         // Assert
-        result.Should().Be("Saga 'SilentFailure' failed: ");
+        act.Should().Throw<ArgumentException>();
     }
 
     [Fact]
@@ -423,10 +423,10 @@ public class SagaMessageTemplatesTests
         string error = null!;
 
         // Act
-        var result = SagaMessageTemplates.SagaFailed.Detailed(sagaId, sagaName, failedStepName, error);
+        Action act = () => SagaMessageTemplates.SagaFailed.Detailed(sagaId, sagaName, failedStepName, error);
 
         // Assert
-        result.Should().Be("Saga execution failed\n  ID: \n  Name: \n  Failed Step: \n  Error: \n  Status: FAILED");
+        act.Should().Throw<ArgumentNullException>();
     }
 
     #endregion
@@ -575,10 +575,10 @@ public class SagaMessageTemplatesTests
         var reason = "";
 
         // Act
-        var result = SagaMessageTemplates.DefinitionInvalid.Format(reason);
+        Action act = () => SagaMessageTemplates.DefinitionInvalid.Format(reason);
 
         // Assert
-        result.Should().Be("Saga definition is invalid: ");
+        act.Should().Throw<ArgumentException>();
     }
 
     [Fact]
@@ -613,10 +613,10 @@ public class SagaMessageTemplatesTests
         var reason = "";
 
         // Act
-        var result = SagaMessageTemplates.DefinitionInvalid.InvalidStep(stepName, reason);
+        Action act = () => SagaMessageTemplates.DefinitionInvalid.InvalidStep(stepName, reason);
 
         // Assert
-        result.Should().Be("Step '' is invalid: ");
+        act.Should().Throw<ArgumentException>();
     }
 
     #endregion

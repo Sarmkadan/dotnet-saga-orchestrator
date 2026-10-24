@@ -199,7 +199,7 @@ public static class DateTimeExtensions
     /// <returns>A <see cref="DateTime"/> representing the first day of the month at midnight.</returns>
     public static DateTime StartOfMonth(this DateTime dt)
     {
-        return new DateTime(dt.Year, dt.Month, 1);
+        return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind);
     }
 
     /// <summary>
@@ -219,7 +219,7 @@ public static class DateTimeExtensions
     /// <returns>A <see cref="DateTime"/> representing the first day of the year at midnight.</returns>
     public static DateTime StartOfYear(this DateTime dt)
     {
-        return new DateTime(dt.Year, 1, 1);
+        return new DateTime(dt.Year, 1, 1, 0, 0, 0, dt.Kind);
     }
 
     /// <summary>
@@ -229,7 +229,7 @@ public static class DateTimeExtensions
     /// <returns>A <see cref="DateTime"/> representing the last moment of the year.</returns>
     public static DateTime EndOfYear(this DateTime dt)
     {
-        return new DateTime(dt.Year, 12, 31, 23, 59, 59, 999);
+        return new DateTime(dt.Year, 12, 31, 23, 59, 59, 999, dt.Kind);
     }
 
     /// <summary>
