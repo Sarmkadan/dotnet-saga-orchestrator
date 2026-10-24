@@ -20,16 +20,61 @@ namespace SagaOrchestrator.Infrastructure.Caching;
 /// </summary>
 public interface ICacheService
 {
+    /// <summary>
+    /// Gets the cached value for <paramref name="key"/>, or the default value when missing or expired.
+    /// </summary>
+    /// <param name="key">Cache key; must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
     Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Stores a value under <paramref name="key"/>, evicting an entry first when the cache is full.
+    /// </summary>
+    /// <param name="key">Cache key; must not be null, empty, or whitespace.</param>
+    /// <param name="value">Value to store.</param>
+    /// <param name="expiration">Time to live; defaults to one hour when null.</param>
+    /// <param name="maxKeyLength">Overrides the default maximum key length.</param>
+    /// <param name="maxValueSize">Overrides the default maximum serialized value size in bytes.</param>
+    /// <param name="maxCacheSize">Overrides the default maximum number of cached items.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or whitespace, exceeds the maximum key length, or the serialized value exceeds the maximum size.</exception>
     Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes the entry for <paramref name="key"/>, if present.
+    /// </summary>
+    /// <param name="key">Cache key; must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
     Task RemoveAsync(string key, CancellationToken cancellationToken = default);
     Task ClearAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Determines whether a non-expired entry exists for <paramref name="key"/>.
+    /// </summary>
+    /// <param name="key">Cache key; must not be null, empty, or whitespace.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
     Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
     int GetCacheSize();
 
     /// <summary>
     /// Gets or creates a value in the cache with stampede protection.
     /// </summary>
+    /// <param name="key">Cache key; must not be null, empty, or whitespace.</param>
+    /// <param name="factory">Produces the value when it is not cached; must not be null.</param>
+    /// <param name="expiration">Time to live for a newly created value; defaults to one hour when null.</param>
+    /// <param name="maxKeyLength">Overrides the default maximum key length.</param>
+    /// <param name="maxValueSize">Overrides the default maximum serialized value size in bytes.</param>
+    /// <param name="maxCacheSize">Overrides the default maximum number of cached items.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> or <paramref name="factory"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or whitespace, or the created value violates the size or key limits.</exception>
     Task<T> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -79,7 +124,7 @@ public class CacheService : ICacheService, IDisposable
     /// <inheritdoc />
     public Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         cancellationToken.ThrowIfCancellationRequested();
 
         _lock.EnterReadLock();
@@ -107,7 +152,7 @@ public class CacheService : ICacheService, IDisposable
     /// <inheritdoc />
     public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         cancellationToken.ThrowIfCancellationRequested();
 
         var effectiveMaxKeyLength = maxKeyLength ?? _defaultMaxKeyLength;
@@ -172,7 +217,7 @@ public class CacheService : ICacheService, IDisposable
     /// <inheritdoc />
     public Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         cancellationToken.ThrowIfCancellationRequested();
 
         _lock.EnterWriteLock();
@@ -209,7 +254,7 @@ public class CacheService : ICacheService, IDisposable
     /// <inheritdoc />
     public Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         cancellationToken.ThrowIfCancellationRequested();
 
         _lock.EnterReadLock();
@@ -238,31 +283,35 @@ public class CacheService : ICacheService, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task<T> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
+    public Task<T> GetOrCreateAsync<T>(string key, Func<Task<T>> factory, TimeSpan? expiration = null, int? maxKeyLength = null, int? maxValueSize = null, int? maxCacheSize = null, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(factory);
+
+        return GetOrCreateCoreAsync(key, factory, expiration, maxKeyLength, maxValueSize, maxCacheSize, cancellationToken);
+    }
+
+    private async Task<T> GetOrCreateCoreAsync<T>(string key, Func<Task<T>> factory, TimeSpan? expiration, int? maxKeyLength, int? maxValueSize, int? maxCacheSize, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string stringKey = key;
-
         // 1. Try get
-        T? cached = await GetAsync<T>(stringKey, cancellationToken).ConfigureAwait(false);
+        T? cached = await GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
         if (cached != null) return cached;
 
         // 2. Lock and re-check (Double-checked locking pattern)
-        var semaphore = GetLock(stringKey);
+        var semaphore = GetLock(key);
         await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            cached = await GetAsync<T>(stringKey, cancellationToken).ConfigureAwait(false);
+            cached = await GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
             if (cached != null) return cached;
 
             // 3. Factory call
             T value = await factory().ConfigureAwait(false);
 
             // 4. Set
-            await SetAsync(stringKey, value, expiration, maxKeyLength, maxValueSize, maxCacheSize, cancellationToken).ConfigureAwait(false);
+            await SetAsync(key, value, expiration, maxKeyLength, maxValueSize, maxCacheSize, cancellationToken).ConfigureAwait(false);
             return value;
         }
         finally

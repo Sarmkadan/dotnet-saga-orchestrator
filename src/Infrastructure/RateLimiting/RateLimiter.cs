@@ -14,9 +14,45 @@ namespace SagaOrchestrator.Infrastructure.RateLimiting;
 /// </summary>
 public interface IRateLimiter
 {
+    /// <summary>
+    /// Attempts to acquire a single permit from the bucket identified by <paramref name="key"/>.
+    /// </summary>
+    /// <param name="key">Bucket identifier; must not be null, empty, or whitespace.</param>
+    /// <param name="requestsPerSecond">Bucket capacity; must be greater than zero.</param>
+    /// <returns>True when a permit was acquired; otherwise false.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="requestsPerSecond"/> is not greater than zero.</exception>
     Task<bool> AllowAsync(string key, int requestsPerSecond);
+
+    /// <summary>
+    /// Gets a snapshot of the bucket identified by <paramref name="key"/>.
+    /// </summary>
+    /// <param name="key">Bucket identifier; must not be null, empty, or whitespace.</param>
+    /// <returns>The current status, or an unlimited status when no bucket exists for the key.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
     Task<RateLimitStatus> GetStatusAsync(string key);
+
+    /// <summary>
+    /// Removes the bucket identified by <paramref name="key"/>, if present.
+    /// </summary>
+    /// <param name="key">Bucket identifier; must not be null, empty, or whitespace.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
     void Reset(string key);
+
+    /// <summary>
+    /// Waits until a bucket permit is available or the timeout elapses.
+    /// </summary>
+    /// <param name="key">Bucket identifier; must not be null, empty, or whitespace.</param>
+    /// <param name="permits">Number of permits to acquire; must be greater than zero.</param>
+    /// <param name="timeout">Maximum time to wait; must be greater than zero.</param>
+    /// <param name="cancellationToken">Token used to cancel the wait.</param>
+    /// <returns>True when the permits were acquired; false when the timeout elapsed first.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="permits"/> is not greater than zero, or <paramref name="timeout"/> is not positive.</exception>
     Task<bool> WaitAsync(string key, int permits, TimeSpan timeout, CancellationToken cancellationToken = default);
 }
 
@@ -25,14 +61,13 @@ public class TokenBucketRateLimiter : IRateLimiter
     private readonly Dictionary<string, TokenBucket> _buckets = new();
     private readonly object _lock = new();
 
-    public async Task<bool> AllowAsync(string key, int requestsPerSecond)
+    /// <inheritdoc />
+    public Task<bool> AllowAsync(string key, int requestsPerSecond)
     {
-        // Argument null/empty guard for reference-type parameter
-        ArgumentException.ThrowIfNullOrEmpty(key);
-        key = key.NotNullOrEmpty(nameof(key));
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         requestsPerSecond.GreaterThan(0, nameof(requestsPerSecond));
 
-        return await Task.Run(() =>
+        return Task.Run(() =>
         {
             lock (_lock)
             {
@@ -47,13 +82,12 @@ public class TokenBucketRateLimiter : IRateLimiter
         });
     }
 
-    public async Task<RateLimitStatus> GetStatusAsync(string key)
+    /// <inheritdoc />
+    public Task<RateLimitStatus> GetStatusAsync(string key)
     {
-        // Argument null/empty guard for reference-type parameter
-        ArgumentException.ThrowIfNullOrEmpty(key);
-        key = key.NotNullOrEmpty(nameof(key));
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        return await Task.Run(() =>
+        return Task.Run(() =>
         {
             lock (_lock)
             {
@@ -72,11 +106,10 @@ public class TokenBucketRateLimiter : IRateLimiter
         });
     }
 
+    /// <inheritdoc />
     public void Reset(string key)
     {
-        // Argument null/empty guard for reference-type parameter
-        ArgumentException.ThrowIfNullOrEmpty(key);
-        key = key.NotNullOrEmpty(nameof(key));
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         lock (_lock)
         {
@@ -84,14 +117,18 @@ public class TokenBucketRateLimiter : IRateLimiter
         }
     }
 
-    public async Task<bool> WaitAsync(string key, int permits, TimeSpan timeout, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public Task<bool> WaitAsync(string key, int permits, TimeSpan timeout, CancellationToken cancellationToken = default)
     {
-        // Argument null/empty guard for reference-type parameter
-        ArgumentException.ThrowIfNullOrEmpty(key);
-        key = key.NotNullOrEmpty(nameof(key));
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         permits.GreaterThan(0, nameof(permits));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero((int)timeout.TotalMilliseconds, nameof(timeout));
 
+        return WaitCoreAsync(key, permits, timeout, cancellationToken);
+    }
+
+    private async Task<bool> WaitCoreAsync(string key, int permits, TimeSpan timeout, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
 
         var deadline = DateTime.UtcNow.Add(timeout);
