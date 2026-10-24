@@ -6,6 +6,7 @@
 
 using Microsoft.Extensions.Logging;
 using SagaOrchestrator.Application.Services;
+using System.Globalization;
 using System.Text;
 
 namespace SagaOrchestrator.Infrastructure.Visualization;
@@ -87,15 +88,15 @@ public class SagaStateRenderer : ISagaStateRenderer
                 return sb.ToString();
             }
 
-            var nameWidth = snapshot.Nodes.Max(n => (n.Name ?? string.Empty).Length);
-            nameWidth = Math.Max(nameWidth, 16);
+            var names = snapshot.Nodes.Select(n => Sanitize(n.Name)).ToList();
+            var nameWidth = Math.Max(names.Max(n => n.Length), 16);
 
             for (var i = 0; i < snapshot.Nodes.Count; i++)
             {
                 var node = snapshot.Nodes[i];
-                var icon = GetStatusIcon(node.Status);
+                var icon = GetStatusIcon(Sanitize(node.Status));
                 var detail = BuildNodeDetail(node);
-                var paddedName = (node.Name ?? "Unknown").PadRight(nameWidth);
+                var paddedName = (names[i].Length == 0 ? "Unknown" : names[i]).PadRight(nameWidth);
 
                 sb.AppendLine($" [{icon}] {node.Index,2}. {paddedName} {detail}");
 
@@ -124,17 +125,17 @@ public class SagaStateRenderer : ISagaStateRenderer
             var separator = new string('=', 60);
 
             sb.AppendLine(separator);
-            sb.AppendLine($" {snapshot.SagaName}");
+            sb.AppendLine($" {Sanitize(snapshot.SagaName)}");
             sb.AppendLine(separator);
-            sb.AppendLine($" Saga ID : {snapshot.SagaId}");
-            sb.AppendLine($" Correlation : {snapshot.CorrelationId}");
-            sb.AppendLine($" Status : {snapshot.Status}");
+            sb.AppendLine($" Saga ID : {Sanitize(snapshot.SagaId)}");
+            sb.AppendLine($" Correlation : {Sanitize(snapshot.CorrelationId)}");
+            sb.AppendLine($" Status : {Sanitize(snapshot.Status)}");
             sb.AppendLine($" Progress : {RenderProgressBar(snapshot)}");
             sb.AppendLine($" Elapsed : {FormatElapsed(snapshot.ElapsedMs)}");
             sb.AppendLine($" Captured At : {snapshot.CapturedAt:O}");
 
             if (!string.IsNullOrWhiteSpace(snapshot.FailureReason))
-                sb.AppendLine($" Failure : {snapshot.FailureReason}");
+                sb.AppendLine($" Failure : {Sanitize(snapshot.FailureReason)}");
 
             sb.AppendLine();
             sb.AppendLine(" Steps:");
@@ -154,6 +155,7 @@ public class SagaStateRenderer : ISagaStateRenderer
     /// <summary>Renders a Graphviz DOT digraph of the saga steps.</summary>
     /// <param name="saga">The saga to render.</param>
     /// <returns>Graphviz DOT text representation of the saga.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="saga"/> is <see langword="null"/>.</exception>
     public string RenderDot(SagaOrchestrator.Core.Domain.Models.Saga saga)
     {
         if (saga == null)
@@ -186,11 +188,11 @@ public class SagaStateRenderer : ISagaStateRenderer
                     _ => "box"
                 };
 
-                sb.AppendLine($"    node_{step.Id} [label=\"{EscapeDot(step.Name)}\",");
+                sb.AppendLine($"    {DotNodeId(step)} [label=\"{EscapeDot(step.Name)}\",");
                 sb.AppendLine($"        shape={shape},");
                 sb.AppendLine($"        style=\"filled\",");
                 sb.AppendLine($"        fillcolor=\"{color}\",");
-                sb.AppendLine($"        tooltip=\"Step {step.Order}: {step.Name}\\nStatus: {status}\"");
+                sb.AppendLine($"        tooltip=\"Step {step.Order}: {EscapeDot(step.Name)}\\nStatus: {status}\"");
                 sb.AppendLine("    ]");
             }
 
@@ -201,7 +203,7 @@ public class SagaStateRenderer : ISagaStateRenderer
             {
                 var fromStep = saga.Steps[i];
                 var toStep = saga.Steps[i + 1];
-                sb.AppendLine($"    node_{fromStep.Id} -> node_{toStep.Id} [label=\"exec\", arrowhead=normal];");
+                sb.AppendLine($"    {DotNodeId(fromStep)} -> {DotNodeId(toStep)} [label=\"exec\", arrowhead=normal];");
             }
 
             sb.AppendLine("}");
@@ -214,17 +216,31 @@ public class SagaStateRenderer : ISagaStateRenderer
         }
     }
 
-    private static string EscapeDot(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-            return text ?? string.Empty;
+    /// <summary>Builds a quoted, escaped DOT node identifier so step IDs cannot break the graph syntax.</summary>
+    private static string DotNodeId(SagaOrchestrator.Core.Domain.Models.SagaStep step) =>
+        $"\"node_{EscapeDot(step.Id)}\"";
 
-        // Escape special DOT characters
-        return text
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("\n", " ")
-            .Replace("\r", " ");
+    /// <summary>Escapes text for use inside a double-quoted DOT string, after stripping control characters.</summary>
+    private static string EscapeDot(string? text) =>
+        Sanitize(text).Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+    /// <summary>
+    /// Replaces control characters and line/paragraph separators with a space so that untrusted
+    /// saga or step values cannot break the diagram layout or inject terminal escape sequences.
+    /// </summary>
+    private static string Sanitize(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return string.Empty;
+
+        var sb = new StringBuilder(value.Length);
+        foreach (var ch in value)
+        {
+            var isUnsafe = char.IsControl(ch)
+                           || char.GetUnicodeCategory(ch) is UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator;
+            sb.Append(isUnsafe ? ' ' : ch);
+        }
+        return sb.ToString();
     }
 
     private static string GetStatusIcon(string status) => status switch
@@ -241,7 +257,7 @@ public class SagaStateRenderer : ISagaStateRenderer
 
     private static string BuildNodeDetail(VisualizationNode node)
     {
-        var parts = new List<string> { node.Status };
+        var parts = new List<string> { Sanitize(node.Status) };
 
         if (node.DurationMs.HasValue)
             parts.Add(FormatDurationMs(node.DurationMs.Value));
@@ -251,9 +267,10 @@ public class SagaStateRenderer : ISagaStateRenderer
 
         if (!string.IsNullOrWhiteSpace(node.ErrorMessage))
         {
-            var truncated = node.ErrorMessage.Length > 40
-                ? node.ErrorMessage[..40] + "..."
-                : node.ErrorMessage;
+            var error = Sanitize(node.ErrorMessage);
+            var truncated = error.Length > 40
+                ? error[..40] + "..."
+                : error;
             parts.Add(truncated);
         }
 
