@@ -148,7 +148,10 @@ public class SagaCliCommand
         var argsFormatted = "";
         foreach (var kvp in Arguments)
         {
-            if (argsFormatted.Length > 0) argsFormatted += ", ";
+            if (argsFormatted.Length > 0)
+            {
+                argsFormatted += ", ";
+            }
             argsFormatted += kvp.Key + "=" + kvp.Value;
         }
         var optionsFormatted = string.Join(", ", Options);
