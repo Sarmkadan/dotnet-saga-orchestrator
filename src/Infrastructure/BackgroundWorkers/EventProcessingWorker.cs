@@ -16,10 +16,14 @@ namespace SagaOrchestrator.Infrastructure.BackgroundWorkers;
 /// </summary>
 public class EventProcessingWorker : BackgroundService
 {
+    private const int CheckIntervalSeconds = 10;
+    private const int MaxEventsToKeep = 10000;
+    private const int RecentEventsBatchSize = 100;
+
+    private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(CheckIntervalSeconds);
+
     private readonly IEventBus _eventBus;
     private readonly ILogger<EventProcessingWorker> _logger;
-    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(10);
-    private readonly int _maxEventsToKeep = 10000;
 
     public EventProcessingWorker(
         IEventBus eventBus,
@@ -38,7 +42,7 @@ public class EventProcessingWorker : BackgroundService
             try
             {
                 await ProcessEventsAsync(stoppingToken);
-                await Task.Delay(_checkInterval, stoppingToken);
+                await Task.Delay(CheckInterval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
@@ -70,15 +74,15 @@ public class EventProcessingWorker : BackgroundService
             string.Join(", ", eventGroups.Select(kvp => $"{kvp.Key}:{kvp.Value}")));
 
         // Clean up old events if exceeding limit
-        if (events.Count > _maxEventsToKeep)
+        if (events.Count > MaxEventsToKeep)
         {
             _logger.LogWarning("Event history exceeds limit | Current: {Count}, Max: {Max}",
-                events.Count, _maxEventsToKeep);
+                events.Count, MaxEventsToKeep);
             _eventBus.ClearHistory();
         }
 
-        // Process recent events (last 100)
-        var recentEvents = events.TakeLast(100).ToList();
+        // Process recent events (last RecentEventsBatchSize)
+        var recentEvents = events.TakeLast(RecentEventsBatchSize).ToList();
         foreach (var @event in recentEvents)
         {
             try
