@@ -51,6 +51,7 @@ public interface ICacheService
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
     Task RemoveAsync(string key, CancellationToken cancellationToken = default);
+
     Task ClearAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -61,6 +62,7 @@ public interface ICacheService
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="key"/> is empty or consists only of white-space characters.</exception>
     Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
+
     int GetCacheSize();
 
     /// <summary>
@@ -297,7 +299,10 @@ public class CacheService : ICacheService, IDisposable
 
         // 1. Try get
         T? cached = await GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
-        if (cached != null) return cached;
+        if (cached != null)
+        {
+            return cached;
+        }
 
         // 2. Lock and re-check (Double-checked locking pattern)
         var semaphore = GetLock(key);
@@ -305,7 +310,10 @@ public class CacheService : ICacheService, IDisposable
         try
         {
             cached = await GetAsync<T>(key, cancellationToken).ConfigureAwait(false);
-            if (cached != null) return cached;
+            if (cached != null)
+            {
+                return cached;
+            }
 
             // 3. Factory call
             T value = await factory().ConfigureAwait(false);
@@ -359,7 +367,10 @@ public class CacheService : ICacheService, IDisposable
     {
         _cleanupTimer?.Dispose();
         _lock?.Dispose();
-        foreach (var s in _locks) s.Dispose();
+        foreach (var s in _locks)
+        {
+            s.Dispose();
+        }
     }
 
     private class CacheEntry
