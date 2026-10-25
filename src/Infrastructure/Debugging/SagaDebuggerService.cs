@@ -57,10 +57,10 @@ public sealed class SagaDebuggerService : ISagaDebugger
         SagaEventPublisher eventPublisher,
         DebuggerOptions options)
     {
-        _sagaRepository     = sagaRepository     ?? throw new ArgumentNullException(nameof(sagaRepository));
+        _sagaRepository = sagaRepository ?? throw new ArgumentNullException(nameof(sagaRepository));
         _sagaStepRepository = sagaStepRepository ?? throw new ArgumentNullException(nameof(sagaStepRepository));
-        _eventPublisher     = eventPublisher     ?? throw new ArgumentNullException(nameof(eventPublisher));
-        _options            = options            ?? throw new ArgumentNullException(nameof(options));
+        _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     // -------------------------------------------------------------------------
@@ -182,30 +182,30 @@ public sealed class SagaDebuggerService : ISagaDebugger
             ?? throw new KeyNotFoundException($"Saga '{sagaId}' not found.");
 
         // Restore saga-level mutable state from the snapshot
-        saga.Status        = target.SagaStatus;
-        saga.StartedAt     = target.SagaStartedAt;
-        saga.CompletedAt   = target.SagaCompletedAt;
+        saga.Status = target.SagaStatus;
+        saga.StartedAt = target.SagaStartedAt;
+        saga.CompletedAt = target.SagaCompletedAt;
         saga.FailureReason = target.FailureReason;
-        saga.RetryCount    = target.RetryCount;
+        saga.RetryCount = target.RetryCount;
 
         await _sagaRepository.UpdateAsync(saga);
 
         // Restore step-level mutable state from the snapshot
         var existingSteps = await _sagaStepRepository.GetBySagaIdAsync(sagaId);
-        var stepById      = existingSteps.ToDictionary(s => s.Id);
+        var stepById = existingSteps.ToDictionary(s => s.Id);
 
         foreach (var stepState in target.Steps)
         {
             if (!stepById.TryGetValue(stepState.StepId, out var step))
                 continue;
 
-            step.Status        = stepState.Status;
-            step.RetryCount    = stepState.RetryCount;
-            step.StartedAt     = stepState.StartedAt;
-            step.CompletedAt   = stepState.CompletedAt;
+            step.Status = stepState.Status;
+            step.RetryCount = stepState.RetryCount;
+            step.StartedAt = stepState.StartedAt;
+            step.CompletedAt = stepState.CompletedAt;
             step.CompensatedAt = stepState.CompensatedAt;
-            step.ErrorMessage  = stepState.ErrorMessage;
-            step.Response      = stepState.OutputData.ToDictionary(kv => kv.Key, kv => kv.Value);
+            step.ErrorMessage = stepState.ErrorMessage;
+            step.Response = stepState.OutputData.ToDictionary(kv => kv.Key, kv => kv.Value);
 
             await _sagaStepRepository.UpdateAsync(step);
         }
@@ -231,7 +231,7 @@ public sealed class SagaDebuggerService : ISagaDebugger
 
         lock (_lock)
         {
-            snapshots   = _snapshots.TryGetValue(sagaId, out var sl)
+            snapshots = _snapshots.TryGetValue(sagaId, out var sl)
                 ? sl.OrderBy(s => s.SequenceNumber).ToList().AsReadOnly()
                 : [];
 
@@ -241,7 +241,7 @@ public sealed class SagaDebuggerService : ISagaDebugger
         }
 
         var sagaEvents = _eventPublisher.GetSagaEvents(sagaId);
-        var sagaName   = saga.Definition?.Name ?? sagaId;
+        var sagaName = saga.Definition?.Name ?? sagaId;
 
         return SagaDebugTimeline.Build(
             sagaId,
@@ -263,18 +263,20 @@ public sealed class SagaDebuggerService : ISagaDebugger
         string? note = null,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(sagaId))   throw new ArgumentException("Saga ID must not be empty.",  nameof(sagaId));
-        if (string.IsNullOrWhiteSpace(stepName)) throw new ArgumentException("Step name must not be empty.", nameof(stepName));
+        if (string.IsNullOrWhiteSpace(sagaId))
+            throw new ArgumentException("Saga ID must not be empty.", nameof(sagaId));
+        if (string.IsNullOrWhiteSpace(stepName))
+            throw new ArgumentException("Step name must not be empty.", nameof(stepName));
 
         var breakpoint = new SagaDebugBreakpoint
         {
             BreakpointId = Guid.NewGuid().ToString("N"),
-            SagaId       = sagaId,
-            StepName     = stepName,
-            IsEnabled    = true,
-            CreatedAt    = DateTime.UtcNow,
-            HitCount     = 0,
-            Note         = note,
+            SagaId = sagaId,
+            StepName = stepName,
+            IsEnabled = true,
+            CreatedAt = DateTime.UtcNow,
+            HitCount = 0,
+            Note = note,
         };
 
         lock (_lock)
@@ -302,7 +304,8 @@ public sealed class SagaDebuggerService : ISagaDebugger
             foreach (var (_, list) in _breakpoints)
             {
                 var idx = list.FindIndex(b => b.BreakpointId == breakpointId);
-                if (idx < 0) continue;
+                if (idx < 0)
+                    continue;
                 list.RemoveAt(idx);
                 return Task.FromResult(true);
             }
