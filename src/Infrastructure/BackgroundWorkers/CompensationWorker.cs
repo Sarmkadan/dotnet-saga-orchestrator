@@ -21,7 +21,7 @@ public class CompensationWorker : BackgroundService
     private readonly ISagaRepository _sagaRepository;
     private readonly CompensationService _compensationService;
     private readonly ILogger<CompensationWorker> _logger;
-    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan CompensationCheckInterval = TimeSpan.FromSeconds(15);
 
     public CompensationWorker(
         ISagaRepository sagaRepository,
@@ -45,7 +45,7 @@ public class CompensationWorker : BackgroundService
                 if (stoppingToken.IsCancellationRequested)
                     break;
 
-                await Task.Delay(_checkInterval, stoppingToken);
+                await Task.Delay(CompensationCheckInterval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
