@@ -94,6 +94,9 @@ public enum CircuitBreakerState
 /// </summary>
 public class CircuitBreaker : ICircuitBreaker
 {
+    private const int DefaultFailureThreshold = 5;
+    private const int DefaultTimeoutSeconds = 60;
+
     private readonly ConcurrentDictionary<string, CircuitBreakerMetrics> _metrics;
     private readonly int _failureThreshold;
     private readonly TimeSpan _timeout;
@@ -106,7 +109,10 @@ public class CircuitBreaker : ICircuitBreaker
     /// <param name="failureThreshold">Consecutive failures that trip the breaker open.</param>
     /// <param name="timeoutSeconds">How long the breaker stays open before allowing a half-open probe.</param>
     /// <param name="logger">The saga logger (optional).</param>
-    public CircuitBreaker(int failureThreshold = 5, int timeoutSeconds = 60, ISagaLogger? logger = null)
+    public CircuitBreaker(
+        int failureThreshold = DefaultFailureThreshold,
+        int timeoutSeconds = DefaultTimeoutSeconds,
+        ISagaLogger? logger = null)
     {
         _failureThreshold = failureThreshold.GreaterThan(0, nameof(failureThreshold));
         _timeout = TimeSpan.FromSeconds(timeoutSeconds);
