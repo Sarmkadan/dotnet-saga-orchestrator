@@ -16,11 +16,61 @@ public class SagaOptions
 {
     public const string SectionName = "SagaOrchestrator";
 
-    public TimeoutPolicies TimeoutPolicies { get; set; } = new();
-    public RetryPolicies RetryPolicies { get; set; } = new();
-    public CachePolicies CachePolicies { get; set; } = new();
-    public WorkerPolicies WorkerPolicies { get; set; } = new();
-    public WebhookPolicies WebhookPolicies { get; set; } = new();
+    private TimeoutPolicies _timeoutPolicies = new();
+    private RetryPolicies _retryPolicies = new();
+    private CachePolicies _cachePolicies = new();
+    private WorkerPolicies _workerPolicies = new();
+    private WebhookPolicies _webhookPolicies = new();
+
+    public TimeoutPolicies TimeoutPolicies
+    {
+        get => _timeoutPolicies;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _timeoutPolicies = value;
+        }
+    }
+
+    public RetryPolicies RetryPolicies
+    {
+        get => _retryPolicies;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _retryPolicies = value;
+        }
+    }
+
+    public CachePolicies CachePolicies
+    {
+        get => _cachePolicies;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _cachePolicies = value;
+        }
+    }
+
+    public WorkerPolicies WorkerPolicies
+    {
+        get => _workerPolicies;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _workerPolicies = value;
+        }
+    }
+
+    public WebhookPolicies WebhookPolicies
+    {
+        get => _webhookPolicies;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _webhookPolicies = value;
+        }
+    }
 
     public override string ToString() =>
         $"SagaOptions {{ TimeoutPolicies = {TimeoutPolicies}, RetryPolicies = {RetryPolicies}, CachePolicies = {CachePolicies}, WorkerPolicies = {WorkerPolicies}, WebhookPolicies = {WebhookPolicies}, DefaultStepTimeoutSeconds = {TimeoutPolicies.DefaultStepTimeoutSeconds} }}";
