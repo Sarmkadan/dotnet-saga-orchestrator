@@ -14,98 +14,118 @@ public static class CacheKeyBuilder
 {
     private const string Delimiter = ":";
 
+    private const string SagaPrefix = "saga";
+    private const string DefinitionPrefix = "definition";
+    private const string SagasPrefix = "sagas";
+    private const string DefinitionsPrefix = "definitions";
+    private const string CompensationPrefix = "compensation";
+    private const string EventsPrefix = "events";
+    private const string ServicePrefix = "service";
+    private const string HealthPrefix = "health";
+    private const string MetricsPrefix = "metrics";
+    private const string WebhookPrefix = "webhook";
+    private const string RateLimitPrefix = "ratelimit";
+    private const string UserPrefix = "user";
+    private const string SessionPrefix = "session";
+    private const string TempPrefix = "temp";
+
+    private const string AllSegment = "all";
+    private const string StatusSegment = "status";
+    private const string NameSegment = "name";
+    private const string CheckSegment = "check";
+
     public static string BuildSagaKey(string sagaId)
     {
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
-        return $"saga{Delimiter}{sagaId}";
+        return $"{SagaPrefix}{Delimiter}{sagaId}";
     }
 
     public static string BuildDefinitionKey(string definitionId)
     {
         ArgumentException.ThrowIfNullOrEmpty(definitionId);
-        return $"definition{Delimiter}{definitionId}";
+        return $"{DefinitionPrefix}{Delimiter}{definitionId}";
     }
 
     public static string BuildAllSagasKey() =>
-        $"sagas{Delimiter}all";
+        $"{SagasPrefix}{Delimiter}{AllSegment}";
 
     public static string BuildAllDefinitionsKey() =>
-        $"definitions{Delimiter}all";
+        $"{DefinitionsPrefix}{Delimiter}{AllSegment}";
 
     public static string BuildSagasByStatusKey(string status)
     {
         ArgumentException.ThrowIfNullOrEmpty(status);
-        return $"sagas{Delimiter}status{Delimiter}{status}";
+        return $"{SagasPrefix}{Delimiter}{StatusSegment}{Delimiter}{status}";
     }
 
     public static string BuildDefinitionByNameKey(string name)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
-        return $"definitions{Delimiter}name{Delimiter}{name}";
+        return $"{DefinitionsPrefix}{Delimiter}{NameSegment}{Delimiter}{name}";
     }
 
     public static string BuildCompensationKey(string sagaId)
     {
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
-        return $"compensation{Delimiter}{sagaId}";
+        return $"{CompensationPrefix}{Delimiter}{sagaId}";
     }
 
     public static string BuildEventHistoryKey(string sagaId)
     {
         ArgumentException.ThrowIfNullOrEmpty(sagaId);
-        return $"events{Delimiter}{sagaId}";
+        return $"{EventsPrefix}{Delimiter}{sagaId}";
     }
 
     public static string BuildServiceKey(string serviceName)
     {
         ArgumentException.ThrowIfNullOrEmpty(serviceName);
-        return $"service{Delimiter}{serviceName}";
+        return $"{ServicePrefix}{Delimiter}{serviceName}";
     }
 
     public static string BuildHealthCheckKey() =>
-        $"health{Delimiter}check";
+        $"{HealthPrefix}{Delimiter}{CheckSegment}";
 
     public static string BuildMetricsKey() =>
-        "metrics";
+        MetricsPrefix;
 
     public static string BuildWebhookKey(string webhookId)
     {
         ArgumentException.ThrowIfNullOrEmpty(webhookId);
-        return $"webhook{Delimiter}{webhookId}";
+        return $"{WebhookPrefix}{Delimiter}{webhookId}";
     }
 
     public static string BuildRateLimitKey(string identifier, string resource)
     {
         ArgumentException.ThrowIfNullOrEmpty(identifier);
         ArgumentException.ThrowIfNullOrEmpty(resource);
-        return $"ratelimit{Delimiter}{identifier}{Delimiter}{resource}";
+        return $"{RateLimitPrefix}{Delimiter}{identifier}{Delimiter}{resource}";
     }
 
     public static string BuildUserCacheKey(string userId)
     {
         ArgumentException.ThrowIfNullOrEmpty(userId);
-        return $"user{Delimiter}{userId}";
+        return $"{UserPrefix}{Delimiter}{userId}";
     }
 
     public static string BuildSessionKey(string sessionId)
     {
         ArgumentException.ThrowIfNullOrEmpty(sessionId);
-        return $"session{Delimiter}{sessionId}";
+        return $"{SessionPrefix}{Delimiter}{sessionId}";
     }
 
     public static string GenerateTempKey() =>
-        $"temp{Delimiter}{Guid.NewGuid()}";
+        $"{TempPrefix}{Delimiter}{Guid.NewGuid()}";
 
     public static bool IsSagaKey(string key)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
-        return key.StartsWith($"saga{Delimiter}");
+        return key.StartsWith($"{SagaPrefix}{Delimiter}");
     }
 
     public static bool IsDefinitionKey(string key)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
-        return key.StartsWith($"definition{Delimiter}");
+        return key.StartsWith($"{DefinitionPrefix}{Delimiter}");
     }
 
     public static string ExtractIdFromKey(string key)
@@ -117,20 +137,20 @@ public static class CacheKeyBuilder
     public static Dictionary<string, string> GetAllPrefixes() =>
         new()
         {
-            ["saga"] = "saga:",
-            ["definition"] = "definition:",
-            ["sagas"] = "sagas:",
-            ["definitions"] = "definitions:",
-            ["compensation"] = "compensation:",
-            ["events"] = "events:",
-            ["service"] = "service:",
-            ["health"] = "health:",
-            ["metrics"] = "metrics",
-            ["webhook"] = "webhook:",
-            ["ratelimit"] = "ratelimit:",
-            ["user"] = "user:",
-            ["session"] = "session:",
-            ["temp"] = "temp:"
+            [SagaPrefix] = $"{SagaPrefix}{Delimiter}",
+            [DefinitionPrefix] = $"{DefinitionPrefix}{Delimiter}",
+            [SagasPrefix] = $"{SagasPrefix}{Delimiter}",
+            [DefinitionsPrefix] = $"{DefinitionsPrefix}{Delimiter}",
+            [CompensationPrefix] = $"{CompensationPrefix}{Delimiter}",
+            [EventsPrefix] = $"{EventsPrefix}{Delimiter}",
+            [ServicePrefix] = $"{ServicePrefix}{Delimiter}",
+            [HealthPrefix] = $"{HealthPrefix}{Delimiter}",
+            [MetricsPrefix] = MetricsPrefix,
+            [WebhookPrefix] = $"{WebhookPrefix}{Delimiter}",
+            [RateLimitPrefix] = $"{RateLimitPrefix}{Delimiter}",
+            [UserPrefix] = $"{UserPrefix}{Delimiter}",
+            [SessionPrefix] = $"{SessionPrefix}{Delimiter}",
+            [TempPrefix] = $"{TempPrefix}{Delimiter}"
         };
 }
 
