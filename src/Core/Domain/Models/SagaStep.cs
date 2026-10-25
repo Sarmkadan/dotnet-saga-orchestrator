@@ -203,4 +203,13 @@ public class SagaStep
     {
         Payload = data ?? throw new ArgumentNullException(nameof(data));
     }
+
+    /// <summary>
+    /// Returns a short summary of the step's key properties for logging and diagnostics.
+    /// </summary>
+    /// <returns>A string containing the step identifier, saga identifier, name, order, status, attempt and retry counts.</returns>
+    public override string ToString()
+    {
+        return $"SagaStep {{ Id = {Id}, SagaId = {SagaId}, Name = {Name}, Order = {Order}, Status = {Status}, AttemptCount = {AttemptCount}, RetryCount = {RetryCount}/{MaxRetries} }}";
+    }
 }
