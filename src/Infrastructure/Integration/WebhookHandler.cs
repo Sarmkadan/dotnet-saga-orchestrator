@@ -31,6 +31,11 @@ public class WebhookHandler : IWebhookHandler
     private readonly List<WebhookSubscription> _subscriptions;
     private readonly object _lock = new();
 
+    private const string WebhookHttpClientName = "webhook";
+    private const string JsonContentType = "application/json";
+    private const int RetryBackoffBase = 2;
+    private const int RetryBaseDelayMs = 100;
+
     public WebhookHandler(
         IHttpClientFactory httpClientFactory,
         IEventBus eventBus,
@@ -109,13 +114,13 @@ public class WebhookHandler : IWebhookHandler
             try
             {
                 // Use the named client configured with resilience policies
-                var client = _httpClientFactory.CreateClient("webhook");
+                var client = _httpClientFactory.CreateClient(WebhookHttpClientName);
                 var request = new HttpRequestMessage(HttpMethod.Post, url)
                 {
                     Content = new StringContent(
                         System.Text.Json.JsonSerializer.Serialize(@event),
                         System.Text.Encoding.UTF8,
-                        "application/json")
+                        JsonContentType)
                 };
 
                 response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -131,7 +136,7 @@ public class WebhookHandler : IWebhookHandler
 
                     if (attempt < maxRetries)
                     {
-                        var delay = Math.Pow(2, attempt + 1) * 100; // 200, 400, 800 ms
+                        var delay = Math.Pow(RetryBackoffBase, attempt + 1) * RetryBaseDelayMs; // 200, 400, 800 ms
                         await Task.Delay((int)delay);
                     }
                 }
@@ -143,7 +148,7 @@ public class WebhookHandler : IWebhookHandler
 
                 if (attempt < maxRetries)
                 {
-                    var delay = Math.Pow(2, attempt + 1) * 100; // 200, 400, 800 ms
+                    var delay = Math.Pow(RetryBackoffBase, attempt + 1) * RetryBaseDelayMs; // 200, 400, 800 ms
                     await Task.Delay((int)delay);
                 }
             }
