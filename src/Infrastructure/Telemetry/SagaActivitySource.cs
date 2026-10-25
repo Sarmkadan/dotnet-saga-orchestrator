@@ -32,6 +32,31 @@ public static class SagaActivitySource
     /// </summary>
     public const string Name = "SagaOrchestrator";
 
+    // Activity (span) names
+    private const string StartActivityName = "saga.start";
+    private const string CompleteActivityName = "saga.complete";
+    private const string StepActivityName = "saga.step";
+    private const string CompensateActivityName = "saga.compensate";
+
+    // Tag names
+    private const string SagaIdTag = "saga.id";
+    private const string SagaDefinitionIdTag = "saga.definition_id";
+    private const string SagaCorrelationIdTag = "saga.correlation_id";
+    private const string SagaStatusTag = "saga.status";
+    private const string SagaTotalStepsTag = "saga.total_steps";
+    private const string SagaStepIdTag = "saga.step.id";
+    private const string SagaStepNameTag = "saga.step.name";
+    private const string SagaStepOrderTag = "saga.step.order";
+    private const string SagaStepAttemptTag = "saga.step.attempt";
+    private const string SagaStepErrorTag = "saga.step.error";
+    private const string SagaCompensationIdTag = "saga.compensation.id";
+    private const string SagaCompensationStepNameTag = "saga.compensation.step_name";
+    private const string SagaCompensationStepOrderTag = "saga.compensation.step_order";
+    private const string SagaCompensationErrorTag = "saga.compensation.error";
+
+    // Baggage keys
+    private const string CorrelationIdBaggageKey = "saga.correlation_id";
+
     internal static readonly ActivitySource Source = new(Name);
 
     // -------------------------------------------------------------------------
@@ -49,17 +74,17 @@ public static class SagaActivitySource
         if (string.IsNullOrWhiteSpace(definitionId))
             throw new ArgumentException("DefinitionId is required", nameof(definitionId));
 
-        var activity = Source.StartActivity("saga.start", ActivityKind.Internal);
+        var activity = Source.StartActivity(StartActivityName, ActivityKind.Internal);
         if (activity == null) return null;
 
-        activity.SetTag("saga.id", sagaId);
-        activity.SetTag("saga.definition_id", definitionId);
+        activity.SetTag(SagaIdTag, sagaId);
+        activity.SetTag(SagaDefinitionIdTag, definitionId);
 
         if (!string.IsNullOrWhiteSpace(correlationId))
         {
-            activity.SetTag("saga.correlation_id", correlationId);
+            activity.SetTag(SagaCorrelationIdTag, correlationId);
             // Propagate correlation as baggage so downstream spans can reference it
-            activity.SetBaggage("saga.correlation_id", correlationId);
+            activity.SetBaggage(CorrelationIdBaggageKey, correlationId);
         }
 
         return activity;
@@ -75,12 +100,12 @@ public static class SagaActivitySource
         if (string.IsNullOrWhiteSpace(finalStatus))
             throw new ArgumentException("FinalStatus is required", nameof(finalStatus));
 
-        var activity = Source.StartActivity("saga.complete", ActivityKind.Internal);
+        var activity = Source.StartActivity(CompleteActivityName, ActivityKind.Internal);
         if (activity == null) return null;
 
-        activity.SetTag("saga.id", sagaId);
-        activity.SetTag("saga.status", finalStatus);
-        activity.SetTag("saga.total_steps", totalSteps);
+        activity.SetTag(SagaIdTag, sagaId);
+        activity.SetTag(SagaStatusTag, finalStatus);
+        activity.SetTag(SagaTotalStepsTag, totalSteps);
 
         return activity;
     }
@@ -101,14 +126,14 @@ public static class SagaActivitySource
         if (string.IsNullOrWhiteSpace(stepName))
             throw new ArgumentException("StepName is required", nameof(stepName));
 
-        var activity = Source.StartActivity("saga.step", ActivityKind.Client);
+        var activity = Source.StartActivity(StepActivityName, ActivityKind.Client);
         if (activity == null) return null;
 
-        activity.SetTag("saga.id", sagaId);
-        activity.SetTag("saga.step.id", stepId);
-        activity.SetTag("saga.step.name", stepName);
-        activity.SetTag("saga.step.order", order);
-        activity.SetTag("saga.step.attempt", attempt);
+        activity.SetTag(SagaIdTag, sagaId);
+        activity.SetTag(SagaStepIdTag, stepId);
+        activity.SetTag(SagaStepNameTag, stepName);
+        activity.SetTag(SagaStepOrderTag, order);
+        activity.SetTag(SagaStepAttemptTag, attempt);
 
         return activity;
     }
@@ -123,7 +148,7 @@ public static class SagaActivitySource
             throw new ArgumentException("ErrorMessage is required", nameof(errorMessage));
 
         activity.SetStatus(ActivityStatusCode.Error, errorMessage);
-        activity.SetTag("saga.step.error", errorMessage);
+        activity.SetTag(SagaStepErrorTag, errorMessage);
     }
 
     // -------------------------------------------------------------------------
@@ -142,13 +167,13 @@ public static class SagaActivitySource
         if (string.IsNullOrWhiteSpace(stepName))
             throw new ArgumentException("StepName is required", nameof(stepName));
 
-        var activity = Source.StartActivity("saga.compensate", ActivityKind.Client);
+        var activity = Source.StartActivity(CompensateActivityName, ActivityKind.Client);
         if (activity == null) return null;
 
-        activity.SetTag("saga.id", sagaId);
-        activity.SetTag("saga.compensation.id", compensationId);
-        activity.SetTag("saga.compensation.step_name", stepName);
-        activity.SetTag("saga.compensation.step_order", stepOrder);
+        activity.SetTag(SagaIdTag, sagaId);
+        activity.SetTag(SagaCompensationIdTag, compensationId);
+        activity.SetTag(SagaCompensationStepNameTag, stepName);
+        activity.SetTag(SagaCompensationStepOrderTag, stepOrder);
 
         return activity;
     }
@@ -163,6 +188,6 @@ public static class SagaActivitySource
             throw new ArgumentException("ErrorMessage is required", nameof(errorMessage));
 
         activity.SetStatus(ActivityStatusCode.Error, errorMessage);
-        activity.SetTag("saga.compensation.error", errorMessage);
+        activity.SetTag(SagaCompensationErrorTag, errorMessage);
     }
 }
