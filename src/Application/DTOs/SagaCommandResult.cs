@@ -67,6 +67,9 @@ public class SagaCommandResult
             Timestamp = DateTime.UtcNow
         };
     }
+
+    public override string ToString() =>
+        $"SagaCommandResult {{ Success = {Success}, Message = {Message}, Errors = {Errors.Count}, RequestId = {RequestId}, Timestamp = {Timestamp} }}";
 }
 
 public class SagaCommandResult<T>
