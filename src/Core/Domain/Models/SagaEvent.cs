@@ -133,6 +133,14 @@ public class SagaEvent
 
         Data[key] = value;
     }
+
+    /// <summary>
+    /// Returns a concise summary of the event's key properties
+    /// </summary>
+    public override string ToString()
+    {
+        return $"SagaEvent {{ Id = {Id}, SagaId = {SagaId}, EventType = {EventType}, EventName = {EventName}, Severity = {Severity}, Timestamp = {Timestamp:O}, Source = {Source} }}";
+    }
 }
 
 /// <summary>
