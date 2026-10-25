@@ -7,5 +7,9 @@ namespace SagaOrchestrator.Infrastructure.Caching;
 /// <param name="Id">The unique identifier for the item.</param>
 public record CacheKeyDescriptor(string Prefix, string Id)
 {
+    public string Prefix { get; init; } = Prefix ?? throw new ArgumentNullException(nameof(Prefix));
+
+    public string Id { get; init; } = Id ?? throw new ArgumentNullException(nameof(Id));
+
     public override string ToString() => $"{Prefix}:{Id}";
 }
