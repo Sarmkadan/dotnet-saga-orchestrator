@@ -13,6 +13,11 @@ namespace SagaOrchestrator.Core.Utilities;
 /// </summary>
 public class TimeoutPolicy
 {
+    private const int RelaxedThresholdSeconds = 300;
+    private const int LenientTimeoutSeconds = 300;
+    private const int StandardTimeoutSeconds = 60;
+    private const int StrictTimeoutSeconds = 10;
+
     public int TimeoutSeconds { get; }
     public TimeSpan Timeout { get; }
     public bool IsRelaxed { get; }
@@ -27,7 +32,7 @@ public class TimeoutPolicy
 
         TimeoutSeconds = timeoutSeconds;
         Timeout = TimeSpan.FromSeconds(timeoutSeconds);
-        IsRelaxed = timeoutSeconds >= 300;
+        IsRelaxed = timeoutSeconds >= RelaxedThresholdSeconds;
     }
 
     /// <summary>
@@ -80,7 +85,7 @@ public class TimeoutPolicy
     /// </summary>
     public static TimeoutPolicy CreateLenient()
     {
-        return new TimeoutPolicy(300);
+        return new TimeoutPolicy(LenientTimeoutSeconds);
     }
 
     /// <summary>
@@ -88,7 +93,7 @@ public class TimeoutPolicy
     /// </summary>
     public static TimeoutPolicy CreateStandard()
     {
-        return new TimeoutPolicy(60);
+        return new TimeoutPolicy(StandardTimeoutSeconds);
     }
 
     /// <summary>
@@ -96,7 +101,7 @@ public class TimeoutPolicy
     /// </summary>
     public static TimeoutPolicy CreateStrict()
     {
-        return new TimeoutPolicy(10);
+        return new TimeoutPolicy(StrictTimeoutSeconds);
     }
 
     /// <summary>
