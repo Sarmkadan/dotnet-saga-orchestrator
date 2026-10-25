@@ -55,8 +55,8 @@ public class SagaStateRenderer : ISagaStateRenderer
         var filled = (int)Math.Round(snapshot.ProgressPercent / 100 * ProgressBarWidth);
         var sb = new StringBuilder(60); // Capacity estimate: [20-bar] [5-percent] [12-steps-text] etc.
         sb.Append('[');
-        for (var i = 0; i < filled; i++) sb.Append('█');
-        for (var i = 0; i < ProgressBarWidth - filled; i++) sb.Append('░');
+        for (int i = 0; i < filled; i++) sb.Append('█');
+        for (int i = 0; i < ProgressBarWidth - filled; i++) sb.Append('░');
         sb.Append(']');
         sb.Append(' ');
         sb.Append(snapshot.ProgressPercent.ToString("F1"));
@@ -91,7 +91,7 @@ public class SagaStateRenderer : ISagaStateRenderer
             var names = snapshot.Nodes.Select(n => Sanitize(n.Name)).ToList();
             var nameWidth = Math.Max(names.Max(n => n.Length), 16);
 
-            for (var i = 0; i < snapshot.Nodes.Count; i++)
+            for (int i = 0; i < snapshot.Nodes.Count; i++)
             {
                 var node = snapshot.Nodes[i];
                 var icon = GetStatusIcon(Sanitize(node.Status));
