@@ -14,6 +14,26 @@ namespace SagaOrchestrator.Core.Utilities;
 public class RetryPolicy
 {
     /// <summary>
+    /// The smallest allowed backoff multiplier; a value of 1.0 yields fixed (linear) delays.
+    /// </summary>
+    private const double MinBackoffMultiplier = 1.0;
+
+    /// <summary>
+    /// The first valid retry attempt number.
+    /// </summary>
+    private const int FirstAttemptNumber = 1;
+
+    /// <summary>
+    /// The number of retries used by a no-retry policy.
+    /// </summary>
+    private const int NoRetryMaxRetries = 0;
+
+    /// <summary>
+    /// The delay, in milliseconds, used by a no-retry policy.
+    /// </summary>
+    private const int NoRetryDelayMs = 0;
+
+    /// <summary>
     /// The default maximum number of retry attempts.
     /// </summary>
     public const int DefaultMaxRetries = 3;
@@ -60,7 +80,7 @@ public class RetryPolicy
         if (initialDelayMs < 0)
             throw new ArgumentException("Initial delay cannot be negative", nameof(initialDelayMs));
 
-        if (backoffMultiplier < 1.0)
+        if (backoffMultiplier < MinBackoffMultiplier)
             throw new ArgumentException("Backoff multiplier must be >= 1.0", nameof(backoffMultiplier));
 
         if (maxDelayMs < initialDelayMs)
@@ -78,7 +98,7 @@ public class RetryPolicy
     /// </summary>
     public int CalculateDelay(int attemptNumber)
     {
-        if (attemptNumber < 1)
+        if (attemptNumber < FirstAttemptNumber)
             throw new ArgumentException("Attempt number must be >= 1", nameof(attemptNumber));
 
         if (attemptNumber > MaxRetries)
@@ -111,7 +131,7 @@ public class RetryPolicy
     /// </summary>
     public static RetryPolicy CreateLinear(int maxRetries = DefaultMaxRetries, int delayMs = DefaultInitialDelayMs)
     {
-        return new RetryPolicy(maxRetries, delayMs, 1.0, delayMs);
+        return new RetryPolicy(maxRetries, delayMs, MinBackoffMultiplier, delayMs);
     }
 
     /// <summary>
@@ -135,6 +155,6 @@ public class RetryPolicy
     /// </summary>
     public static RetryPolicy CreateNoRetry()
     {
-        return new RetryPolicy(0, 0, 1.0, 0);
+        return new RetryPolicy(NoRetryMaxRetries, NoRetryDelayMs, MinBackoffMultiplier, NoRetryDelayMs);
     }
 }
