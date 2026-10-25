@@ -24,6 +24,8 @@ public class EventBus : IEventBus
 
     public void Subscribe<T>(Func<T, Task> handler) where T : DomainEvent
     {
+        ArgumentNullException.ThrowIfNull(handler);
+
         lock (_lock)
         {
             var eventType = typeof(T);
@@ -37,6 +39,8 @@ public class EventBus : IEventBus
 
     public void Unsubscribe<T>(Func<T, Task> handler) where T : DomainEvent
     {
+        ArgumentNullException.ThrowIfNull(handler);
+
         lock (_lock)
         {
             var eventType = typeof(T);
@@ -49,6 +53,8 @@ public class EventBus : IEventBus
 
     public async Task PublishAsync<T>(T @event) where T : DomainEvent
     {
+        ArgumentNullException.ThrowIfNull(@event);
+
         // Record event in history
         lock (_lock)
         {
