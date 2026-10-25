@@ -5,10 +5,9 @@
 // =============================================================================
 
 using System.Collections.Concurrent;
+using System.Threading;
 using SagaOrchestrator.Core.Extensions;
 using SagaOrchestrator.Infrastructure.Logging;
-
-using System.Threading;
 
 namespace SagaOrchestrator.Infrastructure.Resilience;
 
