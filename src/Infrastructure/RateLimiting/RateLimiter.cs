@@ -97,11 +97,11 @@ public class TokenBucketRateLimiter : IRateLimiter
                 if (_buckets.TryGetValue(key, out var bucket))
                 {
                     return RateLimitStatus.CreateSnapshot(
-                bucket.AvailableTokens,
-                bucket.TotalTokens,
-                bucket.LastRefillTime,
-                bucket.AvailableTokens <= 0
-            );
+                        bucket.AvailableTokens,
+                        bucket.TotalTokens,
+                        bucket.LastRefillTime,
+                        bucket.AvailableTokens <= 0
+                    );
                 }
 
                 return RateLimitStatus.NotLimited;
@@ -211,6 +211,7 @@ public class TokenBucketRateLimiter : IRateLimiter
                     _availableTokens -= tokens;
                     return true;
                 }
+
                 return false;
             }
         }
