@@ -25,7 +25,8 @@ public class SagaTimeoutWorker : BackgroundService
     private readonly ILogger<SagaTimeoutWorker> _logger;
     private readonly IEventBus _eventBus;
     private readonly SagaOptions _sagaOptions;
-    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(DefaultCheckIntervalSeconds);
+    private const int DefaultCheckIntervalSeconds = 30;
 
     public SagaTimeoutWorker(
         ISagaRepository sagaRepository,
@@ -50,7 +51,7 @@ public class SagaTimeoutWorker : BackgroundService
             try
             {
                 await CheckAndHandleTimeoutsAsync(stoppingToken);
-                await Task.Delay(_checkInterval, stoppingToken);
+                await Task.Delay(CheckInterval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
