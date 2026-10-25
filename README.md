@@ -1,5 +1,32 @@
 # dotnet-saga-orchestrator
 
+## Table of Contents
+
+- [Architecture](#architecture)
+- [SagaIdGenerator](#sagaidgenerator)
+- [SagaCliCommand](#sagaclicommand)
+- [SagaCliCommandExtensions](#sagaclicommandextensions)
+- [InMemorySagaDefinitionRepositoryExtensions](#inmemorysagadefinitionrepositoryextensions)
+- [InMemorySagaStepRepositoryExtensions](#inmemorysagasteprepositoryextensions)
+- [InMemorySagaRepositoryExtensions](#inmemorysagarepositoryextensions)
+- [CircuitBreakerRecoveryTests](#circuitbreakerrecoverytests)
+- [InMemoryCompensationTransactionRepositoryValidation](#inmemorycompensationtransactionrepositoryvalidation)
+- [SagaOptionsExtensions](#sagaoptionsextensions)
+- [SagaOptionsValidation](#sagaoptionsvalidation)
+- [InMemorySagaStepRepositoryValidation](#inmemorysagasteprepositoryvalidation)
+- [ISagaStateRenderer](#isagastaterenderer)
+- [MetricsSummary](#metricssummary)
+- [SagaOrchestrationServiceHappyPathTests](#sagaorchestrationservicehappypathtests)
+- [OutputFormatterTests](#outputformattertests)
+- [SagaMessageTemplatesValidationTests](#sagamessagetemplatesvalidationtests)
+- [SagaMessageTemplatesJsonExtensionsJsonExtensionsTests](#sagamessagetemplatesjsonextensionsjsonextensionstests)
+- [SagaMessageTemplatesTests](#sagamessagetemplatestests)
+- [SagaDebuggerServiceJsonExtensionsJsonExtensionsTests](#sagadebuggerservicejsonextensionsjsonextensionstests)
+- [SagaDebuggerServiceJsonExtensionsTests](#sagadebuggerservicejsonextensionstests)
+- [RetryPolicyTestsBehavior](#retrypolicytestsbehavior)
+- [Running Tests](#running-tests)
+- [License](#license)
+
 
 ## Architecture
 
