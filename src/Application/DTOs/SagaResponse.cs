@@ -84,6 +84,18 @@ public class SagaResponse
 
         return response;
     }
+
+    /// <summary>
+    /// Returns a short human-readable summary of the saga response.
+    /// </summary>
+    public override string ToString()
+    {
+        return $"SagaResponse {{ Id = {Id}, CorrelationId = {CorrelationId}, Status = {Status}, " +
+               $"Definition = {DefinitionName} ({DefinitionId}), StartedAt = {StartedAt:O}, " +
+               $"CompletedAt = {CompletedAt?.ToString("O") ?? "null"}, " +
+               $"Steps = {StepCount} (completed {CompletedSteps}, failed {FailedSteps}), " +
+               $"RetryCount = {RetryCount}, FailureReason = {FailureReason ?? "null"} }}";
+    }
 }
 
 /// <summary>
