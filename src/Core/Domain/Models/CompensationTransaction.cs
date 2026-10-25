@@ -157,4 +157,13 @@ public class CompensationTransaction
     {
         RequestPayload = payload ?? throw new ArgumentNullException(nameof(payload));
     }
+
+    /// <summary>
+    /// Returns a short summary of the compensation's key properties for logging and diagnostics.
+    /// </summary>
+    /// <returns>A string containing the compensation identifier, saga and step identifiers, status, order, retry count and timeout.</returns>
+    public override string ToString()
+    {
+        return $"CompensationTransaction {{ Id = {Id}, SagaId = {SagaId}, StepId = {StepId}, StepName = {StepName}, Order = {Order}, Status = {Status}, RetryCount = {RetryCount}/{MaxRetries}, TimeoutSeconds = {TimeoutSeconds} }}";
+    }
 }
