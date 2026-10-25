@@ -30,6 +30,16 @@ public static class DateTimeExtensions
     }
 
     /// <summary>
+    /// Determines whether the specified date and time is in the future relative to <see cref="DateTime.UtcNow"/>.
+    /// </summary>
+    /// <param name="value">The date and time to check.</param>
+    /// <returns><see langword="true"/> if <paramref name="value"/> is later than the current UTC time; otherwise, <see langword="false"/>.</returns>
+    public static bool IsInFuture(this DateTime value)
+    {
+        return value > DateTime.UtcNow;
+    }
+
+    /// <summary>
     /// Calculates the time remaining until the specified deadline.
     /// </summary>
     /// <param name="deadline">The deadline to calculate remaining time for.</param>
