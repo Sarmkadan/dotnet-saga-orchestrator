@@ -22,6 +22,11 @@ public interface ISagaDefinitionValidator
 
 public class SagaDefinitionValidator : ISagaDefinitionValidator
 {
+    private const int MaxNameLength = 255;
+    private const int MaxStepCount = 100;
+    private const int MaxTimeoutSeconds = 3600;
+    private const int MaxRetryCount = 10;
+
     public async Task ValidateAsync(SagaDefinition definition)
     {
         var errors = await ValidateAndGetErrorsAsync(definition);
@@ -42,15 +47,15 @@ public class SagaDefinitionValidator : ISagaDefinitionValidator
             if (string.IsNullOrWhiteSpace(definition.Name))
                 errors.Add("Definition name cannot be null or empty");
 
-            if (definition.Name.Length > 255)
-                errors.Add("Definition name cannot exceed 255 characters");
+            if (definition.Name.Length > MaxNameLength)
+                errors.Add($"Definition name cannot exceed {MaxNameLength} characters");
 
             // Check steps
             if (definition.Steps == null || definition.Steps.Count == 0)
                 errors.Add("Definition must contain at least one step");
 
-            if (definition.Steps?.Count > 100)
-                errors.Add("Definition cannot have more than 100 steps");
+            if (definition.Steps?.Count > MaxStepCount)
+                errors.Add($"Definition cannot have more than {MaxStepCount} steps");
 
             // Validate each step
             if (definition.Steps != null)
@@ -79,8 +84,8 @@ public class SagaDefinitionValidator : ISagaDefinitionValidator
         if (string.IsNullOrWhiteSpace(step.Name))
             errors.Add($"{stepPrefix}: Name cannot be null or empty");
 
-        if (step.Name?.Length > 255)
-            errors.Add($"{stepPrefix}: Name cannot exceed 255 characters");
+        if (step.Name?.Length > MaxNameLength)
+            errors.Add($"{stepPrefix}: Name cannot exceed {MaxNameLength} characters");
 
         if (string.IsNullOrWhiteSpace(step.ServiceName))
             errors.Add($"{stepPrefix}: Service name cannot be null or empty");
@@ -94,14 +99,14 @@ public class SagaDefinitionValidator : ISagaDefinitionValidator
         if (step.TimeoutSeconds <= 0)
             errors.Add($"{stepPrefix}: Timeout must be greater than 0");
 
-        if (step.TimeoutSeconds > 3600)
-            errors.Add($"{stepPrefix}: Timeout cannot exceed 3600 seconds (1 hour)");
+        if (step.TimeoutSeconds > MaxTimeoutSeconds)
+            errors.Add($"{stepPrefix}: Timeout cannot exceed {MaxTimeoutSeconds} seconds (1 hour)");
 
         if (step.MaxRetries < 0)
             errors.Add($"{stepPrefix}: Max retries cannot be negative");
 
-        if (step.MaxRetries > 10)
-            errors.Add($"{stepPrefix}: Max retries cannot exceed 10");
+        if (step.MaxRetries > MaxRetryCount)
+            errors.Add($"{stepPrefix}: Max retries cannot exceed {MaxRetryCount}");
 
         if (!string.IsNullOrWhiteSpace(step.CompensationUrl) && !Uri.IsWellFormedUriString(step.CompensationUrl, UriKind.Absolute))
             errors.Add($"{stepPrefix}: Compensation URL is not valid if provided");
@@ -139,6 +144,9 @@ public interface ISagaRequestValidator
 
 public class SagaRequestValidator : ISagaRequestValidator
 {
+    private const int MaxDefinitionIdLength = 255;
+    private const int MaxSagaDataLength = 10000;
+
     public async Task ValidateCreateSagaAsync(CreateSagaRequest request)
     {
         var errors = new List<string>();
@@ -146,11 +154,11 @@ public class SagaRequestValidator : ISagaRequestValidator
         if (string.IsNullOrWhiteSpace(request.DefinitionId))
             errors.Add("DefinitionId is required");
 
-        if (request.DefinitionId?.Length > 255)
-            errors.Add("DefinitionId cannot exceed 255 characters");
+        if (request.DefinitionId?.Length > MaxDefinitionIdLength)
+            errors.Add($"DefinitionId cannot exceed {MaxDefinitionIdLength} characters");
 
-        if (!string.IsNullOrEmpty(request.Data) && request.Data.Length > 10000)
-            errors.Add("Saga data cannot exceed 10000 characters");
+        if (!string.IsNullOrEmpty(request.Data) && request.Data.Length > MaxSagaDataLength)
+            errors.Add($"Saga data cannot exceed {MaxSagaDataLength} characters");
 
         if (errors.Count > 0)
             throw new ArgumentException($"Invalid saga creation request: {string.Join(", ", errors)}");
