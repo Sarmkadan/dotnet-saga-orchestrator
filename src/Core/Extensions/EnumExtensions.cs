@@ -205,6 +205,25 @@ public static class EnumExtensions
     }
 
     /// <summary>
+    /// Determines whether the enum value has all of the specified flags set.
+    /// </summary>
+    /// <typeparam name="T">The enum type.</typeparam>
+    /// <param name="value">The enum value to check.</param>
+    /// <param name="flags">The flags to check for.</param>
+    /// <returns>True if all of the flags are set; otherwise, false. Returns true when <paramref name="flags"/> is zero.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> or <paramref name="flags"/> is null.</exception>
+    public static bool HasAllFlags<T>(this T value, T flags) where T : Enum
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(flags);
+
+        var valueBits = Convert.ToInt64(value);
+        var flagsBits = Convert.ToInt64(flags);
+
+        return (valueBits & flagsBits) == flagsBits;
+    }
+
+    /// <summary>
     /// Converts a numeric value to the corresponding enum value.
     /// </summary>
     /// <typeparam name="T">The enum type to convert to.</typeparam>
