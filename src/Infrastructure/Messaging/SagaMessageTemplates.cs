@@ -12,6 +12,16 @@ namespace SagaOrchestrator.Infrastructure.Messaging;
 /// </summary>
 public static class SagaMessageTemplates
 {
+    private const string NewLine = "\n";
+    private const string Indent = "  ";
+    private const string MillisecondsSuffix = "ms";
+    private const string HealthyState = "healthy";
+    private const string UnhealthyState = "unhealthy";
+    private const string SucceededState = "succeeded";
+    private const string FailedState = "failed";
+    private const string SuccessStatusLabel = "SUCCESS";
+    private const string FailedStatusLabel = "FAILED";
+
     public static class SagaCreated
     {
         public static string Format(string sagaId, string sagaName, int stepCount)
@@ -26,11 +36,11 @@ public static class SagaMessageTemplates
             ArgumentException.ThrowIfNullOrEmpty(sagaId);
             ArgumentException.ThrowIfNullOrEmpty(sagaName);
             ArgumentException.ThrowIfNullOrEmpty(definitionId);
-            return $"New saga instance created\n" +
-                   $"  ID: {sagaId}\n" +
-                   $"  Name: {sagaName}\n" +
-                   $"  Definition: {definitionId}\n" +
-                   $"  Steps: {stepCount}";
+            return $"New saga instance created{NewLine}" +
+                   $"{Indent}ID: {sagaId}{NewLine}" +
+                   $"{Indent}Name: {sagaName}{NewLine}" +
+                   $"{Indent}Definition: {definitionId}{NewLine}" +
+                   $"{Indent}Steps: {stepCount}";
         }
     }
 
@@ -46,10 +56,10 @@ public static class SagaMessageTemplates
         {
             ArgumentException.ThrowIfNullOrEmpty(sagaId);
             ArgumentException.ThrowIfNullOrEmpty(stepName);
-            return $"Step execution started\n" +
-                   $"  Saga: {sagaId}\n" +
-                   $"  Step: {stepName}\n" +
-                   $"  Progress: {stepOrder}/{totalSteps}";
+            return $"Step execution started{NewLine}" +
+                   $"{Indent}Saga: {sagaId}{NewLine}" +
+                   $"{Indent}Step: {stepName}{NewLine}" +
+                   $"{Indent}Progress: {stepOrder}/{totalSteps}";
         }
     }
 
@@ -58,17 +68,17 @@ public static class SagaMessageTemplates
         public static string Format(string stepName, long durationMs)
         {
             ArgumentException.ThrowIfNullOrEmpty(stepName);
-            return $"Step '{stepName}' completed in {durationMs}ms";
+            return $"Step '{stepName}' completed in {durationMs}{MillisecondsSuffix}";
         }
 
         public static string Detailed(string stepName, long durationMs, string result)
         {
             ArgumentException.ThrowIfNullOrEmpty(stepName);
             ArgumentException.ThrowIfNullOrEmpty(result);
-            return $"Step execution completed\n" +
-                   $"  Step: {stepName}\n" +
-                   $"  Duration: {durationMs}ms\n" +
-                   $"  Result: {result}";
+            return $"Step execution completed{NewLine}" +
+                   $"{Indent}Step: {stepName}{NewLine}" +
+                   $"{Indent}Duration: {durationMs}{MillisecondsSuffix}{NewLine}" +
+                   $"{Indent}Result: {result}";
         }
     }
 
@@ -93,11 +103,11 @@ public static class SagaMessageTemplates
             ArgumentException.ThrowIfNullOrEmpty(sagaId);
             ArgumentException.ThrowIfNullOrEmpty(stepName);
             ArgumentException.ThrowIfNullOrEmpty(error);
-            return $"Step execution failed\n" +
-                   $"  Saga: {sagaId}\n" +
-                   $"  Step: {stepName}\n" +
-                   $"  Attempt: {attemptNumber}\n" +
-                   $"  Error: {error}";
+            return $"Step execution failed{NewLine}" +
+                   $"{Indent}Saga: {sagaId}{NewLine}" +
+                   $"{Indent}Step: {stepName}{NewLine}" +
+                   $"{Indent}Attempt: {attemptNumber}{NewLine}" +
+                   $"{Indent}Error: {error}";
         }
     }
 
@@ -106,19 +116,19 @@ public static class SagaMessageTemplates
         public static string Format(string sagaName, long durationMs, int completedSteps, int totalSteps)
         {
             ArgumentException.ThrowIfNullOrEmpty(sagaName);
-            return $"Saga '{sagaName}' completed successfully in {durationMs}ms ({completedSteps}/{totalSteps} steps)";
+            return $"Saga '{sagaName}' completed successfully in {durationMs}{MillisecondsSuffix} ({completedSteps}/{totalSteps} steps)";
         }
 
         public static string Detailed(string sagaId, string sagaName, long durationMs, int completedSteps, int totalSteps)
         {
             ArgumentException.ThrowIfNullOrEmpty(sagaId);
             ArgumentException.ThrowIfNullOrEmpty(sagaName);
-            return $"Saga execution completed\n" +
-                   $"  ID: {sagaId}\n" +
-                   $"  Name: {sagaName}\n" +
-                   $"  Duration: {durationMs}ms\n" +
-                   $"  Steps: {completedSteps}/{totalSteps}\n" +
-                   $"  Status: SUCCESS";
+            return $"Saga execution completed{NewLine}" +
+                   $"{Indent}ID: {sagaId}{NewLine}" +
+                   $"{Indent}Name: {sagaName}{NewLine}" +
+                   $"{Indent}Duration: {durationMs}{MillisecondsSuffix}{NewLine}" +
+                   $"{Indent}Steps: {completedSteps}/{totalSteps}{NewLine}" +
+                   $"{Indent}Status: {SuccessStatusLabel}";
         }
     }
 
@@ -137,12 +147,12 @@ public static class SagaMessageTemplates
             ArgumentException.ThrowIfNullOrEmpty(sagaName);
             ArgumentException.ThrowIfNullOrEmpty(failedStepName);
             ArgumentException.ThrowIfNullOrEmpty(error);
-            return $"Saga execution failed\n" +
-                   $"  ID: {sagaId}\n" +
-                   $"  Name: {sagaName}\n" +
-                   $"  Failed Step: {failedStepName}\n" +
-                   $"  Error: {error}\n" +
-                   $"  Status: FAILED";
+            return $"Saga execution failed{NewLine}" +
+                   $"{Indent}ID: {sagaId}{NewLine}" +
+                   $"{Indent}Name: {sagaName}{NewLine}" +
+                   $"{Indent}Failed Step: {failedStepName}{NewLine}" +
+                   $"{Indent}Error: {error}{NewLine}" +
+                   $"{Indent}Status: {FailedStatusLabel}";
         }
     }
 
@@ -158,10 +168,10 @@ public static class SagaMessageTemplates
         {
             ArgumentException.ThrowIfNullOrEmpty(sagaId);
             ArgumentException.ThrowIfNullOrEmpty(strategy);
-            return $"Compensation initiated\n" +
-                   $"  Saga: {sagaId}\n" +
-                   $"  Strategy: {strategy}\n" +
-                   $"  Steps to compensate: {stepsToCompensate}";
+            return $"Compensation initiated{NewLine}" +
+                   $"{Indent}Saga: {sagaId}{NewLine}" +
+                   $"{Indent}Strategy: {strategy}{NewLine}" +
+                   $"{Indent}Steps to compensate: {stepsToCompensate}";
         }
     }
 
@@ -169,16 +179,16 @@ public static class SagaMessageTemplates
     {
         public static string Format(int compensatedSteps, long durationMs)
         {
-            return $"Compensation completed for {compensatedSteps} steps in {durationMs}ms";
+            return $"Compensation completed for {compensatedSteps} steps in {durationMs}{MillisecondsSuffix}";
         }
 
         public static string Detailed(string sagaId, int compensatedSteps, long durationMs)
         {
             ArgumentException.ThrowIfNullOrEmpty(sagaId);
-            return $"Compensation completed\n" +
-                   $"  Saga: {sagaId}\n" +
-                   $"  Steps compensated: {compensatedSteps}\n" +
-                   $"  Duration: {durationMs}ms";
+            return $"Compensation completed{NewLine}" +
+                   $"{Indent}Saga: {sagaId}{NewLine}" +
+                   $"{Indent}Steps compensated: {compensatedSteps}{NewLine}" +
+                   $"{Indent}Duration: {durationMs}{MillisecondsSuffix}";
         }
     }
 
@@ -219,13 +229,13 @@ public static class SagaMessageTemplates
     public static string ServiceHealth(string serviceName, bool isHealthy)
     {
         ArgumentException.ThrowIfNullOrEmpty(serviceName);
-        return $"Service '{serviceName}' is {(isHealthy ? "healthy" : "unhealthy")}";
+        return $"Service '{serviceName}' is {(isHealthy ? HealthyState : UnhealthyState)}";
     }
 
     public static string WebhookDelivery(string url, string eventType, bool success)
     {
         ArgumentException.ThrowIfNullOrEmpty(url);
         ArgumentException.ThrowIfNullOrEmpty(eventType);
-        return $"Webhook delivery {(success ? "succeeded" : "failed")} for {eventType} to {url}";
+        return $"Webhook delivery {(success ? SucceededState : FailedState)} for {eventType} to {url}";
     }
 }
