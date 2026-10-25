@@ -167,9 +167,9 @@ public class SagaLogger : ISagaLogger
 
         using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
-            ["SagaId"]    = saga.Id,
-            ["SagaName"]  = saga.Name,
-            ["Status"]    = saga.Status,
+            ["SagaId"] = saga.Id,
+            ["SagaName"] = saga.Name,
+            ["Status"] = saga.Status,
             ["StepCount"] = steps.Count
         });
 
