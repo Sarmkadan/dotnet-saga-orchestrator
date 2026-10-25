@@ -55,7 +55,8 @@ public sealed record InfrastructureConfiguration(
             services.AddTransient<PolicyHttpMessageHandler>();
             services.AddHttpClient("webhook")
                 .AddHttpMessageHandler<PolicyHttpMessageHandler>()
-                .ConfigureHttpClient(options => {
+                .ConfigureHttpClient(options =>
+                {
                     options.Timeout = TimeSpan.FromSeconds(30);
                 });
         }
