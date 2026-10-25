@@ -30,7 +30,12 @@ public class CompensationService
     private readonly SagaOptions _sagaOptions;
 
     protected CompensationService()
-    { _compensationRepository = null!; _sagaRepository = null!; _stepRepository = null!; _sagaOptions = new SagaOptions(); }
+    {
+        _compensationRepository = null!;
+        _sagaRepository = null!;
+        _stepRepository = null!;
+        _sagaOptions = new SagaOptions();
+    }
 
     public CompensationService(
         ICompensationTransactionRepository compensationRepository,
