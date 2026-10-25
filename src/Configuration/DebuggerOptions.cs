@@ -137,12 +137,12 @@ public sealed class DebuggerOptionsBuilder
     /// <param name="onTerminalState">Capture when the saga reaches a terminal state.</param>
     public DebuggerOptionsBuilder WithAutoCapture(
         bool onStepTransition = true,
-        bool onCompensation   = true,
-        bool onTerminalState  = true)
+        bool onCompensation = true,
+        bool onTerminalState = true)
     {
         _options.AutoCaptureOnStepTransition = onStepTransition;
-        _options.AutoCaptureOnCompensation   = onCompensation;
-        _options.AutoCaptureOnTerminalState  = onTerminalState;
+        _options.AutoCaptureOnCompensation = onCompensation;
+        _options.AutoCaptureOnTerminalState = onTerminalState;
         return this;
     }
 
@@ -168,8 +168,8 @@ public sealed class DebuggerOptionsBuilder
         bool includePayloads = true,
         bool includeMetadata = true)
     {
-        _options.IncludeStepPayloads  = includePayloads;
-        _options.IncludeSagaMetadata  = includeMetadata;
+        _options.IncludeStepPayloads = includePayloads;
+        _options.IncludeSagaMetadata = includeMetadata;
         return this;
     }
 
