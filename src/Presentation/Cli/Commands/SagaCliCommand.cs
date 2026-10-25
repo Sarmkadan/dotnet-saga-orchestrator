@@ -32,8 +32,11 @@ public class SagaCliCommand
     /// </summary>
     /// <param name="args">The raw argument array, where <c>args[0]</c> is the command verb.</param>
     /// <returns>A parsed command; inspect <see cref="IsValid"/> and <see cref="ValidationErrors"/> before use.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="args"/> is <see langword="null"/>.</exception>
     public static SagaCliCommand Parse(string[] args)
     {
+        ArgumentNullException.ThrowIfNull(args);
+
         var command = new SagaCliCommand();
 
         if (args.Length == 0)
