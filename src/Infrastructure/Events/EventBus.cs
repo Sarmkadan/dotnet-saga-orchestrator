@@ -69,7 +69,9 @@ public class EventBus : IEventBus
         }
 
         if (handlers == null || handlers.Count == 0)
+        {
             return;
+        }
 
         // Execute all handlers, ensuring one faulty handler does not stop others
         var tasks = new List<Task>();
