@@ -193,4 +193,13 @@ public class Saga
     {
         return Status == SagaStatus.Failed && RetryCount < MaxRetries;
     }
+
+    /// <summary>
+    /// Returns a short summary of the saga's key properties for logging and diagnostics.
+    /// </summary>
+    /// <returns>A string containing the saga identifier, correlation identifier, status, retry count and step count.</returns>
+    public override string ToString()
+    {
+        return $"Saga {{ Id = {Id}, CorrelationId = {CorrelationId}, Status = {Status}, RetryCount = {RetryCount}/{MaxRetries}, StartedAt = {StartedAt:O}, Steps = {Steps.Count} }}";
+    }
 }
