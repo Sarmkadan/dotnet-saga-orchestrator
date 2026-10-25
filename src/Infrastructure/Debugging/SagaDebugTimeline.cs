@@ -86,16 +86,16 @@ public sealed record TimelineEntry
 
         return new TimelineEntry
         {
-            EntryId     = Guid.NewGuid().ToString("N"),
-            Kind        = snapshot.Trigger == SnapshotTrigger.Breakpoint
-                              ? TimelineEntryKind.BreakpointHit
-                              : TimelineEntryKind.Snapshot,
-            Timestamp   = snapshot.CapturedAt,
-            Title       = $"Snapshot #{snapshot.SequenceNumber} — {snapshot.Trigger}",
+            EntryId = Guid.NewGuid().ToString("N"),
+            Kind = snapshot.Trigger == SnapshotTrigger.Breakpoint
+                       ? TimelineEntryKind.BreakpointHit
+                       : TimelineEntryKind.Snapshot,
+            Timestamp = snapshot.CapturedAt,
+            Title = $"Snapshot #{snapshot.SequenceNumber} — {snapshot.Trigger}",
             Description = snapshot.Label
                           ?? $"Saga status: {snapshot.SagaStatus} | "
                            + $"{snapshot.CompletedStepCount}/{snapshot.Steps.Count} steps completed",
-            SnapshotId  = snapshot.SnapshotId,
+            SnapshotId = snapshot.SnapshotId,
         };
     }
 
@@ -108,13 +108,13 @@ public sealed record TimelineEntry
 
         return new TimelineEntry
         {
-            EntryId     = Guid.NewGuid().ToString("N"),
-            Kind        = TimelineEntryKind.EventPublished,
-            Timestamp   = sagaEvent.Timestamp,
-            Title       = sagaEvent.EventName,
+            EntryId = Guid.NewGuid().ToString("N"),
+            Kind = TimelineEntryKind.EventPublished,
+            Timestamp = sagaEvent.Timestamp,
+            Title = sagaEvent.EventName,
             Description = sagaEvent.Description,
-            StepName    = sagaEvent.StepName,
-            Metadata    = new Dictionary<string, object>(sagaEvent.Data),
+            StepName = sagaEvent.StepName,
+            Metadata = new Dictionary<string, object>(sagaEvent.Data),
         };
     }
 }
@@ -223,7 +223,7 @@ public sealed record SagaDebugTimeline
         ArgumentNullException.ThrowIfNull(breakpoints);
 
         var snapshotEntries = snapshots.Select(TimelineEntry.FromSnapshot);
-        var eventEntries    = sagaEvents.Select(TimelineEntry.FromSagaEvent);
+        var eventEntries = sagaEvents.Select(TimelineEntry.FromSagaEvent);
 
         var allEntries = snapshotEntries
             .Concat(eventEntries)
@@ -233,12 +233,12 @@ public sealed record SagaDebugTimeline
 
         return new SagaDebugTimeline
         {
-            SagaId         = sagaId,
-            SagaName       = sagaName,
-            StartedAt      = sagaStartedAt,
+            SagaId = sagaId,
+            SagaName = sagaName,
+            StartedAt = sagaStartedAt,
             LastActivityAt = allEntries.Count > 0 ? allEntries[^1].Timestamp : null,
-            Entries        = allEntries,
-            Breakpoints    = breakpoints.ToList().AsReadOnly(),
+            Entries = allEntries,
+            Breakpoints = breakpoints.ToList().AsReadOnly(),
         };
     }
 }
