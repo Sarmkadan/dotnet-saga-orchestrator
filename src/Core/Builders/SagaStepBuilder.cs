@@ -4,6 +4,7 @@
 // CTO & Software Architect
 // =============================================================================
 
+using SagaOrchestrator.Core.Constants;
 using SagaOrchestrator.Core.Domain.Models;
 using SagaOrchestrator.Core.Extensions;
 using SagaOrchestrator.Core.Utilities;
@@ -16,15 +17,19 @@ namespace SagaOrchestrator.Core.Builders;
 /// </summary>
 public class SagaStepBuilder
 {
+    private const int DefaultStepOrder = 1;
+    private const int MaxStepTimeoutSeconds = 3600;
+    private const int MaxStepRetries = 10;
+
     private readonly SagaStepDefinition _step;
 
     private SagaStepBuilder(string name, string serviceName, string action)
     {
         _step = new SagaStepDefinition(name, serviceName, action, null)
         {
-            Order = 1,
-            TimeoutSeconds = 30,
-            MaxRetries = 3
+            Order = DefaultStepOrder,
+            TimeoutSeconds = SagaConstants.DefaultStepTimeoutSeconds,
+            MaxRetries = SagaConstants.DefaultMaxRetries
         };
     }
 
@@ -84,7 +89,7 @@ public class SagaStepBuilder
     /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithTimeout(int seconds)
     {
-        if (seconds <= 0 || seconds > 3600)
+        if (seconds <= 0 || seconds > MaxStepTimeoutSeconds)
             throw new ArgumentException("Timeout must be between 1 and 3600 seconds", nameof(seconds));
         _step.TimeoutSeconds = seconds;
         return this;
@@ -98,7 +103,7 @@ public class SagaStepBuilder
     /// <returns>The builder instance.</returns>
     public SagaStepBuilder WithRetryPolicy(int maxRetries, int delayMs)
     {
-        if (maxRetries < 0 || maxRetries > 10)
+        if (maxRetries < 0 || maxRetries > MaxStepRetries)
             throw new ArgumentException("Max retries must be between 0 and 10", nameof(maxRetries));
         if (delayMs < 0)
             throw new ArgumentException("Delay must be non-negative", nameof(delayMs));
