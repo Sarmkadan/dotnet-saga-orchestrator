@@ -911,6 +911,37 @@ tests.CustomConstructor_SetsAllPropertiesCorrectly();
 tests.CalculateDelay_RetriesExhausted_ThrowsInvalidOperationException();
 ```
 
+## Running Tests
+
+The test suite lives in `tests/dotnet-saga-orchestrator.Tests/` and uses xUnit, FluentAssertions, Moq, and NSubstitute. From the repository root:
+
+```bash
+dotnet test                                                    # all tests
+dotnet test -c Release --no-build --verbosity minimal          # after a Release build (make test)
+dotnet test --filter "FullyQualifiedName~SagaLifecycleTests"   # a single test class
+```
+
+CI (`.github/workflows/ci.yml` and `build.yml`) runs restore, a Release build, and then a Release test run with a trx logger.
+
+### What is covered
+
+The suite follows a one-file-per-type layout: each type under test has a matching `FooTests.cs`, with companion `FooExtensionsTests.cs` and `FooValidationTests.cs` files for its extension methods and argument validation. Coverage includes:
+
+- **Core utilities:** `SagaIdGenerator`, `RetryPolicy`, `TimeoutPolicy`, string, collection, enum, and date/time extensions.
+- **Domain models:** `Saga`, `SagaStep`, `SagaDefinition`, `CompensationTransaction`, `SagaEvent`, and `SagaResponse`.
+- **Application services:** `SagaOrchestrationService` and `CompensationService`, plus the `SagaDefinitionService` extensions.
+- **Data layer:** the `InMemory*` repositories and their validation rules.
+- **Infrastructure:** `CircuitBreaker` (state transitions and recovery), `EventBus`, `SagaActivitySource`, and the debugger service.
+- **End-to-end behaviour:** `SagaLifecycleTests`, `SagaIntegrationTests`, and `SagaCompensationFlowTests`.
+- **Conventions:** `TypeNamingConventionTests` fails the build if any public type has a doubled suffix.
+
+Some suites have reference pages under `docs/` that describe their scenarios in more depth, for example:
+
+- [docs/RetryPolicyTests.md](docs/RetryPolicyTests.md)
+- [docs/CircuitBreakerTests.md](docs/CircuitBreakerTests.md)
+- [docs/SagaLifecycleTests.md](docs/SagaLifecycleTests.md)
+- [docs/CompensationServiceTests.md](docs/CompensationServiceTests.md)
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for the full text.
