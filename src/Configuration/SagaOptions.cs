@@ -162,11 +162,11 @@ public class SagaOptionsBuilder
         return this;
     }
 
-public SagaOptionsBuilder WithStaleSagaTimeout(int seconds)
-{
-    _options.TimeoutPolicies.StaleSagaTimeoutSeconds = seconds.GreaterThan(0, nameof(seconds));
-    return this;
-}
+    public SagaOptionsBuilder WithStaleSagaTimeout(int seconds)
+    {
+        _options.TimeoutPolicies.StaleSagaTimeoutSeconds = seconds.GreaterThan(0, nameof(seconds));
+        return this;
+    }
 
     public SagaOptionsBuilder WithDefaultMaxRetries(int retries)
     {
