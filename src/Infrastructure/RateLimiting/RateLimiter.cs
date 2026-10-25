@@ -58,6 +58,9 @@ public interface IRateLimiter
 
 public class TokenBucketRateLimiter : IRateLimiter
 {
+    private const int SinglePermit = 1;
+    private const int InitialPollIntervalMilliseconds = 100;
+
     private readonly Dictionary<string, TokenBucket> _buckets = new();
     private readonly object _lock = new();
 
@@ -77,7 +80,7 @@ public class TokenBucketRateLimiter : IRateLimiter
                     _buckets[key] = bucket;
                 }
 
-                return bucket.TryAcquire(1);
+                return bucket.TryAcquire(SinglePermit);
             }
         });
     }
@@ -132,7 +135,7 @@ public class TokenBucketRateLimiter : IRateLimiter
         cancellationToken.ThrowIfCancellationRequested();
 
         var deadline = DateTime.UtcNow.Add(timeout);
-        var initialTimeout = TimeSpan.FromMilliseconds(Math.Min(100, timeout.TotalMilliseconds));
+        var initialTimeout = TimeSpan.FromMilliseconds(Math.Min(InitialPollIntervalMilliseconds, timeout.TotalMilliseconds));
 
         while (DateTime.UtcNow < deadline)
         {
